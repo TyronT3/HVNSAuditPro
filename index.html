@@ -3,106 +3,89 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>HVNS & Company — Audit Tracker</title>
+<title>HVNS &amp; Company — Audit Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--navy:#1A2B3C;--navy2:#2E4057;--navy3:#3a536b;--orange:#F5A623;--white:#fff;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;--purple:#7c3aed;}
+:root{--navy:#1A2B3C;--navy2:#2E4057;--orange:#F5A623;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Calibri',sans-serif;background:var(--light);color:var(--charcoal);min-height:100vh;}
-h1,h2,h3{font-family:'Trebuchet MS',sans-serif;}
 button,input,select,textarea{font-family:'Calibri',sans-serif;}
-/* Login */
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy);}
-.login-card{background:var(--navy2);border-radius:16px;padding:48px 40px;width:400px;max-width:95vw;border:1px solid var(--navy3);box-shadow:0 20px 60px rgba(0,0,0,0.4);}
-.firm-name{font-family:'Trebuchet MS',sans-serif;font-size:22px;font-weight:700;color:#fff;text-align:center;}
-.firm-sub{font-size:12px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;margin-top:4px;text-align:center;}
-.orange-line{height:2px;background:var(--orange);border-radius:1px;margin:16px 0;}
-.login-card label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);display:block;margin-bottom:4px;}
-.login-card input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:14px;outline:none;}
-.login-card input:focus{border-color:var(--orange);}
-.login-btn{width:100%;padding:12px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;}
-.login-btn:hover{background:#e8951a;}
-.login-error{color:#f87171;font-size:13px;margin-top:8px;text-align:center;}
-/* App shell */
+.lcard{background:var(--navy2);border-radius:16px;padding:48px 40px;width:400px;max-width:95vw;}
+.lcard label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);display:block;margin-bottom:4px;}
+.lcard input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:14px;outline:none;}
+.lcard input:focus{border-color:var(--orange);}
+.oline{height:2px;background:var(--orange);margin:16px 0;}
+.lbtn{width:100%;padding:12px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;}
+.lerr{color:#f87171;font-size:13px;margin-top:8px;text-align:center;}
 #appShell{display:none;flex-direction:column;min-height:100vh;}
-.header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;flex-wrap:wrap;gap:8px;}
-.header-title{font-family:'Trebuchet MS',sans-serif;font-size:17px;font-weight:700;color:#fff;}
-.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.user-pill{background:rgba(255,255,255,0.1);border-radius:20px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.8);}
-.role-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;}
-.role-manager{background:var(--orange);color:var(--navy);}
-.role-director{background:#7c3aed;color:#fff;}
-.role-staff{background:rgba(255,255,255,0.15);color:#fff;}
-.hdr-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
-.hdr-btn:hover{border-color:var(--orange);color:var(--orange);}
-.orange-accent{height:2px;background:var(--orange);width:100%;}
-.nav-bar{background:var(--navy2);padding:0 24px;display:flex;gap:2px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;}
-.nav-btn{padding:14px 18px;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;}
-.nav-btn:hover{color:rgba(255,255,255,0.85);}
-.nav-btn.active{color:#fff;border-bottom-color:var(--orange);}
+.header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;gap:8px;flex-wrap:wrap;}
+.htitle{font-family:'Trebuchet MS',sans-serif;font-size:17px;font-weight:700;color:#fff;}
+.hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.upill{background:rgba(255,255,255,0.1);border-radius:20px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.8);}
+.rbadge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;}
+.rm{background:var(--orange);color:var(--navy);}
+.rd{background:#7c3aed;color:#fff;}
+.rs{background:rgba(255,255,255,0.15);color:#fff;}
+.hbtn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
+.hbtn:hover{border-color:var(--orange);color:var(--orange);}
+.oacc{height:2px;background:var(--orange);}
+.nav{background:var(--navy2);padding:0 24px;display:flex;gap:2px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;}
+.nbtn{padding:14px 18px;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;}
+.nbtn:hover{color:rgba(255,255,255,0.85);}
+.nbtn.on{color:#fff;border-bottom-color:var(--orange);}
 .main{flex:1;max-width:1100px;margin:0 auto;padding:28px 20px;width:100%;}
-/* Cards */
 .card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:14px;overflow:hidden;border:1px solid var(--border);}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
 .stat{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:3px solid var(--orange);}
-.stat-val{font-family:'Trebuchet MS',sans-serif;font-size:24px;font-weight:700;color:var(--navy);}
-.stat-lbl{font-size:12px;color:#6b7280;margin-top:3px;}
+.sval{font-family:'Trebuchet MS',sans-serif;font-size:24px;font-weight:700;color:var(--navy);}
+.slbl{font-size:12px;color:#6b7280;margin-top:3px;}
 .badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap;}
-.step-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
-.bar-wrap{background:#e5e7eb;border-radius:99px;overflow:hidden;}
-.bar-inner{height:100%;border-radius:99px;transition:width .4s;}
-/* Tables */
-.data-table{width:100%;border-collapse:collapse;font-size:13px;}
-.data-table th{background:var(--navy);color:#fff;padding:10px 14px;text-align:left;font-family:'Trebuchet MS',sans-serif;font-weight:600;font-size:12px;}
-.data-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--charcoal);}
-.data-table tr:hover td{background:#f8fafc;}
-.data-table tr:last-child td{border-bottom:none;}
-/* Forms */
-.form-box{background:#fff;border-radius:14px;padding:28px;box-shadow:0 1px 6px rgba(0,0,0,0.08);max-width:720px;margin:0 auto;border:1px solid var(--border);}
-.sec-title{font-family:'Trebuchet MS',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--orange);}
+.sbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.bwrap{background:#e5e7eb;border-radius:99px;overflow:hidden;}
+.binn{height:100%;border-radius:99px;transition:width .4s;}
+.dtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.dtbl th{background:var(--navy);color:#fff;padding:10px 14px;text-align:left;font-family:'Trebuchet MS',sans-serif;font-weight:600;font-size:12px;}
+.dtbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--charcoal);}
+.dtbl tr:hover td{background:#f8fafc;}
+.dtbl tr:last-child td{border-bottom:none;}
+.fbox{background:#fff;border-radius:14px;padding:28px;box-shadow:0 1px 6px rgba(0,0,0,0.08);max-width:720px;margin:0 auto;border:1px solid var(--border);}
+.stitle{font-family:'Trebuchet MS',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--orange);}
 .inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;color:var(--charcoal);background:#fff;}
 .inp:focus{border-color:var(--navy);}
 .lbl{font-size:11px;font-weight:600;color:#6b7280;margin-bottom:3px;display:block;}
-.primary-btn{padding:11px 22px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
-.primary-btn:hover{background:var(--navy2);}
-.orange-btn{padding:11px 22px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
-.ghost-btn{padding:8px 16px;background:none;border:1.5px solid var(--border);color:var(--charcoal);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
-.ghost-btn:hover{border-color:var(--navy);color:var(--navy);}
-.danger-btn{padding:6px 12px;background:#fef2f2;color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
-/* Modals */
-.modal-overlay{position:fixed;inset:0;background:rgba(10,20,30,0.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
-.modal{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;}
-.modal-hdr{background:var(--navy);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
-.modal-hdr h3{font-family:'Trebuchet MS',sans-serif;color:#fff;font-size:15px;font-weight:700;}
-.modal-x{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;}
-.modal-x:hover{color:#fff;}
-.modal-body{padding:24px;}
-.modal-ftr{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:#f8fafc;}
-/* Step trail */
-.step-trail{display:flex;align-items:center;margin:12px 0;}
-.step-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:#fff;}
-.step-line{flex:1;height:2px;margin:0 2px;margin-bottom:14px;}
-.step-lbl{font-size:8px;font-weight:600;white-space:nowrap;max-width:52px;text-align:center;line-height:1.2;margin-top:3px;}
-/* Checkboxes */
+.pbtn{padding:11px 22px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+.pbtn:hover{background:var(--navy2);}
+.obtn{padding:11px 22px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+.gbtn{padding:8px 16px;background:none;border:1.5px solid var(--border);color:var(--charcoal);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.gbtn:hover{border-color:var(--navy);color:var(--navy);}
+.dbtn{padding:6px 12px;background:#fef2f2;color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
+.mo{position:fixed;inset:0;background:rgba(10,20,30,0.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.md{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;}
+.mh{background:var(--navy);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+.mh h3{font-family:'Trebuchet MS',sans-serif;color:#fff;font-size:15px;font-weight:700;}
+.mx{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;}
+.mb{padding:24px;}
+.mf{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:#f8fafc;}
+.strail{display:flex;align-items:center;margin:12px 0;}
+.sdot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:#fff;}
+.sline{flex:1;height:2px;margin:0 2px;margin-bottom:14px;}
+.slb{font-size:8px;font-weight:600;white-space:nowrap;max-width:52px;text-align:center;line-height:1.2;margin-top:3px;}
 .chk{width:18px;height:18px;border-radius:4px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
 .chk.on{background:var(--navy);border-color:var(--navy);}
-/* Alerts */
-.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px;}
-.alert-w{background:#fff7ed;border:1px solid #fed7aa;color:#92400e;}
-.alert-e{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
-.alert-s{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
-/* Tab bar */
-.tab-bar{display:flex;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);}
-.tab-item{flex:1;padding:10px;text-align:center;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
-.tab-item.on{background:var(--navy);color:#fff;}
-.tab-item:not(.on){background:#f8fafc;color:#9ca3af;}
-/* Report */
-.report-wrap{width:90vw;max-width:900px;max-height:88vh;display:flex;flex-direction:column;}
-.report-scroll{flex:1;overflow-y:auto;}
-/* Footer */
-.app-footer{background:var(--navy);padding:8px 24px;display:flex;justify-content:space-between;}
-.footer-txt{font-size:11px;color:rgba(255,255,255,0.35);}
-.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:#9ca3af;}
+.tbar{display:flex;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);}
+.titem{flex:1;padding:10px;text-align:center;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.titem.on{background:var(--navy);color:#fff;}
+.titem:not(.on){background:#f8fafc;color:#9ca3af;}
+.rwrap{width:90vw;max-width:900px;max-height:88vh;display:flex;flex-direction:column;}
+.rscroll{flex:1;overflow-y:auto;}
+.al{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px;}
+.al-w{background:#fff7ed;border:1px solid #fed7aa;color:#92400e;}
+.al-e{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+.al-s{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
+.footer{background:var(--navy);padding:8px 24px;display:flex;justify-content:space-between;}
+.ftxt{font-size:11px;color:rgba(255,255,255,0.35);}
+.load{display:flex;align-items:center;justify-content:center;padding:60px;color:#9ca3af;}
 @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr);}.main{padding:16px 12px;}}
 </style>
 </head>
@@ -110,87 +93,79 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-card">
-    <div class="firm-name">HVNS &amp; Company</div>
-    <div class="firm-sub">Audit &amp; Assurance</div>
-    <div class="orange-line"></div>
+  <div class="lcard">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-family:'Trebuchet MS',sans-serif;font-size:22px;font-weight:700;color:#fff;">HVNS &amp; Company</div>
+      <div style="font-size:12px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Audit &amp; Assurance</div>
+    </div>
+    <div class="oline"></div>
     <div style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:20px;">Audit Tracker</div>
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div><label>Email Address</label><input type="email" id="liEmail" placeholder="you@hvns.co.za"/></div>
       <div><label>Password</label><input type="password" id="liPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <button class="login-btn" id="liBtn" onclick="doLogin()">Sign In</button>
-      <div id="liErr" class="login-error" style="display:none;"></div>
+      <button class="lbtn" id="liBtn" onclick="doLogin()">Sign In</button>
+      <div id="liErr" class="lerr" style="display:none;"></div>
     </div>
     <div style="text-align:center;margin-top:14px;">
-      <span onclick="openModal('forgotModal')" style="font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
+      <span onclick="openM('fgtModal')" style="font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
     </div>
-    <div class="orange-line" style="margin-top:16px;"></div>
+    <div class="oline" style="margin-top:16px;"></div>
     <div style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">Access restricted to authorised HVNS personnel</div>
   </div>
 </div>
 
-<!-- APP SHELL -->
+<!-- APP -->
 <div id="appShell" style="display:none;flex-direction:column;min-height:100vh;">
   <div class="header">
-    <div>
-      <div class="header-title">HVNS &amp; Company — Audit Tracker</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="hdrSub"></div>
-    </div>
-    <div class="header-right">
-      <span class="user-pill" id="userPill"></span>
-      <span class="role-badge" id="roleBadge"></span>
-      <button class="hdr-btn" onclick="openChangePwd()" style="border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8);">🔑 Change Password</button>
-      <button class="hdr-btn" onclick="doLogout()">Sign Out</button>
+    <div><div class="htitle">HVNS &amp; Company — Audit Tracker</div><div style="font-size:11px;color:rgba(255,255,255,0.5);" id="hSub"></div></div>
+    <div class="hright">
+      <span class="upill" id="uPill"></span>
+      <span class="rbadge" id="rBadge"></span>
+      <button class="hbtn" onclick="openChangePwd()" style="border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8);">🔑 Change Password</button>
+      <button class="hbtn" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
-  <div class="orange-accent"></div>
-  <div class="nav-bar" id="navBar"></div>
-  <div class="main" id="main"><div class="loading">Loading...</div></div>
-  <div class="orange-accent"></div>
-  <div class="app-footer">
-    <span class="footer-txt">HVNS &amp; Company — Confidential</span>
-    <span class="footer-txt" id="footerTime"></span>
-  </div>
+  <div class="oacc"></div>
+  <div class="nav" id="navBar"></div>
+  <div class="main" id="main"><div class="load">Loading...</div></div>
+  <div class="oacc"></div>
+  <div class="footer"><span class="ftxt">HVNS &amp; Company — Confidential</span><span class="ftxt" id="fTime"></span></div>
 </div>
 
 <!-- MODALS -->
-<div id="hoursModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:360px;">
-    <div class="modal-hdr"><h3>⏱ Log Time</h3><button class="modal-x" onclick="closeModal('hoursModal')">✕</button></div>
-    <div class="modal-body">
-      <div id="hoursTxt" style="font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.5;"></div>
+<div id="hrsModal" class="mo" style="display:none;">
+  <div class="md" style="width:360px;">
+    <div class="mh"><h3>⏱ Log Time</h3><button class="mx" onclick="closeM('hrsModal')">✕</button></div>
+    <div class="mb">
+      <div id="hrsTxt" style="font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.5;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div><label class="lbl">Hours Spent</label><input type="number" id="hrsInput" class="inp" min="0" step="0.25" placeholder="e.g. 2.5"/></div>
+        <div><label class="lbl">Hours Spent</label><input type="number" id="hrsInp" class="inp" min="0" step="0.25" placeholder="e.g. 2.5"/></div>
         <div><label class="lbl">Note (optional)</label><input type="text" id="hrsNote" class="inp" placeholder="e.g. client call"/></div>
       </div>
     </div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="confirmAdv(0)">Skip</button>
-      <button class="primary-btn" onclick="confirmAdv()">Confirm &amp; Save</button>
-    </div>
+    <div class="mf"><button class="gbtn" onclick="confirmAdv(0)">Skip</button><button class="pbtn" onclick="confirmAdv()">Confirm &amp; Save</button></div>
   </div>
 </div>
 
-<div id="timesheetModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:500px;">
-    <div class="modal-hdr"><h3>📅 Weekly Time Reconciliation</h3><button class="modal-x" onclick="closeModal('timesheetModal')">✕</button></div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="alert alert-w">Submit hours from your <b>firm time tracking system</b>. Select the correct week carefully.</div>
+<div id="tsModal" class="mo" style="display:none;">
+  <div class="md" style="width:500px;">
+    <div class="mh"><h3>📅 Weekly Time Reconciliation</h3><button class="mx" onclick="closeM('tsModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="al al-w">Submit hours from your <b>firm time tracking system</b>. Select the correct week carefully.</div>
       <div>
         <label class="lbl">Week Ending (Friday)</label>
         <select id="tsWeek" class="inp" style="background:#fff;" onchange="onTsChange()"></select>
-        <div id="tsWeekLbl" style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px;"></div>
+        <div id="tsWLbl" style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px;"></div>
       </div>
       <div>
         <label class="lbl">Subsection</label>
         <select id="tsSub" class="inp" style="background:#fff;" onchange="onTsChange()"></select>
-        <div id="tsAlready" class="alert alert-w" style="display:none;margin-top:6px;">⚠️ Already submitted for this week/subsection.</div>
+        <div id="tsAlready" class="al al-w" style="display:none;margin-top:6px;">Already submitted for this week/subsection.</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="lbl">Firm System Hours</label><input type="number" id="tsFirm" class="inp" min="0" step="0.25" oninput="calcVar()"/></div>
         <div><label class="lbl">App Hours (auto)</label><input type="number" id="tsApp" class="inp" readonly style="background:#f8fafc;"/>
-          <div id="tsAppLbl" style="font-size:11px;color:#6b7280;margin-top:3px;"></div>
-        </div>
+          <div id="tsAppLbl" style="font-size:11px;color:#6b7280;margin-top:3px;"></div></div>
       </div>
       <div id="tsVarBox" style="display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;">
         <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Variance — explanation required</div>
@@ -199,60 +174,48 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
         <textarea id="tsExp" class="inp" rows="3" placeholder="Explain the difference..."></textarea>
       </div>
     </div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="closeModal('timesheetModal')">Cancel</button>
-      <button class="primary-btn" id="tsSubmitBtn" onclick="submitTs()">Submit</button>
-    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('tsModal')">Cancel</button><button class="pbtn" id="tsSBtn" onclick="submitTs()">Submit</button></div>
   </div>
 </div>
 
-<div id="reassignModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:320px;">
-    <div class="modal-hdr"><h3>👤 Reassign</h3><button class="modal-x" onclick="closeModal('reassignModal')">✕</button></div>
-    <div class="modal-body"><label class="lbl">Assign To</label><select id="reassignSel" class="inp" style="background:#fff;"></select></div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="closeModal('reassignModal')">Cancel</button>
-      <button class="primary-btn" onclick="doReassign()">Reassign</button>
-    </div>
+<div id="rsnModal" class="mo" style="display:none;">
+  <div class="md" style="width:320px;">
+    <div class="mh"><h3>👤 Reassign</h3><button class="mx" onclick="closeM('rsnModal')">✕</button></div>
+    <div class="mb"><label class="lbl">Assign To</label><select id="rsnSel" class="inp" style="background:#fff;"></select></div>
+    <div class="mf"><button class="gbtn" onclick="closeM('rsnModal')">Cancel</button><button class="pbtn" onclick="doReassign()">Reassign</button></div>
   </div>
 </div>
 
-<div id="addSubModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:400px;">
-    <div class="modal-hdr"><h3>➕ Add Subsection</h3><button class="modal-x" onclick="closeModal('addSubModal')">✕</button></div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+<div id="asnModal" class="mo" style="display:none;">
+  <div class="md" style="width:400px;">
+    <div class="mh"><h3>➕ Add Subsection</h3><button class="mx" onclick="closeM('asnModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:12px;">
       <div><label class="lbl">Name *</label><input id="asnName" class="inp" placeholder="e.g. Bank Interest Schedule"/></div>
-      <div><label class="lbl">Assignee</label><select id="asnAssignee" class="inp" style="background:#fff;"></select></div>
+      <div><label class="lbl">Assignee</label><select id="asnAss" class="inp" style="background:#fff;"></select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="lbl">Due Date</label><input type="date" id="asnDue" class="inp"/></div>
-        <div><label class="lbl">Budget Hours</label><input type="number" id="asnBudget" class="inp" min="0" step="0.25" placeholder="0"/></div>
+        <div><label class="lbl">Budget Hours</label><input type="number" id="asnBud" class="inp" min="0" step="0.25" placeholder="0"/></div>
       </div>
     </div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="closeModal('addSubModal')">Cancel</button>
-      <button class="primary-btn" onclick="confirmAddSub()">Add</button>
-    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('asnModal')">Cancel</button><button class="pbtn" onclick="confirmAsn()">Add</button></div>
   </div>
 </div>
 
-<div id="teamsModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:500px;max-width:95vw;">
-    <div class="modal-hdr"><h3>💬 Teams Message</h3><button class="modal-x" onclick="closeModal('teamsModal')">✕</button></div>
-    <div class="modal-body">
+<div id="teamsModal" class="mo" style="display:none;">
+  <div class="md" style="width:500px;max-width:95vw;">
+    <div class="mh"><h3>💬 Teams Message</h3><button class="mx" onclick="closeM('teamsModal')">✕</button></div>
+    <div class="mb">
       <textarea id="teamsTxt" readonly onclick="this.select()" style="width:100%;height:180px;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;resize:none;outline:none;"></textarea>
       <div style="font-size:12px;color:#9ca3af;margin-top:8px;">Click inside → Ctrl+A → Ctrl+C → paste into Teams.</div>
     </div>
-    <div class="modal-ftr"><button class="ghost-btn" onclick="closeModal('teamsModal')">Close</button></div>
+    <div class="mf"><button class="gbtn" onclick="closeM('teamsModal')">Close</button></div>
   </div>
 </div>
 
-<div id="reportModal" class="modal-overlay" style="display:none;">
-  <div class="modal report-wrap">
-    <div class="modal-hdr">
-      <div><h3 id="rptTitle"></h3><div id="rptSub" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div></div>
-      <button class="modal-x" onclick="closeModal('reportModal')">✕</button>
-    </div>
-    <div class="report-scroll"><table class="data-table"><thead id="rptHead"></thead><tbody id="rptBody"></tbody></table></div>
+<div id="rptModal" class="mo" style="display:none;">
+  <div class="md rwrap">
+    <div class="mh"><div><h3 id="rptTitle"></h3><div id="rptSub" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div></div><button class="mx" onclick="closeM('rptModal')">✕</button></div>
+    <div class="rscroll"><table class="dtbl"><thead id="rptHead"></thead><tbody id="rptBody"></tbody></table></div>
     <div style="padding:14px 20px;border-top:1px solid var(--border);background:#f8fafc;">
       <div style="font-size:12px;font-weight:600;margin-bottom:6px;">📋 CSV — click inside, Ctrl+A, Ctrl+C, paste into Notepad, save as .csv, open in Excel</div>
       <textarea id="csvTxt" readonly onclick="this.select()" style="width:100%;height:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-family:monospace;resize:none;outline:none;"></textarea>
@@ -260,26 +223,23 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
-<div id="changePwdModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:380px;">
-    <div class="modal-hdr"><h3>🔑 Change Password</h3><button class="modal-x" onclick="closeModal('changePwdModal')">✕</button></div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+<div id="cpwdModal" class="mo" style="display:none;">
+  <div class="md" style="width:380px;">
+    <div class="mh"><h3>🔑 Change Password</h3><button class="mx" onclick="closeM('cpwdModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
       <div><label class="lbl">New Password</label><input type="password" id="pwd1" class="inp" placeholder="Min 6 characters"/></div>
       <div><label class="lbl">Confirm Password</label><input type="password" id="pwd2" class="inp" onkeydown="if(event.key==='Enter')doChangePwd()"/></div>
-      <div id="pwdStatus" style="display:none;"></div>
+      <div id="cpwdSt" style="display:none;"></div>
     </div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="closeModal('changePwdModal')">Cancel</button>
-      <button class="primary-btn" onclick="doChangePwd()">Update Password</button>
-    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('cpwdModal')">Cancel</button><button class="pbtn" onclick="doChangePwd()">Update Password</button></div>
   </div>
 </div>
 
-<div id="addUserModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:440px;">
-    <div class="modal-hdr"><h3>➕ Add User Profile</h3><button class="modal-x" onclick="closeModal('addUserModal')">✕</button></div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="alert alert-w">First create the user in <b>Supabase Auth → Users → Add user</b>, then fill in their profile here.</div>
+<div id="auModal" class="mo" style="display:none;">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>➕ Add User Profile</h3><button class="mx" onclick="closeM('auModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="al al-w">First create the user in <b>Supabase Auth → Users → Add user</b>, then fill in their profile here.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="lbl">Full Name *</label><input id="nuName" class="inp" placeholder="e.g. Sarah Johnson"/></div>
         <div><label class="lbl">Email *</label><input id="nuEmail" class="inp" placeholder="sarah@hvns.co.za"/></div>
@@ -291,39 +251,33 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
           <option value="director">Director — reports only</option>
         </select>
       </div>
-      <div id="nuStatus" style="display:none;"></div>
+      <div id="auSt" style="display:none;"></div>
     </div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="closeModal('addUserModal')">Cancel</button>
-      <button class="primary-btn" onclick="doAddUser()">Save Profile</button>
-    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('auModal')">Cancel</button><button class="pbtn" onclick="doAddUser()">Save Profile</button></div>
   </div>
 </div>
 
-<div id="forgotModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:380px;">
-    <div class="modal-hdr"><h3>🔑 Reset Password</h3><button class="modal-x" onclick="closeModal('forgotModal')">✕</button></div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <p style="font-size:13px;color:#6b7280;">Enter your email and we'll send a reset link.</p>
+<div id="fgtModal" class="mo" style="display:none;">
+  <div class="md" style="width:380px;">
+    <div class="mh"><h3>🔑 Reset Password</h3><button class="mx" onclick="closeM('fgtModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
+      <p style="font-size:13px;color:#6b7280;">Enter your email and we will send a reset link.</p>
       <div><label class="lbl">Email</label><input type="email" id="fgtEmail" class="inp" placeholder="you@hvns.co.za"/></div>
-      <div id="fgtStatus" style="display:none;"></div>
+      <div id="fgtSt" style="display:none;"></div>
     </div>
-    <div class="modal-ftr">
-      <button class="ghost-btn" onclick="closeModal('forgotModal')">Cancel</button>
-      <button class="primary-btn" onclick="doForgot()">Send Reset Link</button>
-    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('fgtModal')">Cancel</button><button class="pbtn" onclick="doForgot()">Send Reset Link</button></div>
   </div>
 </div>
 
 <script>
-const SURL='https://lbwqkfppvrdbydtlkjtz.supabase.co';
-const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
-const sb=supabase.createClient(SURL,SKEY,{auth:{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'}});
+var SURL='https://lbwqkfppvrdbydtlkjtz.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
+var sb=supabase.createClient(SURL,SKEY,{auth:{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'}});
 
-const STEPS=['Not Started','Client Requested','Client Received','Processing','Finalising','Done'];
-const SC={'Not Started':{c:'#6b7280',b:'#f3f4f6'},'Client Requested':{c:'#0891b2',b:'#ecfeff'},'Client Received':{c:'#1A2B3C',b:'#e8eef4'},'Processing':{c:'#7c3aed',b:'#f5f3ff'},'Finalising':{c:'#d97706',b:'#fffbeb'},'Done':{c:'#16a34a',b:'#f0fdf4'}};
-const AT_RISK=['Not Started','Client Requested','Client Received'];
-const STPLS=[
+var STEPS=['Not Started','Client Requested','Client Received','Processing','Finalising','Done'];
+var SC={'Not Started':{c:'#6b7280',b:'#f3f4f6'},'Client Requested':{c:'#0891b2',b:'#ecfeff'},'Client Received':{c:'#1A2B3C',b:'#e8eef4'},'Processing':{c:'#7c3aed',b:'#f5f3ff'},'Finalising':{c:'#d97706',b:'#fffbeb'},'Done':{c:'#16a34a',b:'#f0fdf4'}};
+var AT=['Not Started','Client Requested','Client Received'];
+var STPLS=[
   {n:'Planning',s:['Engagement Letter','Audit Plan'],d:true},
   {n:'Cash & Bank',s:['Bank Reconciliation','Bank Confirmations'],d:true},
   {n:'Accounts Receivable',s:['Debtors Listing','Circularisation Letters'],d:true},
@@ -341,72 +295,70 @@ const STPLS=[
   {n:'Going Concern Review',s:['Cash Flow Forecast','Management Assessment'],d:false}
 ];
 
-let CU=null,CR=null,CV='dashboard',FR=1000,AU=[],EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
-let fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='';
+var CU=null,CR=null,CV='dashboard',FR=1000,AU=[];
+var EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
+var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='';
+var csvSecs=null,usingCsv=false;
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+// helpers
 function R(n){return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function H(n){const v=parseFloat(n||0);return v%1===0?v.toFixed(0):v.toFixed(2).replace(/\.?0+$/, '');}
-function days(d){if(!d)return 9999;const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000);}
-function dueB(d){if(!d)return '';const n=days(d);const l=n<0?Math.abs(n)+'d overdue':n===0?'Due today':n+'d left';const c=n<0?'#dc2626':n<=7?'#d97706':'#16a34a';return '<span class="badge" style="color:'+c+';background:'+c+'18;">'+l+'</span>';}
-function stFlag(due,step){if(step==='Done'||!due)return '';const n=days(due);if(n<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>';if(n<=7&&AT_RISK.includes(step))return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>';return '';}
-function bar(v,h=8){const c=v===100?'#16a34a':v>=50?'#2563eb':v>0?'#d97706':'#e5e7eb';return '<div class="bar-wrap" style="height:'+h+'px;flex:1;"><div class="bar-inner" style="width:'+v+'%;background:'+c+';height:'+h+'px;"></div></div>';}
-function trail(si){let h='<div class="step-trail">';STEPS.forEach((s,i)=>{const ok=i<=si;const c=SC[s];h+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="step-dot" style="background:'+(ok?c.c:'#e5e7eb')+'">'+(ok?'✓':'')+'</div><span class="step-lbl" style="color:'+(ok?c.c:'#9ca3af')+'">'+s+'</span></div>'+(i<STEPS.length-1?'<div class="step-line" style="background:'+(i<si?'#1A2B3C':'#e5e7eb')+'"></div>':'');});return h+'</div>';}
-function staffOpts(sel=''){return AU.map(u=>'<option value="'+u.email+'" '+(u.email===sel?'selected':'')+'>'+u.full_name+' ('+u.email+')</option>').join('');}
-function openModal(id){document.getElementById(id).style.display='flex';}
-function closeModal(id){document.getElementById(id).style.display='none';}
-function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;border-left:3px solid var(--orange);transition:opacity .3s;';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';},2500);}
-function setMain(html){document.getElementById('main').innerHTML=html;}
+function H(n){var v=parseFloat(n||0);return v%1===0?v.toFixed(0):v.toFixed(2).replace(/\.?0+$/,'');}
+function days(d){if(!d)return 9999;var t=new Date();t.setHours(0,0,0,0);var x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000);}
+function dueB(d){if(!d)return '';var n=days(d);var l=n<0?Math.abs(n)+'d overdue':n===0?'Due today':n+'d left';var c=n<0?'#dc2626':n<=7?'#d97706':'#16a34a';return '<span class="badge" style="color:'+c+';background:'+c+'18;">'+l+'</span>';}
+function stFlag(due,step){if(step==='Done'||!due)return '';var n=days(due);if(n<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>';if(n<=7&&AT.indexOf(step)>=0)return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>';return '';}
+function bar(v,h){h=h||8;var c=v===100?'#16a34a':v>=50?'#2563eb':v>0?'#d97706':'#e5e7eb';return '<div class="bwrap" style="height:'+h+'px;flex:1;"><div class="binn" style="width:'+v+'%;background:'+c+';height:'+h+'px;"></div></div>';}
+function trail(si){var h='<div class="strail">';for(var i=0;i<STEPS.length;i++){var ok=i<=si;var c=SC[STEPS[i]];h+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="sdot" style="background:'+(ok?c.c:'#e5e7eb')+'">'+(ok?'✓':'')+'</div><span class="slb" style="color:'+(ok?c.c:'#9ca3af')+'">'+STEPS[i]+'</span></div>';if(i<STEPS.length-1)h+='<div class="sline" style="background:'+(i<si?'#1A2B3C':'#e5e7eb')+'"></div>';}return h+'</div>';}
+function staffOpts(sel){sel=sel||'';return AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sel?' selected':'')+'>'+u.full_name+' ('+u.email+')</option>';}).join('');}
+function openM(id){document.getElementById(id).style.display='flex';}
+function closeM(id){document.getElementById(id).style.display='none';}
+function setMain(h){document.getElementById('main').innerHTML=h;}
+function toast(msg){var t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;border-left:3px solid var(--orange);transition:opacity .3s;';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},2500);}
 
-// ── Auth ─────────────────────────────────────────────────────────────────
+// auth
 async function doLogin(){
-  const email=document.getElementById('liEmail').value.trim();
-  const pwd=document.getElementById('liPwd').value;
-  const err=document.getElementById('liErr');
+  var email=document.getElementById('liEmail').value.trim();
+  var pwd=document.getElementById('liPwd').value;
+  var err=document.getElementById('liErr');
   err.style.display='none';
   if(!email||!pwd){err.textContent='Please enter your email and password.';err.style.display='block';return;}
-  const btn=document.getElementById('liBtn');
-  btn.textContent='Signing in...';btn.disabled=true;
-  const {data,error}=await sb.auth.signInWithPassword({email,password:pwd});
+  var btn=document.getElementById('liBtn');btn.textContent='Signing in...';btn.disabled=true;
+  var res=await sb.auth.signInWithPassword({email:email,password:pwd});
   btn.textContent='Sign In';btn.disabled=false;
-  if(error){err.textContent=error.message;err.style.display='block';return;}
-  await initApp(data.user);
+  if(res.error){err.textContent=res.error.message;err.style.display='block';return;}
+  await initApp(res.data.user);
 }
-
 async function doLogout(){await sb.auth.signOut();document.getElementById('appShell').style.display='none';document.getElementById('loginScreen').style.display='flex';}
-
 async function initApp(user){
-  const {data:p,error:pe}=await sb.from('users').select('*').eq('id',user.id).single();
-  if(pe||!p){const e=document.getElementById('liErr');e.textContent='Profile not found. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
-  if(!p.active){const e=document.getElementById('liErr');e.textContent='Your account is not active. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
-  CU=p;CR=p.role;
+  var pr=await sb.from('users').select('*').eq('id',user.id).single();
+  if(pr.error||!pr.data){var e=document.getElementById('liErr');e.textContent='Profile not found. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
+  if(!pr.data.active){var e2=document.getElementById('liErr');e2.textContent='Your account is not active. Contact your manager.';e2.style.display='block';await sb.auth.signOut();return;}
+  CU=pr.data;CR=pr.data.role;
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='flex';
-  document.getElementById('userPill').textContent=p.full_name||p.email;
-  const rb=document.getElementById('roleBadge');rb.textContent=CR;rb.className='role-badge role-'+CR;
-  const {data:st}=await sb.from('settings').select('*');
-  if(st)st.forEach(r=>{if(r.key==='firm_rate')FR=parseFloat(r.value)||1000;});
-  const {data:us}=await sb.from('users').select('*').eq('active',true);
-  AU=us||[];
+  document.getElementById('uPill').textContent=CU.full_name||CU.email;
+  var rb=document.getElementById('rBadge');rb.textContent=CR;rb.className='rbadge r'+CR.charAt(0);
+  var st=await sb.from('settings').select('*');
+  if(st.data)st.data.forEach(function(r){if(r.key==='firm_rate')FR=parseFloat(r.value)||1000;});
+  var us=await sb.from('users').select('*').eq('active',true);
+  AU=us.data||[];
   buildNav();
-  setInterval(()=>{document.getElementById('footerTime').textContent=new Date().toLocaleString();},1000);
+  setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
   goView('dashboard');
 }
+sb.auth.onAuthStateChange(async function(ev,session){if(ev==='SIGNED_IN'&&session)await initApp(session.user);});
 
-sb.auth.onAuthStateChange(async(ev,session)=>{if(ev==='SIGNED_IN'&&session)await initApp(session.user);});
-
-// ── Nav ──────────────────────────────────────────────────────────────────
+// nav
 function buildNav(){
-  const tabs=[['dashboard','📊 Dashboard']];
+  var tabs=[['dashboard','📊 Dashboard']];
   if(CR==='manager')tabs.push(['add','➕ New Audit'],['edit','✏️ Edit Audit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['timesheet','📅 Timesheets']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
-  document.getElementById('navBar').innerHTML=tabs.map(([v,l])=>'<button class="nav-btn '+(CV===v?'active':'')+'" onclick="goView(\''+v+'\')">'+l+'</button>').join('');
+  document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');
 }
 function goView(v){CV=v;buildNav();renderView();}
 async function renderView(){
-  setMain('<div class="loading">Loading...</div>');
+  setMain('<div class="load">Loading...</div>');
   if(CV==='dashboard')await vDash();
   else if(CV==='add')vAdd();
   else if(CV==='edit')await vEdit();
@@ -416,359 +368,547 @@ async function renderView(){
   else if(CV==='settings')await vSettings();
 }
 
-// ── Dashboard ────────────────────────────────────────────────────────────
+// dashboard
 async function vDash(){
-  const {data:aud}=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
-  const {data:subs}=await sb.from('subsection_summary').select('*');
-  const regEmails=new Set(AU.map(u=>u.email.toLowerCase()));
-  const allS=subs||[];
-  const ov=allS.filter(s=>s.step!=='Done'&&s.due_date&&days(s.due_date)<0).length;
-  const ar=allS.filter(s=>s.step!=='Done'&&s.due_date&&days(s.due_date)<=7&&days(s.due_date)>=0&&AT_RISK.includes(s.step)).length;
-  const tf=(aud||[]).reduce((a,x)=>a+parseFloat(x.fee_value||0),0);
-  const tb=(aud||[]).reduce((a,x)=>a+parseFloat(x.budget_hours||0),0);
-  const ta=(aud||[]).reduce((a,x)=>a+parseFloat(x.actual_hours||0),0);
-  let html='<div class="stats"><div class="stat"><div class="stat-val">'+(aud||[]).length+'</div><div class="stat-lbl">📋 Total Audits</div></div><div class="stat" style="border-left-color:#dc2626;"><div class="stat-val" style="color:#dc2626;">'+ov+'</div><div class="stat-lbl">🔴 Items Overdue</div></div><div class="stat" style="border-left-color:#d97706;"><div class="stat-val" style="color:#d97706;">'+ar+'</div><div class="stat-lbl">🟡 At Risk</div></div><div class="stat" style="border-left-color:#7c3aed;"><div class="stat-val" style="color:#7c3aed;">'+R(tf)+'</div><div class="stat-lbl">💰 Total Fee Value</div></div></div>';
-  if(CR==='manager')html+='<div class="stats" style="grid-template-columns:repeat(3,1fr);"><div class="stat"><div class="stat-val">'+H(tb)+'h</div><div class="stat-lbl">⏱ Budget Hours</div></div><div class="stat"><div class="stat-val">'+H(ta)+'h</div><div class="stat-lbl">⏱ Actual Hours</div></div><div class="stat" style="border-left-color:'+(ta>tb?'#dc2626':'#16a34a')+'"><div class="stat-val" style="color:'+(ta>tb?'#dc2626':'#16a34a')+'">'+H(tb-ta)+'h</div><div class="stat-lbl">📊 Hours Remaining</div></div></div>';
-  if(!(aud||[]).length){html+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No audits yet</div>'+(CR==='manager'?'<button class="primary-btn" style="margin-top:14px;" onclick="goView(\'add\')">Create First Audit</button>':'')+'</div>';setMain(html);return;}
-  for(const a of aud){
-    const isO=EA===a.id;
-    html+='<div class="card"><div style="padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="toggleA(\''+a.id+'\')"><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:16px;color:var(--navy);">'+a.name+'</span>'+(a.client?'<span class="badge" style="color:#6b7280;background:#f3f4f6;">🏢 '+a.client+'</span>':'')+dueB(a.due_date)+'<span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ '+H(a.actual_hours)+'h / '+H(a.budget_hours)+'h</span>'+(CR!=='staff'?'<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 '+R(a.fee_value)+'</span>':'')+'</div><div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'+bar(a.progress_pct||0)+'<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">'+(a.progress_pct||0)+'%</span></div></div><div style="display:flex;gap:6px;align-items:center;">'+(CR!=='staff'?'<button onclick="event.stopPropagation();showRpt(\''+a.id+'\')" style="padding:6px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;font-weight:600;">📊 Report</button>':'')+(CR==='manager'?'<button onclick="event.stopPropagation();openEdit(\''+a.id+'\')" style="padding:6px 12px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;font-weight:600;">✏️ Edit</button>':'')+(CR==='manager'?'<button onclick="event.stopPropagation();delAudit(\''+a.id+'\')" class="danger-btn">🗑</button>':'')+'<span style="font-size:18px;color:#9ca3af;">'+(isO?'▲':'▼')+'</span></div></div>';
+  var aud=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
+  var subs=await sb.from('subsection_summary').select('*');
+  var reg=new Set(AU.map(function(u){return u.email.toLowerCase();}));
+  var allS=subs.data||[];
+  var ov=allS.filter(function(s){return s.step!=='Done'&&s.due_date&&days(s.due_date)<0;}).length;
+  var ar=allS.filter(function(s){return s.step!=='Done'&&s.due_date&&days(s.due_date)<=7&&days(s.due_date)>=0&&AT.indexOf(s.step)>=0;}).length;
+  var tf=(aud.data||[]).reduce(function(a,x){return a+parseFloat(x.fee_value||0);},0);
+  var tb=(aud.data||[]).reduce(function(a,x){return a+parseFloat(x.budget_hours||0);},0);
+  var ta=(aud.data||[]).reduce(function(a,x){return a+parseFloat(x.actual_hours||0);},0);
+  var h='<div class="stats"><div class="stat"><div class="sval">'+(aud.data||[]).length+'</div><div class="slbl">📋 Total Audits</div></div><div class="stat" style="border-left-color:#dc2626;"><div class="sval" style="color:#dc2626;">'+ov+'</div><div class="slbl">🔴 Items Overdue</div></div><div class="stat" style="border-left-color:#d97706;"><div class="sval" style="color:#d97706;">'+ar+'</div><div class="slbl">🟡 At Risk</div></div><div class="stat" style="border-left-color:#7c3aed;"><div class="sval" style="color:#7c3aed;">'+R(tf)+'</div><div class="slbl">💰 Total Fee Value</div></div></div>';
+  if(CR==='manager')h+='<div class="stats" style="grid-template-columns:repeat(3,1fr);"><div class="stat"><div class="sval">'+H(tb)+'h</div><div class="slbl">⏱ Budget Hours</div></div><div class="stat"><div class="sval">'+H(ta)+'h</div><div class="slbl">⏱ Actual Hours</div></div><div class="stat" style="border-left-color:'+(ta>tb?'#dc2626':'#16a34a')+'"><div class="sval" style="color:'+(ta>tb?'#dc2626':'#16a34a')+'">'+H(tb-ta)+'h</div><div class="slbl">📊 Hours Remaining</div></div></div>';
+  if(!(aud.data||[]).length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No audits yet</div>'+(CR==='manager'?'<button class="pbtn" style="margin-top:14px;" onclick="goView(\'add\')">Create First Audit</button>':'')+'</div>';setMain(h);return;}
+  for(var ai=0;ai<(aud.data||[]).length;ai++){
+    var a=aud.data[ai];var isO=EA===a.id;
+    h+='<div class="card"><div style="padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="togA(\''+a.id+'\')">'
+      +'<div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:16px;color:var(--navy);">'+a.name+'</span>'
+      +(a.client?'<span class="badge" style="color:#6b7280;background:#f3f4f6;">🏢 '+a.client+'</span>':'')
+      +dueB(a.due_date)
+      +'<span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ '+H(a.actual_hours)+'h / '+H(a.budget_hours)+'h</span>'
+      +(CR!=='staff'?'<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 '+R(a.fee_value)+'</span>':'')
+      +'</div><div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'+bar(a.progress_pct||0)+'<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">'+(a.progress_pct||0)+'%</span></div></div>'
+      +'<div style="display:flex;gap:6px;align-items:center;">'
+      +(CR!=='staff'?'<button onclick="event.stopPropagation();showRpt(\''+a.id+'\')" style="padding:6px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;font-weight:600;">📊 Report</button>':'')
+      +(CR==='manager'?'<button onclick="event.stopPropagation();openEdit(\''+a.id+'\')" style="padding:6px 12px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;font-weight:600;">✏️ Edit</button>':'')
+      +(CR==='manager'?'<button onclick="event.stopPropagation();delAudit(\''+a.id+'\')" class="dbtn">🗑</button>':'')
+      +'<span style="font-size:18px;color:#9ca3af;">'+(isO?'▲':'▼')+'</span></div></div>';
     if(isO){
-      const {data:secs}=await sb.from('section_summary').select('*').eq('audit_id',a.id).order('id');
-      html+='<div style="border-top:1px solid var(--border);">';
-      for(const sec of(secs||[])){
-        const sO=ES===sec.id;
-        html+='<div><div style="display:flex;align-items:center;gap:10px;padding:11px 20px 11px 28px;cursor:pointer;border-top:1px solid var(--border);flex-wrap:wrap;background:'+(sO?'#f8fafc':'#fff')+'" onclick="toggleS(\''+sec.id+'\')"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:13px;font-weight:700;color:var(--navy);min-width:180px;">'+sec.name+'</span><span style="font-size:12px;color:#9ca3af;">👤 '+(sec.assignee_email||'—')+'</span>'+dueB(sec.due_date)+'<span style="font-size:12px;color:#7c3aed;">⏱ '+H(sec.actual_hours)+'h / '+H(sec.budget_hours)+'h</span><div style="display:flex;align-items:center;gap:8px;flex:1;min-width:100px;">'+bar(sec.progress_pct||0,6)+'<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:34px;">'+(sec.progress_pct||0)+'%</span></div>'+(CR==='manager'?'<button onclick="event.stopPropagation();openAsn(\''+a.id+'\',\''+sec.id+'\')" style="padding:4px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+ Sub</button>':'')+'<span style="font-size:14px;color:#9ca3af;">'+(sO?'▲':'▼')+'</span></div>';
+      var secs=await sb.from('section_summary').select('*').eq('audit_id',a.id).order('id');
+      h+='<div style="border-top:1px solid var(--border);">';
+      for(var si2=0;si2<(secs.data||[]).length;si2++){
+        var sec=secs.data[si2];var sO=ES===sec.id;
+        h+='<div><div style="display:flex;align-items:center;gap:10px;padding:11px 20px 11px 28px;cursor:pointer;border-top:1px solid var(--border);flex-wrap:wrap;background:'+(sO?'#f8fafc':'#fff')+'" onclick="togS(\''+sec.id+'\')">'
+          +'<span style="font-family:Trebuchet MS,sans-serif;font-size:13px;font-weight:700;color:var(--navy);min-width:180px;">'+sec.name+'</span>'
+          +'<span style="font-size:12px;color:#9ca3af;">👤 '+(sec.assignee_email||'—')+'</span>'
+          +dueB(sec.due_date)
+          +'<span style="font-size:12px;color:#7c3aed;">⏱ '+H(sec.actual_hours)+'h / '+H(sec.budget_hours)+'h</span>'
+          +'<div style="display:flex;align-items:center;gap:8px;flex:1;min-width:100px;">'+bar(sec.progress_pct||0,6)+'<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:34px;">'+(sec.progress_pct||0)+'%</span></div>'
+          +(CR==='manager'?'<button onclick="event.stopPropagation();openAsn(\''+a.id+'\',\''+sec.id+'\')" style="padding:4px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+ Sub</button>':'')
+          +'<span style="font-size:14px;color:#9ca3af;">'+(sO?'▲':'▼')+'</span></div>';
         if(sO){
-          const {data:ss}=await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
-          html+='<div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">'+['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(h=>'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;">'+h+'</span>').join('')+'</div>';
-          for(const sub of(ss||[])){
-            const c=SC[sub.step];const st=stFlag(sub.due_date,sub.step);
-            const ob=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
-            const unreg=sub.assignee_email&&!regEmails.has(sub.assignee_email.toLowerCase());
-            html+='<div style="background:'+(ob?'#fff5f5':'#fafafa')+';display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:9px 20px 9px 44px;border-top:1px solid var(--border);"><span style="font-size:13px;color:var(--charcoal);font-weight:500;">'+sub.name+' '+st+'</span><span style="font-size:12px;color:#9ca3af;">👤 '+(sub.assignee_email||'—')+(unreg?'<span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;margin-left:4px;" title="No user account yet">⚠️ No account</span>':'')+'</span><span>'+dueB(sub.due_date)+'</span><span class="step-badge" style="color:'+c.c+';background:'+c.b+'">'+sub.step+'</span><span style="font-size:12px;font-weight:600;color:'+(ob?'#dc2626':'var(--charcoal)')+';">'+(CR==='manager'?'<div style="display:flex;align-items:center;gap:4px;"><span>'+H(sub.actual_hours)+'h /</span><input type="number" value="'+parseFloat(sub.budget_hours||0)+'" min="0" step="0.25" style="width:60px;padding:2px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;" onchange="updBudget(\''+sub.id+'\',this.value)"/><span>h</span></div>':H(sub.actual_hours)+' / '+H(sub.budget_hours)+'h')+'</span>'+(CR!=='staff'?'<span style="font-size:12px;color:#16a34a;font-weight:600;">'+R(sub.fee_value)+'</span>':'<span></span>')+'<div style="display:flex;gap:4px;">'+(CR==='manager'?'<button onclick="openRsn(\''+sub.id+'\',\''+sub.assignee_email+'\')" style="padding:3px 8px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>':'')+(CR==='manager'?'<button onclick="delSub(\''+sub.id+'\')" class="danger-btn" style="padding:3px 7px;">🗑</button>':'')+'</div></div>';
+          var ss=await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
+          h+='<div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">'
+            +['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(function(x){return '<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;">'+x+'</span>';}).join('')+'</div>';
+          for(var ssi=0;ssi<(ss.data||[]).length;ssi++){
+            var sub=ss.data[ssi];var c=SC[sub.step];var st=stFlag(sub.due_date,sub.step);
+            var ob=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
+            var unreg=sub.assignee_email&&!reg.has(sub.assignee_email.toLowerCase());
+            h+='<div style="background:'+(ob?'#fff5f5':'#fafafa')+';display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:9px 20px 9px 44px;border-top:1px solid var(--border);">'
+              +'<span style="font-size:13px;color:var(--charcoal);font-weight:500;">'+sub.name+' '+st+'</span>'
+              +'<span style="font-size:12px;color:#9ca3af;">'+(sub.assignee_email||'—')+(unreg?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
+              +'<span>'+dueB(sub.due_date)+'</span>'
+              +'<span class="sbadge" style="color:'+c.c+';background:'+c.b+'">'+sub.step+'</span>'
+              +'<span style="font-size:12px;font-weight:600;color:'+(ob?'#dc2626':'var(--charcoal)')+';">'
+              +(CR==='manager'?'<div style="display:flex;align-items:center;gap:4px;"><span>'+H(sub.actual_hours)+'h /</span><input type="number" value="'+parseFloat(sub.budget_hours||0)+'" min="0" step="0.25" style="width:60px;padding:2px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;" onchange="updBud(\''+sub.id+'\',this.value)"/><span>h</span></div>':H(sub.actual_hours)+' / '+H(sub.budget_hours)+'h')
+              +'</span>'
+              +(CR!=='staff'?'<span style="font-size:12px;color:#16a34a;font-weight:600;">'+R(sub.fee_value)+'</span>':'<span></span>')
+              +'<div style="display:flex;gap:4px;">'
+              +(CR==='manager'?'<button onclick="openRsn(\''+sub.id+'\',\''+sub.assignee_email+'\')" style="padding:3px 8px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>':'')
+              +(CR==='manager'?'<button onclick="delSub(\''+sub.id+'\')" class="dbtn" style="padding:3px 7px;">🗑</button>':'')
+              +'</div></div>';
           }
-          html+='</div>';
+          h+='</div>';
         }
-        html+='</div>';
+        h+='</div>';
       }
-      html+='</div>';
+      h+='</div>';
     }
-    html+='</div>';
+    h+='</div>';
   }
-  setMain(html);
+  setMain(h);
 }
 
-// ── Add Audit ────────────────────────────────────────────────────────────
-function initForm(){fStep=1;fSel={};fDet={};fExtra={};fName='';fClient='';fDue='';STPLS.forEach(t=>{fSel[t.n]=t.d;fDet[t.n]={a:'',due:'',sb:'',subs:{}};t.s.forEach(s=>{fDet[t.n].subs[s]={a:'',due:'',b:''};});fExtra[t.n]=[];});}
-
-function vAdd(){
-  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
-  if(!fSel||Object.keys(fSel).length===0)initForm();
-  let html='<div class="form-box"><div class="tab-bar"><div class="tab-item '+(fStep===1?'on':'')+'" onclick="setFStep(1)">1. Audit Details</div><div class="tab-item '+(fStep===2?'on':'')+'">2. Sections & Assignees</div></div>';
-  if(fStep===1){
-    html+='<div style="display:flex;flex-direction:column;gap:14px;"><div><label class="lbl">Audit Name *</label><input id="faN" class="inp" value="'+fName+'" placeholder="e.g. ABC Ltd — Year End 2025"/></div><div><label class="lbl">Client Name</label><input id="faCl" class="inp" value="'+fClient+'" placeholder="e.g. ABC Ltd"/></div><div><label class="lbl">Overall Due Date *</label><input type="date" id="faDue" class="inp" value="'+fDue+'"/></div><div style="border-top:1px solid var(--border);padding-top:14px;"><div class="sec-title">Or Import from CSV</div><p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: <b>Section, Subsection, Assignee Email, Budget Hours</b></p><div style="display:flex;gap:8px;"><button onclick="dlTemplate()" class="ghost-btn" style="font-size:12px;">📥 Download Template</button><label style="cursor:pointer;"><input type="file" id="csvInp" accept=".csv" style="display:none;" onchange="importCSV(event)"/><span class="ghost-btn" style="font-size:12px;display:inline-block;">📂 Import CSV</span></label></div><div id="csvStatus" style="margin-top:8px;font-size:12px;"></div></div><button onclick="goStep2()" class="primary-btn" style="margin-top:6px;">Next: Set Up Sections →</button></div>';
-      } else {
-      html+='<p style="font-size:13px;color:#6b7280;margin:0 0 14px;">Tick sections, assign staff, set budget hours.</p><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">';
-    STPLS.forEach(t=>{
-      const on=fSel[t.n];
-      html+='<div style="border-radius:10px;border:1.5px solid '+(on?'var(--navy)':'var(--border)')+';background:'+(on?'#f0f4f8':'#fafafa')+';overflow:hidden;"><div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;" onclick="togSec(\''+t.n+'\')"><div class="chk '+(on?'on':'')+'">'+(on?'<span style="color:#fff;font-size:11px;font-weight:700;">✓</span>':'')+'</div><span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:13px;color:'+(on?'var(--navy)':'#9ca3af')+';flex:1;">'+t.n+'</span>'+(t.d?'':'<span class="badge" style="color:#9ca3af;background:#f3f4f6;">Optional</span>')+'</div>';
-      if(on){
-        html+='<div style="padding:0 14px 12px;border-top:1px dashed var(--border);"><div style="display:flex;gap:10px;margin-top:10px;margin-bottom:10px;flex-wrap:wrap;"><div style="flex:2;min-width:140px;"><label class="lbl">Section Assignee</label><select class="inp" style="background:#fff;" onchange="setSA(\''+t.n+'\',this.value)"><option value="">Select staff...</option>'+staffOpts(fDet[t.n].a)+'</select></div><div style="flex:1;min-width:110px;"><label class="lbl">Due Date</label><input type="date" class="inp" value="'+(fDet[t.n].due||fDue)+'" onchange="setSD(\''+t.n+'\',this.value)"/></div><div style="min-width:130px;"><label class="lbl">Total Section Budget (hrs)</label><input type="number" class="inp" min="0" step="0.25" placeholder="e.g. 10" value="'+(fDet[t.n].sb||'')+'" onchange="distBudget(\''+t.n+'\',this.value)"/></div></div>';
-        html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:6px;padding:5px 10px;background:var(--navy);border-radius:6px;margin-bottom:4px;">'+['Subsection','Assignee','Due Date','⏱ Budget Hrs'].map(h=>'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">'+h+'</span>').join('')+'</div>';
-        const allS=[...t.s,...(fExtra[t.n]||[])];
-        allS.forEach((sub,idx)=>{
-          const ex=idx>=t.s.length;
-          const det=fDet[t.n].subs[sub]||{a:'',due:'',b:''};
-          html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr '+(ex?'auto':'')+';gap:8px;align-items:center;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;"><div><label class="lbl" style="margin:0;">↳ '+sub+'</label></div><div><select class="inp" style="font-size:12px;padding:6px 8px;background:#fff;" onchange="setSubA(\''+t.n+'\',\''+sub+'\',this.value)"><option value="">Inherit</option>'+staffOpts(det.a)+'</select></div><div><input type="date" class="inp" style="font-size:12px;padding:6px 8px;" value="'+(det.due||'')+'" onchange="setSubD(\''+t.n+'\',\''+sub+'\',this.value)"/></div><div><input type="number" class="inp" style="font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25" value="'+(det.b||'')+'" onchange="setSubB(\''+t.n+'\',\''+sub+'\',this.value)"/></div>'+(ex?'<button onclick="rmExtra(\''+t.n+'\','+(idx-t.s.length)+')" class="danger-btn" style="padding:6px 8px;">✕</button>':'')+'</div>';
-        });
-        html+='<div style="display:flex;gap:8px;margin-top:8px;"><input id="ei_'+t.n.replace(/\s+/g,'_')+'" class="inp" style="font-size:12px;padding:7px 10px;" placeholder="Add custom subsection..." onkeydown="if(event.key===\'Enter\')addExtra(\''+t.n+'\')"/><button onclick="addExtra(\''+t.n+'\')" style="padding:7px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;">+</button></div></div>';
-      }
-      html+='</div>';
-    });
-    html+='</div><div style="display:flex;gap:10px;"><button onclick="setFStep(1)" class="ghost-btn" style="flex:1;">← Back</button><button id="createBtn" onclick="createAudit()" class="primary-btn" style="flex:2;">Create Audit</button></div>';
-    }
-  }
-  html+='</div>';
-  setMain(html);
-}
-
-// ── Edit Audit ───────────────────────────────────────────────────────────
-function openEdit(id){editAID=id;goView('edit');}
-
-async function vEdit(){
-  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
-  const {data:auds}=await sb.from('audits').select('*').eq('archived',false).order('name');
-  if(!auds||!auds.length){setMain('<div style="text-align:center;padding:60px;color:#9ca3af;">No audits found.</div>');return;}
-  if(!editAID)editAID=auds[0].id;
-  const aud=auds.find(a=>a.id===editAID)||auds[0];
-  editAID=aud.id;
-  const {data:secs}=await sb.from('sections').select('*').eq('audit_id',aud.id).order('sort_order');
-  const {data:subsAll}=await sb.from('subsections').select('*').in('section_id',(secs||[]).map(s=>s.id)).order('sort_order');
-  const sbySec={};(subsAll||[]).forEach(s=>{if(!sbySec[s.section_id])sbySec[s.section_id]=[];sbySec[s.section_id].push(s);});
-  const regEmails=new Set(AU.map(u=>u.email.toLowerCase()));
-  const unreg=new Set();(subsAll||[]).forEach(s=>{if(s.assignee_email&&!regEmails.has(s.assignee_email.toLowerCase()))unreg.add(s.assignee_email);});
-  let html='<div class="form-box" style="max-width:820px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">✏️ Edit Audit</span><select class="inp" style="width:280px;background:#fff;" onchange="editAID=this.value;vEdit();"><br>'+auds.map(a=>'<option value="'+a.id+'" '+(a.id===aud.id?'selected':'')+'>'+a.name+(a.client?' — '+a.client:'')+'</option>').join('')+'</select></div>'+(unreg.size>0?'<div class="alert alert-w" style="margin-bottom:16px;">⚠️ <b>'+unreg.size+' assignee'+(unreg.size>1?'s':'')+' have no account yet:</b> '+[...unreg].join(', ')+'. They will link automatically once their accounts are created.</div>':'')+'<div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid var(--border);"><div class="sec-title">Audit Details</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;"><div><label class="lbl">Audit Name</label><input class="inp" id="eaN" value="'+aud.name+'"/></div><div><label class="lbl">Client</label><input class="inp" id="eaCl" value="'+(aud.client||'')+'"/></div><div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div></div><button onclick="saveAudDet(\''+aud.id+'\')" class="primary-btn" style="margin-top:14px;">Save Audit Details</button></div><div class="sec-title">Sections &amp; Subsections</div><p style="font-size:12px;color:#6b7280;margin:8px 0 14px;">Changes save immediately.</p>';
-  (secs||[]).forEach(sec=>{
-    const ss=sbySec[sec.id]||[];
-    html+='<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;"><div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;color:#fff;font-size:14px;flex:1;">'+sec.name+'</span><label style="font-size:11px;color:rgba(255,255,255,0.6);">Assignee</label><select class="inp" style="width:160px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecA(\''+sec.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(u=>'<option value="'+u.email+'" '+(u.email===sec.assignee_email?'selected':'')+'>'+u.full_name+'</option>').join('')+'</select><label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label><input type="date" class="inp" value="'+(sec.due_date||'')+'" style="width:140px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecD(\''+sec.id+'\',this.value)"/></div><div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:7px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">'+['Subsection','Assignee','Due Date','Budget Hrs',''].map(h=>'<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">'+h+'</span>').join('')+'</div>';
-    ss.forEach(sub=>{
-      const unreg2=sub.assignee_email&&!regEmails.has(sub.assignee_email.toLowerCase());
-      html+='<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;"><span style="font-size:13px;font-weight:500;">↳ '+sub.name+(unreg2?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️ No account</span>':'')+'</span><select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updSubA(\''+sub.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(u=>'<option value="'+u.email+'" '+(u.email===sub.assignee_email?'selected':'')+'>'+u.full_name+'</option>').join('')+'</select><input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub.due_date||'')+'" onchange="updSubD(\''+sub.id+'\',this.value)"/><input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub.id+'\',this.value)"/><button onclick="delSubE(\''+sub.id+'\')" class="danger-btn" style="padding:5px 8px;">🗑</button></div>';
-    });
-    html+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="ns_'+sec.id+'" class="inp" style="flex:2;min-width:140px;font-size:12px;padding:6px 10px;" placeholder="New subsection name..."/><select id="na_'+sec.id+'" class="inp" style="flex:1;min-width:130px;font-size:12px;padding:6px 8px;background:#fff;"><option value="">Inherit</option>'+AU.map(u=>'<option value="'+u.email+'">'+u.full_name+'</option>').join('')+'</select><input type="date" id="nd_'+sec.id+'" class="inp" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;"/><input type="number" id="nb_'+sec.id+'" class="inp" style="width:80px;font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25"/><button onclick="addSubE(\''+sec.id+'\',\''+sec.assignee_email+'\',\''+sec.due_date+'\')" style="padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">+ Add</button></div></div>';
+// add audit
+function initForm(){
+  fStep=1;fSel={};fDet={};fExtra={};fName='';fClient='';fDue='';csvSecs=null;usingCsv=false;
+  STPLS.forEach(function(t){
+    fSel[t.n]=t.d;fExtra[t.n]=[];
+    fDet[t.n]={a:'',due:'',sb:'',subs:{}};
+    t.s.forEach(function(s){fDet[t.n].subs[s]={a:'',due:'',b:''};});
   });
-  html+='</div>';
-  setMain(html);
 }
-
-// ── Update View ──────────────────────────────────────────────────────────
-async function vUpdate(){
-  const me=CU.email;
-  const {data:ss}=await sb.from('subsection_summary').select('*').eq('assignee_email',me);
-  const {data:secs}=await sb.from('sections').select('*');
-  const {data:auds}=await sb.from('audits').select('*');
-  const sm={},am={};(secs||[]).forEach(s=>sm[s.id]=s);(auds||[]).forEach(a=>am[a.id]=a);
-  const today=new Date();const dow=today.getDay();const isMon=dow===1;
-  const daysToMon=isMon?0:(8-dow)%7||7;
-  const tsBtn=isMon?'<button onclick="openTs()" class="orange-btn" style="font-size:13px;padding:8px 16px;">📅 Submit Weekly Timesheet</button>':'<button disabled style="font-size:13px;padding:8px 16px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;">📅 Timesheets<br/><span style="font-size:10px;">Opens Monday ('+daysToMon+' day'+(daysToMon!==1?'s':'')+' away)</span></button>';
-  let html='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'+tsBtn+'</div>';
-  if(!(ss||[]).length){html+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(html);return;}
-  const byA={};(ss||[]).forEach(sub=>{const sec=sm[sub.section_id];if(!sec)return;const a=am[sec.audit_id];if(!a)return;if(!byA[a.id])byA[a.id]={a,items:[]};byA[a.id].items.push({sub,sec});});
-  for(const[,g]of Object.entries(byA)){
-    html+='<div style="margin-bottom:20px;"><div style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">📋 '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
-    for(const{sub,sec}of g.items){
-      const c=SC[sub.step];const si=STEPS.indexOf(sub.step);const done=sub.step==='Done';
-      const ob=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
-      html+='<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c.c)+';border:1px solid var(--border);border-left-width:4px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;"><div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec.name+'</div><div style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:15px;color:var(--navy);">'+sub.name+'</div><div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">'+dueB(sub.due_date)+stFlag(sub.due_date,sub.step)+'<span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ '+H(sub.actual_hours)+'h / '+H(sub.budget_hours)+'h budget</span>'+(ob?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':'')+'</div></div><span class="step-badge" style="color:'+c.c+';background:'+c.b+'">'+sub.step+'</span></div>'+trail(si)+'<div style="display:flex;gap:8px;">'+(si>0?'<button onclick="regressStep(\''+sub.id+'\')" class="ghost-btn">← Back</button>':'')+(done?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Complete!</div>':'<button onclick="reqAdv(\''+sub.id+'\',\''+sub.name+'\',\''+STEPS[si+1]+'\','+sub.budget_hours+','+sub.actual_hours+')" class="primary-btn" style="flex:1;">Mark as: '+STEPS[si+1]+' →</button>')+'</div><button onclick="showTeams(\''+g.a.name+'\',\''+sec.name+'\',\''+sub.name+'\',\''+sub.step+'\',\''+(sub.due_date||'')+'\',\''+H(sub.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button></div>';
+function vAdd(){
+  if(CR!=='manager'){setMain('<div class="al al-e">Access denied.</div>');return;}
+  if(!fSel||Object.keys(fSel).length===0)initForm();
+  var h='<div class="fbox"><div class="tbar"><div class="titem '+(fStep===1?'on':'')+'" onclick="setFStep(1)">1. Audit Details</div><div class="titem '+(fStep===2?'on':'')+'">2. Sections</div></div>';
+  if(fStep===1){
+    h+='<div style="display:flex;flex-direction:column;gap:14px;">'
+      +'<div><label class="lbl">Audit Name *</label><input id="faN" class="inp" value="'+fName+'" placeholder="e.g. ABC Ltd Year End 2025"/></div>'
+      +'<div><label class="lbl">Client Name</label><input id="faCl" class="inp" value="'+fClient+'" placeholder="e.g. ABC Ltd"/></div>'
+      +'<div><label class="lbl">Overall Due Date *</label><input type="date" id="faDue" class="inp" value="'+fDue+'"/></div>'
+      +'<div style="border-top:1px solid var(--border);padding-top:14px;">'
+      +'<div class="stitle">Or Import from CSV</div>'
+      +'<p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: Section, Subsection, Assignee Email, Budget Hours</p>'
+      +'<div style="display:flex;gap:8px;">'
+      +'<button onclick="dlTpl()" class="gbtn" style="font-size:12px;">Download Template</button>'
+      +'<label style="cursor:pointer;"><input type="file" id="csvInp" accept=".csv" style="display:none;" onchange="importCSV(event)"/><span class="gbtn" style="font-size:12px;display:inline-block;">Import CSV</span></label>'
+      +'</div><div id="csvSt" style="margin-top:8px;font-size:12px;"></div></div>'
+      +'<button onclick="goStep2()" class="pbtn" style="margin-top:6px;">Next: Set Up Sections</button>'
+      +'</div>';
+  } else if(usingCsv && csvSecs){
+    h+='<p style="font-size:13px;color:#6b7280;margin:0 0 14px;">Imported from CSV. Review below then create.</p>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">';
+    var keys=Object.keys(csvSecs);
+    for(var ki=0;ki<keys.length;ki++){
+      var sn=keys[ki];var sd=csvSecs[sn];
+      h+='<div style="border-radius:10px;border:1.5px solid var(--navy);overflow:hidden;">'
+        +'<div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:10px;">'
+        +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;color:#fff;font-size:13px;flex:1;">'+sn+'</span>'
+        +'<span style="font-size:11px;color:rgba(255,255,255,0.6);">'+sd.subs.length+' subsections</span></div>'
+        +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:6px;padding:5px 12px;background:#e8eef4;">'
+        +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Subsection</span>'
+        +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Assignee</span>'
+        +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Hrs</span></div>';
+      for(var subi=0;subi<sd.subs.length;subi++){
+        var sub=sd.subs[subi];
+        var rgd=false;for(var ui=0;ui<AU.length;ui++){if(AU[ui].email.toLowerCase()===sub.assignee.toLowerCase()){rgd=true;break;}}
+        h+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:8px;padding:7px 12px;border-top:1px solid var(--border);background:#fff;align-items:center;">'
+          +'<span style="font-size:12px;">'+sub.name+'</span>'
+          +'<span style="font-size:12px;color:'+(rgd?'#16a34a':'#d97706')+';">'+sub.assignee+(rgd?'':' ⚠️')+'</span>'
+          +'<span style="font-size:12px;font-weight:600;">'+sub.budget+'h</span></div>';
+      }
+      h+='</div>';
     }
-    html+='</div></div>';
+    h+='</div><div style="display:flex;gap:10px;">'
+      +'<button onclick="usingCsv=false;setFStep(1);" class="gbtn" style="flex:1;">Back</button>'
+      +'<button id="createBtn" onclick="createAudit()" class="pbtn" style="flex:2;">Create Audit</button></div>';
+  } else {
+    h+='<p style="font-size:13px;color:#6b7280;margin:0 0 14px;">Tick sections, assign staff, set budget hours.</p>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">';
+    for(var ti=0;ti<STPLS.length;ti++){
+      var t=STPLS[ti];var on=fSel[t.n];
+      h+='<div style="border-radius:10px;border:1.5px solid '+(on?'var(--navy)':'var(--border)')+';background:'+(on?'#f0f4f8':'#fafafa')+';overflow:hidden;">'
+        +'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;" onclick="togSec(\''+t.n+'\')">'
+        +'<div class="chk '+(on?'on':'')+'">'+(on?'<span style="color:#fff;font-size:11px;font-weight:700;">✓</span>':'')+'</div>'
+        +'<span style="font-weight:700;font-size:13px;color:'+(on?'var(--navy)':'#9ca3af')+';flex:1;">'+t.n+'</span>'
+        +(t.d?'':'<span class="badge" style="color:#9ca3af;background:#f3f4f6;">Optional</span>')
+        +'</div>';
+      if(on){
+        h+='<div style="padding:0 14px 12px;border-top:1px dashed var(--border);">'
+          +'<div style="display:flex;gap:10px;margin-top:10px;margin-bottom:10px;flex-wrap:wrap;">'
+          +'<div style="flex:2;min-width:140px;"><label class="lbl">Section Assignee</label>'
+          +'<select class="inp" style="background:#fff;" onchange="setSA(\''+t.n+'\',this.value)"><option value="">Select staff...</option>'+staffOpts(fDet[t.n].a)+'</select></div>'
+          +'<div style="flex:1;min-width:110px;"><label class="lbl">Due Date</label>'
+          +'<input type="date" class="inp" value="'+(fDet[t.n].due||fDue)+'" onchange="setSD(\''+t.n+'\',this.value)"/></div>'
+          +'<div style="min-width:130px;"><label class="lbl">Total Budget (hrs)</label>'
+          +'<input type="number" class="inp" min="0" step="0.25" placeholder="e.g. 10" value="'+(fDet[t.n].sb||'')+'" onchange="distBud(\''+t.n+'\',this.value)"/></div>'
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:6px;padding:5px 10px;background:var(--navy);border-radius:6px;margin-bottom:4px;">'
+          +'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Subsection</span>'
+          +'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Assignee</span>'
+          +'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Due</span>'
+          +'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Hrs</span></div>';
+        var allS=t.s.concat(fExtra[t.n]||[]);
+        for(var sii=0;sii<allS.length;sii++){
+          var sub2=allS[sii];var ex=sii>=t.s.length;var det=fDet[t.n].subs[sub2]||{a:'',due:'',b:''};
+          h+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr '+(ex?'auto':'')+';gap:8px;align-items:center;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;">'
+            +'<span style="font-size:12px;">'+sub2+'</span>'
+            +'<select class="inp" style="font-size:12px;padding:6px 8px;background:#fff;" onchange="setSubA(\''+t.n+'\',\''+sub2+'\',this.value)"><option value="">Inherit</option>'+staffOpts(det.a)+'</select>'
+            +'<input type="date" class="inp" style="font-size:12px;padding:6px 8px;" value="'+(det.due||'')+'" onchange="setSubD(\''+t.n+'\',\''+sub2+'\',this.value)"/>'
+            +'<input type="number" class="inp" style="font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25" value="'+(det.b||'')+'" onchange="setSubB(\''+t.n+'\',\''+sub2+'\',this.value)"/>'
+            +(ex?'<button onclick="rmExtra(\''+t.n+'\','+(sii-t.s.length)+')" class="dbtn" style="padding:6px 8px;">✕</button>':'')
+            +'</div>';
+        }
+        h+='<div style="display:flex;gap:8px;margin-top:8px;">'
+          +'<input id="ei_'+t.n.replace(/\s+/g,'_')+'" class="inp" style="font-size:12px;padding:7px 10px;" placeholder="Add custom subsection..." onkeydown="if(event.key===\'Enter\')addExtra(\''+t.n+'\')">'
+          +'<button onclick="addExtra(\''+t.n+'\')" style="padding:7px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;">+</button>'
+          +'</div></div>';
+      }
+      h+='</div>';
+    }
+    h+='</div><div style="display:flex;gap:10px;">'
+      +'<button onclick="setFStep(1)" class="gbtn" style="flex:1;">Back</button>'
+      +'<button id="createBtn" onclick="createAudit()" class="pbtn" style="flex:2;">Create Audit</button></div>';
   }
-  setMain(html);
+  h+='</div>';
+  setMain(h);
 }
 
-// ── Timesheets ───────────────────────────────────────────────────────────
-function getFridays(n=4){const fs=[];let d=new Date();d.setHours(0,0,0,0);const dow=d.getDay();d.setDate(d.getDate()-(dow===6?0:dow===0?1:dow+1));for(let i=0;i<n;i++){fs.push(new Date(d));d.setDate(d.getDate()-7);}return fs;}
-function fmtFri(dt,i){const now=new Date();now.setHours(0,0,0,0);const wks=Math.round((now-dt)/86400000/7);const lbl=dt.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});const ago=wks===0?'this past Friday':wks===1?'last week':wks+' weeks ago';return '<option value="'+dt.toISOString().slice(0,10)+'">'+lbl+' — '+ago+'</option>';}
+// edit audit
+function openEdit(id){editAID=id;goView('edit');}
+async function vEdit(){
+  if(CR!=='manager'){setMain('<div class="al al-e">Access denied.</div>');return;}
+  var auds=await sb.from('audits').select('*').eq('archived',false).order('name');
+  if(!auds.data||!auds.data.length){setMain('<div style="text-align:center;padding:60px;color:#9ca3af;">No audits found.</div>');return;}
+  if(!editAID)editAID=auds.data[0].id;
+  var aud=null;for(var i=0;i<auds.data.length;i++){if(auds.data[i].id===editAID){aud=auds.data[i];break;}}
+  if(!aud)aud=auds.data[0];editAID=aud.id;
+  var secs=await sb.from('sections').select('*').eq('audit_id',aud.id).order('sort_order');
+  var secIds=(secs.data||[]).map(function(s){return s.id;});
+  var subsAll=secIds.length?await sb.from('subsections').select('*').in('section_id',secIds).order('sort_order'):{data:[]};
+  var sbySec={};(subsAll.data||[]).forEach(function(s){if(!sbySec[s.section_id])sbySec[s.section_id]=[];sbySec[s.section_id].push(s);});
+  var reg=new Set(AU.map(function(u){return u.email.toLowerCase();}));
+  var unreg=new Set();(subsAll.data||[]).forEach(function(s){if(s.assignee_email&&!reg.has(s.assignee_email.toLowerCase()))unreg.add(s.assignee_email);});
+  var h='<div class="fbox" style="max-width:820px;">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">'
+    +'<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">✏️ Edit Audit</span>'
+    +'<select class="inp" style="width:280px;background:#fff;" onchange="editAID=this.value;vEdit();">'
+    +auds.data.map(function(a){return '<option value="'+a.id+'"'+(a.id===aud.id?' selected':'')+'>'+a.name+(a.client?' — '+a.client:'')+'</option>';}).join('')
+    +'</select></div>'
+    +(unreg.size>0?'<div class="al al-w" style="margin-bottom:16px;">⚠️ '+unreg.size+' assignee'+(unreg.size>1?'s':'')+' have no account yet: '+Array.from(unreg).join(', ')+'. They will link when accounts are created.</div>':'')
+    +'<div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid var(--border);">'
+    +'<div class="stitle">Audit Details</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;">'
+    +'<div><label class="lbl">Audit Name</label><input class="inp" id="eaN" value="'+aud.name+'"/></div>'
+    +'<div><label class="lbl">Client</label><input class="inp" id="eaCl" value="'+(aud.client||'')+'"/></div>'
+    +'<div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div>'
+    +'</div><button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn" style="margin-top:14px;">Save Audit Details</button></div>'
+    +'<div class="stitle">Sections &amp; Subsections</div>'
+    +'<p style="font-size:12px;color:#6b7280;margin:8px 0 14px;">Changes save immediately.</p>';
+  for(var si=0;si<(secs.data||[]).length;si++){
+    var sec=secs.data[si];var ss2=sbySec[sec.id]||[];
+    h+='<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;">'
+      +'<div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
+      +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;color:#fff;font-size:14px;flex:1;">'+sec.name+'</span>'
+      +'<label style="font-size:11px;color:rgba(255,255,255,0.6);">Assignee</label>'
+      +'<select class="inp" style="width:160px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecA(\''+sec.id+'\',this.value)">'
+      +'<option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sec.assignee_email?' selected':'')+'>'+u.full_name+'</option>';}).join('')+'</select>'
+      +'<label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label>'
+      +'<input type="date" class="inp" value="'+(sec.due_date||'')+'" style="width:140px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecD(\''+sec.id+'\',this.value)"/></div>'
+      +'<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:7px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">'
+      +['Subsection','Assignee','Due Date','Budget Hrs',''].map(function(x){return '<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">'+x+'</span>';}).join('')+'</div>';
+    for(var ssi2=0;ssi2<ss2.length;ssi2++){
+      var sub3=ss2[ssi2];var un2=sub3.assignee_email&&!reg.has(sub3.assignee_email.toLowerCase());
+      h+='<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;">'
+        +'<span style="font-size:13px;font-weight:500;">'+sub3.name+(un2?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
+        +'<select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updSubA(\''+sub3.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sub3.assignee_email?' selected':'')+'>'+u.full_name+'</option>';}).join('')+'</select>'
+        +'<input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub3.due_date||'')+'" onchange="updSubD(\''+sub3.id+'\',this.value)"/>'
+        +'<input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub3.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub3.id+'\',this.value)"/>'
+        +'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 8px;">🗑</button></div>';
+    }
+    h+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+      +'<input id="ns_'+sec.id+'" class="inp" style="flex:2;min-width:140px;font-size:12px;padding:6px 10px;" placeholder="New subsection name..."/>'
+      +'<select id="na_'+sec.id+'" class="inp" style="flex:1;min-width:130px;font-size:12px;padding:6px 8px;background:#fff;"><option value="">Inherit</option>'+AU.map(function(u){return '<option value="'+u.email+'">'+u.full_name+'</option>';}).join('')+'</select>'
+      +'<input type="date" id="nd_'+sec.id+'" class="inp" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;"/>'
+      +'<input type="number" id="nb_'+sec.id+'" class="inp" style="width:80px;font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25"/>'
+      +'<button onclick="addSubE(\''+sec.id+'\',\''+sec.assignee_email+'\',\''+sec.due_date+'\')" style="padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">+ Add</button>'
+      +'</div></div>';
+  }
+  h+='</div>';
+  setMain(h);
+}
 
+// update view
+async function vUpdate(){
+  var me=CU.email;
+  var ss=await sb.from('subsection_summary').select('*').eq('assignee_email',me);
+  var secs=await sb.from('sections').select('*');
+  var auds=await sb.from('audits').select('*');
+  var sm={};(secs.data||[]).forEach(function(s){sm[s.id]=s;});
+  var am={};(auds.data||[]).forEach(function(a){am[a.id]=a;});
+  var tod=new Date();var dow=tod.getDay();var isMon=dow===1;
+  var dtm=isMon?0:(8-dow)%7||7;
+  var tsBtn=isMon?'<button onclick="openTs()" class="obtn" style="font-size:13px;padding:8px 16px;">📅 Submit Weekly Timesheet</button>':'<button disabled style="font-size:13px;padding:8px 16px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;line-height:1.4;">📅 Timesheets<br/><span style="font-size:10px;">Opens Monday ('+dtm+' day'+(dtm!==1?'s':'')+' away)</span></button>';
+  var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'+tsBtn+'</div>';
+  if(!(ss.data||[]).length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
+  var byA={};(ss.data||[]).forEach(function(sub){var sec=sm[sub.section_id];if(!sec)return;var a=am[sec.audit_id];if(!a)return;if(!byA[a.id])byA[a.id]={a:a,items:[]};byA[a.id].items.push({sub:sub,sec:sec});});
+  var akeys=Object.keys(byA);
+  for(var ai=0;ai<akeys.length;ai++){
+    var g=byA[akeys[ai]];
+    h+='<div style="margin-bottom:20px;"><div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">📋 '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
+    for(var ii=0;ii<g.items.length;ii++){
+      var item=g.items[ii];var sub4=item.sub;var sec4=item.sec;
+      var c4=SC[sub4.step];var si4=STEPS.indexOf(sub4.step);var done=sub4.step==='Done';
+      var ob=parseFloat(sub4.actual_hours)>parseFloat(sub4.budget_hours)&&parseFloat(sub4.budget_hours)>0;
+      h+='<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c4.c)+';border:1px solid var(--border);border-left-width:4px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'
+        +'<div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec4.name+'</div>'
+        +'<div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);">'+sub4.name+'</div>'
+        +'<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">'
+        +dueB(sub4.due_date)+stFlag(sub4.due_date,sub4.step)
+        +'<span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ '+H(sub4.actual_hours)+'h / '+H(sub4.budget_hours)+'h budget</span>'
+        +(ob?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':'')
+        +'</div></div>'
+        +'<span class="sbadge" style="color:'+c4.c+';background:'+c4.b+'">'+sub4.step+'</span></div>'
+        +trail(si4)
+        +'<div style="display:flex;gap:8px;">'
+        +(si4>0?'<button onclick="regressStep(\''+sub4.id+'\')" class="gbtn">← Back</button>':'')
+        +(done?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Complete!</div>':'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+STEPS[si4+1]+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+STEPS[si4+1]+' →</button>')
+        +'</div>'
+        +'<button onclick="showTeams(\''+g.a.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
+        +'</div>';
+    }
+    h+='</div></div>';
+  }
+  setMain(h);
+}
+
+// timesheets
+function getFris(n){var fs=[];var d=new Date();d.setHours(0,0,0,0);var dw=d.getDay();d.setDate(d.getDate()-(dw===6?0:dw===0?1:dw+1));for(var i=0;i<n;i++){fs.push(new Date(d));d.setDate(d.getDate()-7);}return fs;}
+function fmtFri(dt){var now=new Date();now.setHours(0,0,0,0);var wks=Math.round((now-dt)/86400000/7);var lbl=dt.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});var ago=wks===0?'this past Friday':wks===1?'last week':wks+' weeks ago';return '<option value="'+dt.toISOString().slice(0,10)+'">'+lbl+' — '+ago+'</option>';}
 async function openTs(){
-  const {data:ss}=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',CU.email);
-  document.getElementById('tsSub').innerHTML=(ss||[]).map(s=>'<option value="'+s.id+'">'+(s.sections?.audits?.name||'')+' → '+(s.sections?.name||'')+' → '+s.name+'</option>').join('');
-  const frids=getFridays(4);
-  document.getElementById('tsWeek').innerHTML=frids.map((f,i)=>fmtFri(f,i)).join('');
+  var ss=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',CU.email);
+  document.getElementById('tsSub').innerHTML=(ss.data||[]).map(function(s){return '<option value="'+s.id+'">'+(s.sections&&s.sections.audits?s.sections.audits.name:'')+' → '+(s.sections?s.sections.name:'')+' → '+s.name+'</option>';}).join('');
+  var fris=getFris(4);document.getElementById('tsWeek').innerHTML=fris.map(fmtFri).join('');
   document.getElementById('tsFirm').value='';document.getElementById('tsApp').value='';
   document.getElementById('tsVarBox').style.display='none';document.getElementById('tsExp').value='';
   document.getElementById('tsAlready').style.display='none';
-  document.getElementById('tsWeekLbl').textContent='';document.getElementById('tsAppLbl').textContent='';
-  await onTsChange();
-  openModal('timesheetModal');
+  document.getElementById('tsWLbl').textContent='';document.getElementById('tsAppLbl').textContent='';
+  await onTsChange();openM('tsModal');
 }
-
 async function onTsChange(){
-  const subId=document.getElementById('tsSub').value;
-  const weekEnd=document.getElementById('tsWeek').value;
+  var subId=document.getElementById('tsSub').value;var weekEnd=document.getElementById('tsWeek').value;
   if(!subId||!weekEnd)return;
-  const wd=new Date(weekEnd);const ws=new Date(wd);ws.setDate(ws.getDate()-6);
-  const fmt2=d=>d.toLocaleDateString('en-ZA',{day:'2-digit',month:'short'});
-  document.getElementById('tsWeekLbl').textContent='📅 Covers '+fmt2(ws)+' — '+fmt2(wd);
-  const {data:ex}=await sb.from('timesheet_entries').select('id').eq('subsection_id',subId).eq('week_ending',weekEnd).eq('submitted_by',CU.id).maybeSingle();
-  const locked=!!ex;
+  var wd=new Date(weekEnd);var ws=new Date(wd);ws.setDate(ws.getDate()-6);
+  var f2=function(d){return d.toLocaleDateString('en-ZA',{day:'2-digit',month:'short'});};
+  document.getElementById('tsWLbl').textContent='📅 Covers '+f2(ws)+' — '+f2(wd);
+  var ex=await sb.from('timesheet_entries').select('id').eq('subsection_id',subId).eq('week_ending',weekEnd).eq('submitted_by',CU.id).maybeSingle();
+  var locked=!!(ex.data);
   document.getElementById('tsAlready').style.display=locked?'block':'none';
-  document.getElementById('tsSubmitBtn').disabled=locked;document.getElementById('tsSubmitBtn').style.opacity=locked?'0.5':'1';
+  document.getElementById('tsSBtn').disabled=locked;document.getElementById('tsSBtn').style.opacity=locked?'0.5':'1';
   document.getElementById('tsFirm').disabled=locked;
   if(!locked){
-    const {data:logs}=await sb.from('step_logs').select('hours,logged_at').eq('subsection_id',subId);
-    const app=(logs||[]).filter(l=>{const d=new Date(l.logged_at);d.setHours(0,0,0,0);return d>=ws&&d<=wd;}).reduce((a,l)=>a+parseFloat(l.hours||0),0);
+    var logs=await sb.from('step_logs').select('hours,logged_at').eq('subsection_id',subId);
+    var app=(logs.data||[]).filter(function(l){var d=new Date(l.logged_at);d.setHours(0,0,0,0);return d>=ws&&d<=wd;}).reduce(function(a,l){return a+parseFloat(l.hours||0);},0);
     document.getElementById('tsApp').value=app.toFixed(2);
-    document.getElementById('tsAppLbl').textContent='Hours logged in app: '+fmt2(ws)+' – '+fmt2(wd);
+    document.getElementById('tsAppLbl').textContent='App hours logged: '+f2(ws)+' – '+f2(wd);
     document.getElementById('tsVarBox').style.display='none';document.getElementById('tsFirm').value='';
   }
 }
-
 function calcVar(){
-  const f=parseFloat(document.getElementById('tsFirm').value)||0;
-  const a=parseFloat(document.getElementById('tsApp').value)||0;
-  const v=f-a;
+  var f=parseFloat(document.getElementById('tsFirm').value)||0;var a=parseFloat(document.getElementById('tsApp').value)||0;var v=f-a;
   if(Math.abs(v)>0.01){document.getElementById('tsVarBox').style.display='block';document.getElementById('tsVarAmt').textContent='Firm: '+H(f)+'h | App: '+H(a)+'h | Variance: '+(v>0?'+':'')+H(v)+'h';}
   else document.getElementById('tsVarBox').style.display='none';
 }
-
 async function submitTs(){
-  const subId=document.getElementById('tsSub').value;
-  const weekEnd=document.getElementById('tsWeek').value;
-  const f=parseFloat(document.getElementById('tsFirm').value)||0;
-  const a=parseFloat(document.getElementById('tsApp').value)||0;
-  const hasVar=Math.abs(f-a)>0.01;
+  var subId=document.getElementById('tsSub').value;var weekEnd=document.getElementById('tsWeek').value;
+  var f=parseFloat(document.getElementById('tsFirm').value)||0;var a=parseFloat(document.getElementById('tsApp').value)||0;
+  var hasVar=Math.abs(f-a)>0.01;
   if(hasVar&&!document.getElementById('tsExp').value.trim()){alert('Please explain the variance.');return;}
-  const exp=document.getElementById('tsExp').value.trim();
+  var exp=document.getElementById('tsExp').value.trim();
   await sb.from('timesheet_entries').insert({subsection_id:subId,week_ending:weekEnd,firm_system_hours:f,app_hours:a,explanation:exp||null,submitted_by:CU.id,submitted_by_email:CU.email,status:hasVar?'pending':'reviewed'});
-  closeModal('timesheetModal');
-  toast(hasVar?'⏳ Submitted — variance flagged for review.':'✅ Timesheet submitted — hours matched.');
-  goView('timesheet');
+  closeM('tsModal');toast(hasVar?'⏳ Submitted — variance flagged.':'✅ Timesheet submitted — hours matched.');goView('timesheet');
 }
-
 async function vTs(){
-  const isMgr=CR==='manager'||CR==='director';
+  var isMgr=CR==='manager'||CR==='director';
   if(isMgr){
-    const {data:ents}=await sb.from('timesheet_variance_summary').select('*').order('week_ending',{ascending:false}).limit(200);
-    const all=ents||[];
-    const flagged=all.filter(e=>Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending');
-    const weeks=[...new Set(all.map(e=>e.week_ending))].sort().reverse();
-    const staff=[...new Set(all.map(e=>e.submitted_by_email))].sort();
-    const tf=all.reduce((a,e)=>a+parseFloat(e.firm_system_hours||0),0);
-    const ta=all.reduce((a,e)=>a+parseFloat(e.app_hours||0),0);
-    const tv=tf-ta;
-    window._tsAll=all;window._tsCsv=()=>buildTsCsv(all);
-    let html='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">Timesheet Reconciliation Report</span><button onclick="showTsRpt()" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📊 Export Full Report</button></div>';
-    if(flagged.length)html+='<div class="alert alert-w" style="margin-bottom:16px;">⚠️ <b>'+flagged.length+' variance'+(flagged.length>1?'s':'')+' pending review</b> — highlighted below.</div>';
-    html+='<div class="stats" style="margin-bottom:16px;"><div class="stat"><div class="stat-val">'+all.length+'</div><div class="stat-lbl">Total Submissions</div></div><div class="stat"><div class="stat-val">'+H(tf)+'h</div><div class="stat-lbl">Total Firm System Hrs</div></div><div class="stat"><div class="stat-val">'+H(ta)+'h</div><div class="stat-lbl">Total App Hrs</div></div><div class="stat" style="border-left-color:'+(Math.abs(tv)>0?'#dc2626':'#16a34a')+'"><div class="stat-val" style="color:'+(Math.abs(tv)>0?'#dc2626':'#16a34a')+'">'+(tv>0?'+':'')+H(tv)+'h</div><div class="stat-lbl">Total Variance</div></div></div>';
-    html+='<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><select id="tfW" class="inp" style="width:200px;background:#fff;" onchange="filterTs()"><option value="">All weeks</option>'+weeks.map(w=>'<option value="'+w+'">'+w+'</option>').join('')+'</select><select id="tfS" class="inp" style="width:200px;background:#fff;" onchange="filterTs()"><option value="">All staff</option>'+staff.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select><select id="tfSt" class="inp" style="width:160px;background:#fff;" onchange="filterTs()"><option value="">All statuses</option><option value="reviewed">✅ Reviewed</option><option value="pending">⏳ Pending</option><option value="flagged">🚩 Flagged</option></select></div>';
-    html+='<div id="tsTableWrap">'+buildTsTable(all)+'</div>';
-    setMain(html);
+    var ents=await sb.from('timesheet_variance_summary').select('*').order('week_ending',{ascending:false}).limit(200);
+    var all=ents.data||[];var flagged=all.filter(function(e){return Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending';});
+    var wks=[];var stfs=[];all.forEach(function(e){if(wks.indexOf(e.week_ending)<0)wks.push(e.week_ending);if(stfs.indexOf(e.submitted_by_email)<0)stfs.push(e.submitted_by_email);});
+    wks.sort().reverse();stfs.sort();
+    var tf2=all.reduce(function(a,e){return a+parseFloat(e.firm_system_hours||0);},0);
+    var ta2=all.reduce(function(a,e){return a+parseFloat(e.app_hours||0);},0);var tv=tf2-ta2;
+    window._tsAll=all;window._tsCsv=function(){return buildTsCsv(all);};
+    var h='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">'
+      +'<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">Timesheet Reconciliation Report</span>'
+      +'<button onclick="showTsRpt()" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📊 Export Full Report</button></div>';
+    if(flagged.length)h+='<div class="al al-w" style="margin-bottom:16px;">⚠️ <b>'+flagged.length+' variance'+(flagged.length>1?'s':'')+' pending review</b></div>';
+    h+='<div class="stats" style="margin-bottom:16px;"><div class="stat"><div class="sval">'+all.length+'</div><div class="slbl">Total Submissions</div></div>'
+      +'<div class="stat"><div class="sval">'+H(tf2)+'h</div><div class="slbl">Total Firm System Hrs</div></div>'
+      +'<div class="stat"><div class="sval">'+H(ta2)+'h</div><div class="slbl">Total App Hrs</div></div>'
+      +'<div class="stat" style="border-left-color:'+(Math.abs(tv)>0?'#dc2626':'#16a34a')+'"><div class="sval" style="color:'+(Math.abs(tv)>0?'#dc2626':'#16a34a')+'">'+(tv>0?'+':'')+H(tv)+'h</div><div class="slbl">Total Variance</div></div></div>';
+    h+='<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">'
+      +'<select id="tfW" class="inp" style="width:200px;background:#fff;" onchange="filterTs()"><option value="">All weeks</option>'+wks.map(function(w){return '<option value="'+w+'">'+w+'</option>';}).join('')+'</select>'
+      +'<select id="tfS" class="inp" style="width:200px;background:#fff;" onchange="filterTs()"><option value="">All staff</option>'+stfs.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('')+'</select>'
+      +'<select id="tfSt" class="inp" style="width:160px;background:#fff;" onchange="filterTs()"><option value="">All statuses</option><option value="reviewed">✅ Reviewed</option><option value="pending">⏳ Pending</option><option value="flagged">🚩 Flagged</option></select></div>';
+    h+='<div id="tsTW">'+buildTsTbl(all)+'</div>';
+    setMain(h);
   } else {
-    const {data:ents}=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',CU.id).order('week_ending',{ascending:false}).limit(50);
-    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">My Timesheets</span><button onclick="openTs()" class="orange-btn">📅 Submit Timesheet</button></div>';
-    if(!(ents||[]).length){html+='<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>';}
-    else{html+='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Audit → Section → Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>'+(ents||[]).map(e=>{const v=parseFloat(e.variance||0);return '<tr><td>'+e.week_ending+'</td><td style="font-size:12px;">'+(e.subsections?.sections?.audits?.name||'')+' → '+(e.subsections?.sections?.name||'')+' → '+(e.subsections?.name||'—')+'</td><td style="font-weight:600;">'+H(e.firm_system_hours)+'h</td><td style="font-weight:600;">'+H(e.app_hours)+'h</td><td style="font-weight:700;color:'+(v>0?'#dc2626':v<0?'#16a34a':'#6b7280')+'">'+(v>0?'+':'')+H(v)+'h</td><td style="font-size:12px;max-width:180px;">'+(e.explanation||'—')+'</td><td><span class="badge" style="color:'+(e.status==='reviewed'?'#16a34a':'#d97706')+';background:'+(e.status==='reviewed'?'#f0fdf4':'#fffbeb')+'">'+(e.status==='reviewed'?'✅ Matched':'⏳ Under Review')+'</span></td></tr>';}).join('')+'</tbody></table></div>';}
-    setMain(html);
+    var ents2=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',CU.id).order('week_ending',{ascending:false}).limit(50);
+    var h2='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+      +'<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">My Timesheets</span>'
+      +'<button onclick="openTs()" class="obtn">📅 Submit Timesheet</button></div>';
+    if(!(ents2.data||[]).length)h2+='<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>';
+    else{
+      h2+='<div style="overflow-x:auto;"><table class="dtbl"><thead><tr><th>Week</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>';
+      (ents2.data||[]).forEach(function(e){
+        var v=parseFloat(e.variance||0);
+        h2+='<tr><td>'+e.week_ending+'</td><td style="font-size:12px;">'+(e.subsections&&e.subsections.sections&&e.subsections.sections.audits?e.subsections.sections.audits.name:'')+' → '+(e.subsections&&e.subsections.sections?e.subsections.sections.name:'')+' → '+(e.subsections?e.subsections.name:'—')+'</td>'
+          +'<td style="font-weight:600;">'+H(e.firm_system_hours)+'h</td><td style="font-weight:600;">'+H(e.app_hours)+'h</td>'
+          +'<td style="font-weight:700;color:'+(v>0?'#dc2626':v<0?'#16a34a':'#6b7280')+'">'+(v>0?'+':'')+H(v)+'h</td>'
+          +'<td style="font-size:12px;max-width:180px;">'+(e.explanation||'—')+'</td>'
+          +'<td><span class="badge" style="color:'+(e.status==='reviewed'?'#16a34a':'#d97706')+';background:'+(e.status==='reviewed'?'#f0fdf4':'#fffbeb')+'">'+(e.status==='reviewed'?'✅ Matched':'⏳ Under Review')+'</span></td></tr>';
+      });
+      h2+='</tbody></table></div>';
+    }
+    setMain(h2);
   }
 }
-
-function buildTsTable(ents){
+function buildTsTbl(ents){
   if(!ents.length)return '<div style="text-align:center;padding:40px;color:#9ca3af;">No entries found.</div>';
-  return '<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th></tr></thead><tbody>'+ents.map(e=>{const v=parseFloat(e.variance||0);const hv=Math.abs(v)>0.01;const bg=hv&&e.status==='pending'?'#fff7ed':e.status==='flagged'?'#fef2f2':'#fff';return '<tr style="background:'+bg+'"><td style="white-space:nowrap;font-weight:600;">'+e.week_ending+'</td><td style="font-size:12px;">'+e.submitted_by_email+'</td><td style="font-size:12px;">'+(e.audit_name||'—')+'</td><td style="font-size:12px;">'+(e.section_name||'—')+'</td><td style="font-size:12px;">'+(e.subsection_name||'—')+'</td><td style="font-weight:600;">'+H(e.firm_system_hours)+'h</td><td style="font-weight:600;">'+H(e.app_hours)+'h</td><td style="font-weight:700;color:'+(v===0?'#16a34a':v>0?'#dc2626':'#16a34a')+'">'+(v===0?'✅ Match':(v>0?'▲ +':'▼ ')+H(Math.abs(v))+'h')+'</td><td style="font-size:12px;max-width:200px;color:'+(hv?'#92400e':'#6b7280')+'">'+(e.explanation||'—')+'</td><td><span class="badge" style="color:'+(e.status==='reviewed'?'#16a34a':e.status==='flagged'?'#dc2626':'#d97706')+';background:'+(e.status==='reviewed'?'#f0fdf4':e.status==='flagged'?'#fef2f2':'#fffbeb')+'">'+(e.status==='reviewed'?'✅ Reviewed':e.status==='flagged'?'🚩 Flagged':'⏳ Pending')+'</span>'+(e.status==='pending'&&hv?'<button onclick="flagTs(\''+e.id+'\')" style="margin-left:4px;padding:2px 7px;background:#fef2f2;color:#dc2626;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">🚩</button>':'')+(e.status==='pending'?'<button onclick="approveTs(\''+e.id+'\')" style="margin-left:2px;padding:2px 7px;background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">✅</button>':'')+'</td><td style="font-size:11px;color:#9ca3af;white-space:nowrap;">'+(e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):'')+'</td></tr>';}).join('')+'</tbody></table></div>';
+  var t='<div style="overflow-x:auto;"><table class="dtbl"><thead><tr><th>Week</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th></tr></thead><tbody>';
+  ents.forEach(function(e){
+    var v=parseFloat(e.variance||0);var hv=Math.abs(v)>0.01;var bg=hv&&e.status==='pending'?'#fff7ed':e.status==='flagged'?'#fef2f2':'#fff';
+    t+='<tr style="background:'+bg+'"><td style="white-space:nowrap;font-weight:600;">'+e.week_ending+'</td><td style="font-size:12px;">'+e.submitted_by_email+'</td><td style="font-size:12px;">'+(e.audit_name||'—')+'</td><td style="font-size:12px;">'+(e.section_name||'—')+'</td><td style="font-size:12px;">'+(e.subsection_name||'—')+'</td>'
+      +'<td style="font-weight:600;">'+H(e.firm_system_hours)+'h</td><td style="font-weight:600;">'+H(e.app_hours)+'h</td>'
+      +'<td style="font-weight:700;color:'+(v===0?'#16a34a':v>0?'#dc2626':'#16a34a')+'">'+(v===0?'✅ Match':(v>0?'▲ +':'▼ ')+H(Math.abs(v))+'h')+'</td>'
+      +'<td style="font-size:12px;max-width:200px;color:'+(hv?'#92400e':'#6b7280')+'">'+(e.explanation||'—')+'</td>'
+      +'<td><span class="badge" style="color:'+(e.status==='reviewed'?'#16a34a':e.status==='flagged'?'#dc2626':'#d97706')+';background:'+(e.status==='reviewed'?'#f0fdf4':e.status==='flagged'?'#fef2f2':'#fffbeb')+'">'+(e.status==='reviewed'?'✅':e.status==='flagged'?'🚩':'⏳')+' '+e.status+'</span>'
+      +(e.status==='pending'&&hv?'<button onclick="flagTs(\''+e.id+'\')" style="margin-left:4px;padding:2px 7px;background:#fef2f2;color:#dc2626;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">🚩</button>':'')
+      +(e.status==='pending'?'<button onclick="approveTs(\''+e.id+'\')" style="margin-left:2px;padding:2px 7px;background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">✅</button>':'')
+      +'</td><td style="font-size:11px;color:#9ca3af;white-space:nowrap;">'+(e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):'')+'</td></tr>';
+  });
+  return t+'</tbody></table></div>';
 }
-
 function buildTsCsv(ents){
-  const h=['Week Ending','Staff Email','Audit','Section','Subsection','Firm System Hrs','App Hrs','Variance','Explanation','Status','Submitted At'];
-  const rows=ents.map(e=>[e.week_ending,e.submitted_by_email,e.audit_name,e.section_name,e.subsection_name,H(e.firm_system_hours),H(e.app_hours),(parseFloat(e.variance||0)>0?'+':'')+H(e.variance||0),e.explanation||'',e.status,e.submitted_at?new Date(e.submitted_at).toLocaleString('en-ZA'):'']);
-  return [h,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  var h=['Week Ending','Staff Email','Audit','Section','Subsection','Firm Hrs','App Hrs','Variance','Explanation','Status','Submitted'];
+  var rows=ents.map(function(e){return [e.week_ending,e.submitted_by_email,e.audit_name,e.section_name,e.subsection_name,H(e.firm_system_hours),H(e.app_hours),(parseFloat(e.variance||0)>0?'+':'')+H(e.variance||0),e.explanation||'',e.status,e.submitted_at?new Date(e.submitted_at).toLocaleString('en-ZA'):''];});
+  return [h].concat(rows).map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
 }
-
 function filterTs(){
-  const w=document.getElementById('tfW')?.value||'';const s=document.getElementById('tfS')?.value||'';const st=document.getElementById('tfSt')?.value||'';
-  let f=window._tsAll||[];
-  if(w)f=f.filter(e=>e.week_ending===w);if(s)f=f.filter(e=>e.submitted_by_email===s);if(st)f=f.filter(e=>e.status===st);
-  document.getElementById('tsTableWrap').innerHTML=buildTsTable(f);
+  var w=document.getElementById('tfW').value;var s=document.getElementById('tfS').value;var st=document.getElementById('tfSt').value;
+  var f=window._tsAll||[];
+  if(w)f=f.filter(function(e){return e.week_ending===w;});
+  if(s)f=f.filter(function(e){return e.submitted_by_email===s;});
+  if(st)f=f.filter(function(e){return e.status===st;});
+  document.getElementById('tsTW').innerHTML=buildTsTbl(f);
 }
-
 function showTsRpt(){
-  if(!window._tsCsv){alert('No data.');return;}
   document.getElementById('rptTitle').textContent='📊 Timesheet Reconciliation Report';
-  document.getElementById('rptSub').textContent=(window._tsAll||[]).length+' submissions — compare with firm system export';
+  document.getElementById('rptSub').textContent=(window._tsAll||[]).length+' submissions';
   document.getElementById('rptHead').innerHTML='';
-  document.getElementById('rptBody').innerHTML='<tr><td colspan="10" style="padding:20px;color:#6b7280;font-size:13px;">Use the CSV below to cross-reference with your firm time tracking system. Copy, paste into Notepad, save as .csv, open in Excel.</td></tr>';
-  document.getElementById('csvTxt').value=window._tsCsv();
-  openModal('reportModal');
+  document.getElementById('rptBody').innerHTML='<tr><td colspan="10" style="padding:20px;color:#6b7280;font-size:13px;">Copy the CSV below and open in Excel to compare with your firm system.</td></tr>';
+  document.getElementById('csvTxt').value=window._tsCsv?window._tsCsv():'';
+  openM('rptModal');
 }
+async function flagTs(id){await sb.from('timesheet_entries').update({status:'flagged',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('🚩 Flagged.');vTs();}
+async function approveTs(id){await sb.from('timesheet_entries').update({status:'reviewed',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('✅ Approved.');vTs();}
 
-async function flagTs(id){await sb.from('timesheet_entries').update({status:'flagged',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('🚩 Entry flagged.');vTs();}
-async function approveTs(id){await sb.from('timesheet_entries').update({status:'reviewed',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('✅ Entry approved.');vTs();}
-
-// ── Users ────────────────────────────────────────────────────────────────
+// users
 async function vUsers(){
-  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
-  const {data:us}=await sb.from('users').select('*').order('full_name');
-  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">User Management</span><button onclick="openModal(\'addUserModal\')" class="orange-btn">➕ Add User</button></div><div class="alert alert-w" style="margin-bottom:16px;">Create user in <b>Supabase Auth → Users → Add user</b> first, then add their profile here. Share the temp password — they can change it via 🔑 Change Password after login.</div><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>';
-  (us||[]).forEach(u=>{html+='<tr><td style="font-weight:600;">'+u.full_name+'</td><td>'+u.email+'</td><td><span class="badge role-badge role-'+u.role+'">'+u.role+'</span></td><td><span style="color:'+(u.active?'#16a34a':'#dc2626')+';font-weight:600;">'+(u.active?'✅ Active':'❌ Inactive')+'</span></td><td style="display:flex;gap:6px;align-items:center;"><select class="inp" style="width:110px;font-size:12px;padding:5px 8px;background:#fff;" onchange="updRole(\''+u.id+'\',this.value)">'+['staff','manager','director'].map(r=>'<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+r+'</option>').join('')+'</select><button onclick="togActive(\''+u.id+'\','+u.active+')" class="'+(u.active?'danger-btn':'ghost-btn')+'" style="font-size:12px;white-space:nowrap;">'+(u.active?'Deactivate':'Activate')+'</button>'+(u.id!==CU.id?'<button onclick="resetPwd(\''+u.email+'\')" style="padding:5px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Reset Pwd</button>':'')+'</td></tr>';});
-  html+='</tbody></table>';
-  setMain(html);
+  if(CR!=='manager'){setMain('<div class="al al-e">Access denied.</div>');return;}
+  var us=await sb.from('users').select('*').order('full_name');
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+    +'<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">User Management</span>'
+    +'<button onclick="openM(\'auModal\')" class="obtn">➕ Add User</button></div>'
+    +'<div class="al al-w" style="margin-bottom:16px;">Create user in <b>Supabase Auth → Users → Add user</b> first, then add profile here. Share temp password — they can change it via 🔑 Change Password after login.</div>'
+    +'<table class="dtbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>';
+  (us.data||[]).forEach(function(u){
+    h+='<tr><td style="font-weight:600;">'+u.full_name+'</td><td>'+u.email+'</td>'
+      +'<td><span class="badge rbadge r'+u.role.charAt(0)+'">'+u.role+'</span></td>'
+      +'<td><span style="color:'+(u.active?'#16a34a':'#dc2626')+';font-weight:600;">'+(u.active?'✅ Active':'❌ Inactive')+'</span></td>'
+      +'<td style="display:flex;gap:6px;align-items:center;">'
+      +'<select class="inp" style="width:110px;font-size:12px;padding:5px 8px;background:#fff;" onchange="updRole(\''+u.id+'\',this.value)">'
+      +['staff','manager','director'].map(function(r){return '<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';}).join('')+'</select>'
+      +'<button onclick="togActive(\''+u.id+'\','+u.active+')" class="'+(u.active?'dbtn':'gbtn')+'" style="font-size:12px;white-space:nowrap;">'+(u.active?'Deactivate':'Activate')+'</button>'
+      +(u.id!==CU.id?'<button onclick="resetPwd(\''+u.email+'\')" style="padding:5px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Reset Pwd</button>':'')
+      +'</td></tr>';
+  });
+  h+='</tbody></table>';setMain(h);
 }
-
 async function doAddUser(){
-  const n=document.getElementById('nuName').value.trim();const e=document.getElementById('nuEmail').value.trim();const r=document.getElementById('nuRole').value;
-  const st=document.getElementById('nuStatus');st.style.display='none';
-  if(!n||!e){st.className='alert alert-e';st.textContent='Fill in name and email.';st.style.display='block';return;}
-  const {error}=await sb.from('users').upsert({email:e,full_name:n,role:r,active:true},{onConflict:'email'});
-  if(error){st.className='alert alert-e';st.textContent='Error: '+error.message+'. Make sure user exists in Supabase Auth first.';st.style.display='block';return;}
-  AU=[...AU,{email:e,full_name:n,role:r,active:true}];
-  st.className='alert alert-s';st.textContent='✅ Profile saved for '+n+'.';st.style.display='block';
-  setTimeout(()=>{closeModal('addUserModal');vUsers();},1500);
+  var n=document.getElementById('nuName').value.trim();var e=document.getElementById('nuEmail').value.trim();var r=document.getElementById('nuRole').value;
+  var st=document.getElementById('auSt');st.style.display='none';
+  if(!n||!e){st.className='al al-e';st.textContent='Fill in name and email.';st.style.display='block';return;}
+  var res=await sb.from('users').upsert({email:e,full_name:n,role:r,active:true},{onConflict:'email'});
+  if(res.error){st.className='al al-e';st.textContent='Error: '+res.error.message+'. Make sure user exists in Supabase Auth first.';st.style.display='block';return;}
+  AU.push({email:e,full_name:n,role:r,active:true});
+  st.className='al al-s';st.textContent='✅ Profile saved for '+n+'.';st.style.display='block';
+  setTimeout(function(){closeM('auModal');vUsers();},1500);
 }
-
-async function updRole(id,role){await sb.from('users').update({role}).eq('id',id);toast('Role updated.');}
+async function updRole(id,role){await sb.from('users').update({role:role}).eq('id',id);toast('Role updated.');}
 async function togActive(id,cur){await sb.from('users').update({active:!cur}).eq('id',id);vUsers();}
-async function resetPwd(email){const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});if(error)alert('Error: '+error.message);else toast('✅ Reset email sent to '+email);}
+async function resetPwd(email){var res=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});if(res.error)alert('Error: '+res.error.message);else toast('✅ Reset email sent to '+email);}
 
-// ── Settings ─────────────────────────────────────────────────────────────
+// settings
 async function vSettings(){
-  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
-  const {data:s}=await sb.from('settings').select('*');
-  const rate=(s||[]).find(x=>x.key==='firm_rate')?.value||'1000';
-  const fn=(s||[]).find(x=>x.key==='firm_name')?.value||'HVNS & Company';
-  setMain('<div class="form-box"><div style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Firm Settings</div><div style="display:flex;flex-direction:column;gap:14px;"><div><label class="lbl">Firm Hourly Rate (R)</label><input type="number" id="sRate" class="inp" value="'+rate+'" min="0" step="50"/></div><div><label class="lbl">Firm Name</label><input type="text" id="sFirm" class="inp" value="'+fn+'"/></div><button onclick="saveSettings()" class="primary-btn">Save Settings</button></div></div>');
+  if(CR!=='manager'){setMain('<div class="al al-e">Access denied.</div>');return;}
+  var s=await sb.from('settings').select('*');
+  var rate='1000';var fn='HVNS & Company';
+  (s.data||[]).forEach(function(r){if(r.key==='firm_rate')rate=r.value;if(r.key==='firm_name')fn=r.value;});
+  setMain('<div class="fbox"><div style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Firm Settings</div>'
+    +'<div style="display:flex;flex-direction:column;gap:14px;">'
+    +'<div><label class="lbl">Firm Hourly Rate (R)</label><input type="number" id="sRate" class="inp" value="'+rate+'" min="0" step="50"/></div>'
+    +'<div><label class="lbl">Firm Name</label><input type="text" id="sFirm" class="inp" value="'+fn+'"/></div>'
+    +'<button onclick="saveSettings()" class="pbtn">Save Settings</button></div></div>');
 }
 async function saveSettings(){
-  const r=document.getElementById('sRate')?.value;const n=document.getElementById('sFirm')?.value;
+  var r=document.getElementById('sRate').value;var n=document.getElementById('sFirm').value;
   if(r)await sb.from('settings').upsert({key:'firm_rate',value:r},{onConflict:'key'});
   if(n)await sb.from('settings').upsert({key:'firm_name',value:n},{onConflict:'key'});
   FR=parseFloat(r)||1000;toast('✅ Settings saved.');
 }
 
-// ── Report ────────────────────────────────────────────────────────────────
+// report
 async function showRpt(id){
   if(CR==='staff')return;
-  const {data:a}=await sb.from('audits').select('*').eq('id',id).single();
-  const {data:ss}=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id)').eq('sections.audit_id',id);
-  const rows=(ss||[]).map(s=>({sec:s.sections?.name||'',sub:s.name,ass:s.assignee_email||'',due:s.due_date||'',step:s.step,prog:s.progress_pct||0,bud:parseFloat(s.budget_hours||0),act:parseFloat(s.actual_hours||0),var:parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0),fee:parseFloat(s.fee_value||0)}));
-  document.getElementById('rptTitle').textContent='📊 '+a?.name+' — Report';
-  const tb=rows.reduce((a,r)=>a+r.bud,0);const ta=rows.reduce((a,r)=>a+r.act,0);const tf=rows.reduce((a,r)=>a+r.fee,0);
+  var a=await sb.from('audits').select('*').eq('id',id).single();
+  var ss=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id)').eq('sections.audit_id',id);
+  var rows=(ss.data||[]).map(function(s){return {sec:s.sections?s.sections.name:'',sub:s.name,ass:s.assignee_email||'',due:s.due_date||'',step:s.step,prog:s.progress_pct||0,bud:parseFloat(s.budget_hours||0),act:parseFloat(s.actual_hours||0),vr:parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0),fee:parseFloat(s.fee_value||0)};});
+  document.getElementById('rptTitle').textContent='📊 '+(a.data?a.data.name:'')+' — Report';
+  var tb=rows.reduce(function(a,r){return a+r.bud;},0);var ta=rows.reduce(function(a,r){return a+r.act;},0);var tf=rows.reduce(function(a,r){return a+r.fee;},0);
   document.getElementById('rptSub').textContent=rows.length+' items · Budget: '+H(tb)+'h · Actual: '+H(ta)+'h · Fee: '+R(tf);
-  document.getElementById('rptHead').innerHTML='<tr>'+['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance','Fee Value'].map(h=>'<th>'+h+'</th>').join('')+'</tr>';
-  document.getElementById('rptBody').innerHTML=rows.map((r,i)=>{const c=SC[r.step];const ov=r.var<0;return '<tr style="background:'+(ov?'#fff5f5':i%2===0?'#fff':'#f8fafc')+'"><td style="font-weight:600;color:var(--navy);">'+r.sec+'</td><td>'+r.sub+'</td><td style="color:#6b7280;font-size:12px;">'+r.ass+'</td><td style="font-size:12px;">'+(r.due||'—')+'</td><td><span class="step-badge" style="color:'+c.c+';background:'+c.b+'">'+r.step+'</span></td><td><div style="display:flex;align-items:center;gap:6px;">'+bar(r.prog,6)+'<b>'+r.prog+'%</b></div></td><td style="font-weight:600;">'+H(r.bud)+'h</td><td style="font-weight:600;">'+H(r.act)+'h</td><td style="font-weight:700;color:'+(ov?'#dc2626':'#16a34a')+'">'+(r.var>0?'+':'')+H(r.var)+'h</td><td style="font-weight:600;color:#16a34a;">'+R(r.fee)+'</td></tr>';}).join('');
-  const h=['Section','Subsection','Assignee','Due Date','Step','Progress %','Budget Hours','Actual Hours','Variance Hours','Fee Value (R)'];
-  document.getElementById('csvTxt').value=[h,...rows.map(r=>[r.sec,r.sub,r.ass,r.due,r.step,r.prog,H(r.bud),H(r.act),H(r.var),r.fee.toFixed(2)])].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-  openModal('reportModal');
+  document.getElementById('rptHead').innerHTML='<tr>'+['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance','Fee Value'].map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr>';
+  document.getElementById('rptBody').innerHTML=rows.map(function(r,i){var c=SC[r.step];var ov=r.vr<0;return '<tr style="background:'+(ov?'#fff5f5':i%2===0?'#fff':'#f8fafc')+'"><td style="font-weight:600;color:var(--navy);">'+r.sec+'</td><td>'+r.sub+'</td><td style="color:#6b7280;font-size:12px;">'+r.ass+'</td><td style="font-size:12px;">'+(r.due||'—')+'</td><td><span class="sbadge" style="color:'+c.c+';background:'+c.b+'">'+r.step+'</span></td><td><div style="display:flex;align-items:center;gap:6px;">'+bar(r.prog,6)+'<b>'+r.prog+'%</b></div></td><td style="font-weight:600;">'+H(r.bud)+'h</td><td style="font-weight:600;">'+H(r.act)+'h</td><td style="font-weight:700;color:'+(ov?'#dc2626':'#16a34a')+'">'+(r.vr>0?'+':'')+H(r.vr)+'h</td><td style="font-weight:600;color:#16a34a;">'+R(r.fee)+'</td></tr>';}).join('');
+  var hd=['Section','Subsection','Assignee','Due Date','Step','Progress %','Budget Hours','Actual Hours','Variance Hours','Fee Value (R)'];
+  document.getElementById('csvTxt').value=[hd].concat(rows.map(function(r){return [r.sec,r.sub,r.ass,r.due,r.step,r.prog,H(r.bud),H(r.act),H(r.vr),r.fee.toFixed(2)];})).map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  openM('rptModal');
 }
 
-// ── Actions ──────────────────────────────────────────────────────────────
-function toggleA(id){EA=EA===id?null:id;ES=null;vDash();}
-function toggleS(id){ES=ES===id?null:id;vDash();}
+// actions
+function togA(id){EA=EA===id?null:id;ES=null;vDash();}
+function togS(id){ES=ES===id?null:id;vDash();}
 function setFStep(s){fStep=s;vAdd();}
-function goStep2(){fName=document.getElementById('faN').value.trim();fClient=document.getElementById('faCl').value.trim();fDue=document.getElementById('faDue').value;if(!fName||!fDue){alert('Please fill in Audit Name and Due Date.');return;}fStep=2;vAdd();}
+function goStep2(){
+  fName=(document.getElementById('faN')||{}).value||fName;fName=fName.trim();
+  fClient=(document.getElementById('faCl')||{}).value||fClient;fClient=fClient.trim();
+  fDue=(document.getElementById('faDue')||{}).value||fDue;
+  if(!fName||!fDue){alert('Please fill in Audit Name and Due Date.');return;}
+  fStep=2;vAdd();
+}
 function togSec(n){fSel[n]=!fSel[n];vAdd();}
-function setSA(sec,v){fDet[sec].a=v;}function setSD(sec,v){fDet[sec].due=v;}
+function setSA(sec,v){fDet[sec].a=v;}
+function setSD(sec,v){fDet[sec].due=v;}
 function setSubA(sec,sub,v){if(!fDet[sec].subs[sub])fDet[sec].subs[sub]={};fDet[sec].subs[sub].a=v;}
 function setSubD(sec,sub,v){if(!fDet[sec].subs[sub])fDet[sec].subs[sub]={};fDet[sec].subs[sub].due=v;}
 function setSubB(sec,sub,v){if(!fDet[sec].subs[sub])fDet[sec].subs[sub]={};fDet[sec].subs[sub].b=v;}
-function distBudget(sn,total){
-  const h=parseFloat(total)||0;fDet[sn].sb=h;
-  const t=STPLS.find(x=>x.n===sn);
-  const all=[...(t?.s||[]),...(fExtra[sn]||[])];if(!all.length)return;
-  const per=(h/all.length).toFixed(2);
-  all.forEach(sub=>{if(!fDet[sn].subs[sub])fDet[sn].subs[sub]={a:'',due:'',b:''};fDet[sn].subs[sub].b=per;});
+function distBud(sn,total){
+  var h=parseFloat(total)||0;fDet[sn].sb=h;
+  var t=null;for(var i=0;i<STPLS.length;i++){if(STPLS[i].n===sn){t=STPLS[i];break;}}
+  var all=t?t.s.concat(fExtra[sn]||[]):[];if(!all.length)return;
+  var per=(h/all.length).toFixed(2);
+  all.forEach(function(sub){if(!fDet[sn].subs[sub])fDet[sn].subs[sub]={a:'',due:'',b:''};fDet[sn].subs[sub].b=per;});
   vAdd();
 }
-function addExtra(sn){const k=sn.replace(/\s+/g,'_');const inp=document.getElementById('ei_'+k);if(!inp||!inp.value.trim())return;fExtra[sn].push(inp.value.trim());fDet[sn].subs[inp.value.trim()]={a:'',due:'',b:''};vAdd();}
+function addExtra(sn){var k=sn.replace(/\s+/g,'_');var inp=document.getElementById('ei_'+k);if(!inp||!inp.value.trim())return;fExtra[sn].push(inp.value.trim());fDet[sn].subs[inp.value.trim()]={a:'',due:'',b:''};vAdd();}
 function rmExtra(sn,i){fExtra[sn].splice(i,1);vAdd();}
 
 async function createAudit(){
-  const btn=document.getElementById('createBtn');if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
-  const {data:aud,error:ae}=await sb.from('audits').insert({name:fName,client:fClient||null,due_date:fDue||null,firm_rate:FR,created_by:CU.id}).select().single();
-  if(ae){alert('Error: '+ae.message);if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
-
-  if(window._usingCsvImport&&window._csvSections){
-    // CSV mode — create sections and subsections from CSV data
-    let so=0;
-    for(const[secName,secData]of Object.entries(window._csvSections)){
-      const secAssignee=secData.assignee||null;
-      const {data:sec}=await sb.from('sections').insert({audit_id:aud.id,name:secName,assignee_email:secAssignee,due_date:fDue||null,sort_order:so++}).select().single();
-      let ss=0;
-      for(const sub of secData.subs){
-        await sb.from('subsections').insert({section_id:sec.id,name:sub.name,assignee_email:sub.assignee||secAssignee||null,due_date:fDue||null,budget_hours:sub.budget||0,step:'Not Started',sort_order:ss++});
-      }
+  var btn=document.getElementById('createBtn');if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
+  var res=await sb.from('audits').insert({name:fName,client:fClient||null,due_date:fDue||null,firm_rate:FR,created_by:CU.id}).select().single();
+  if(res.error){alert('Error: '+res.error.message);if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
+  var aud=res.data;
+  if(usingCsv && csvSecs){
+    var keys=Object.keys(csvSecs);var so=0;
+    for(var ki=0;ki<keys.length;ki++){
+      var sn=keys[ki];var sd=csvSecs[sn];
+      var sr=await sb.from('sections').insert({audit_id:aud.id,name:sn,assignee_email:sd.assignee||null,due_date:fDue||null,sort_order:so++}).select().single();
+      if(sr.data){for(var subi=0;subi<sd.subs.length;subi++){var sub=sd.subs[subi];await sb.from('subsections').insert({section_id:sr.data.id,name:sub.name,assignee_email:sub.assignee||sd.assignee||null,due_date:fDue||null,budget_hours:sub.budget||0,step:'Not Started',sort_order:subi});}}
     }
-    window._csvSections=null;window._usingCsvImport=false;
+    csvSecs=null;usingCsv=false;
   } else {
-    // Template mode
-    const secs=STPLS.filter(t=>fSel[t.n]);
-    if(!secs.length){alert('Select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}await sb.from('audits').delete().eq('id',aud.id);return;}
-    let so=0;
-    for(const t of secs){
-      const d=fDet[t.n];
-      const {data:sec}=await sb.from('sections').insert({audit_id:aud.id,name:t.n,assignee_email:d.a||null,due_date:d.due||fDue||null,sort_order:so++}).select().single();
-      const allS=[...t.s,...(fExtra[t.n]||[])];let ss=0;
-      for(const sub of allS){const sd=d.subs[sub]||{};await sb.from('subsections').insert({section_id:sec.id,name:sub,assignee_email:sd.a||d.a||null,due_date:sd.due||d.due||fDue||null,budget_hours:parseFloat(sd.b)||0,sort_order:ss++});}
+    var secs2=STPLS.filter(function(t){return fSel[t.n];});
+    if(!secs2.length){alert('Select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}await sb.from('audits').delete().eq('id',aud.id);return;}
+    var so2=0;
+    for(var ti=0;ti<secs2.length;ti++){
+      var t=secs2[ti];var d=fDet[t.n];
+      var secr=await sb.from('sections').insert({audit_id:aud.id,name:t.n,assignee_email:d.a||null,due_date:d.due||fDue||null,sort_order:so2++}).select().single();
+      if(secr.data){var allS=t.s.concat(fExtra[t.n]||[]);for(var sii=0;sii<allS.length;sii++){var sub5=allS[sii];var sd5=d.subs[sub5]||{};await sb.from('subsections').insert({section_id:secr.data.id,name:sub5,assignee_email:sd5.a||d.a||null,due_date:sd5.due||d.due||fDue||null,budget_hours:parseFloat(sd5.b)||0,sort_order:sii});}}
     }
   }
   initForm();goView('dashboard');
@@ -777,160 +917,124 @@ async function createAudit(){
 async function delAudit(id){if(!confirm('Delete this audit?'))return;await sb.from('audits').delete().eq('id',id);EA=null;renderView();}
 
 function reqAdv(sid,name,next,bud,act){
-  pendAdv={sid,next};
-  const rem=parseFloat(bud)-parseFloat(act);
-  document.getElementById('hoursTxt').innerHTML='Moving <b>'+name+'</b> to <b>'+next+'</b>.<br/>Hours spent on this step?'+(parseFloat(bud)>0?'<br/><span style="color:#6b7280;font-size:11px;">Budget remaining: '+H(rem)+'h</span>':'');
-  document.getElementById('hrsInput').value='';document.getElementById('hrsNote').value='';
-  openModal('hoursModal');
+  pendAdv={sid:sid,next:next};
+  var rem=parseFloat(bud)-parseFloat(act);
+  document.getElementById('hrsTxt').innerHTML='Moving <b>'+name+'</b> to <b>'+next+'</b>. Hours spent?'+(parseFloat(bud)>0?'<br/><span style="font-size:11px;color:#6b7280;">Budget remaining: '+H(rem)+'h</span>':'');
+  document.getElementById('hrsInp').value='';document.getElementById('hrsNote').value='';
+  openM('hrsModal');
 }
 async function confirmAdv(skip){
-  const hrs=skip===0?0:parseFloat(document.getElementById('hrsInput').value)||0;
-  const note=document.getElementById('hrsNote').value||'';
-  const{sid,next}=pendAdv;
-  await sb.from('subsections').update({step:next}).eq('id',sid);
-  if(hrs>0)await sb.from('step_logs').insert({subsection_id:sid,step:next,hours:hrs,logged_by:CU.id,logged_by_email:CU.email,note:note||null});
-  closeModal('hoursModal');renderView();
+  var hrs=skip===0?0:parseFloat(document.getElementById('hrsInp').value)||0;
+  var note=document.getElementById('hrsNote').value||'';
+  await sb.from('subsections').update({step:pendAdv.next}).eq('id',pendAdv.sid);
+  if(hrs>0)await sb.from('step_logs').insert({subsection_id:pendAdv.sid,step:pendAdv.next,hours:hrs,logged_by:CU.id,logged_by_email:CU.email,note:note||null});
+  closeM('hrsModal');renderView();
 }
 async function regressStep(sid){
-  const {data:s}=await sb.from('subsections').select('step').eq('id',sid).single();
-  const i=STEPS.indexOf(s.step);if(i<=0)return;
+  var r=await sb.from('subsections').select('step').eq('id',sid).single();
+  var i=STEPS.indexOf(r.data.step);if(i<=0)return;
   await sb.from('subsections').update({step:STEPS[i-1]}).eq('id',sid);renderView();
 }
-
-function openRsn(sid,cur){pendRsn={sid};document.getElementById('reassignSel').innerHTML=staffOpts(cur);openModal('reassignModal');}
-async function doReassign(){const v=document.getElementById('reassignSel').value;if(!v)return;await sb.from('subsections').update({assignee_email:v}).eq('id',pendRsn.sid);closeModal('reassignModal');renderView();}
-
-function openAsn(aid,sid){pendAsn={aid,sid};document.getElementById('asnName').value='';document.getElementById('asnDue').value='';document.getElementById('asnBudget').value='';document.getElementById('asnAssignee').innerHTML='<option value="">Inherit</option>'+staffOpts();openModal('addSubModal');}
-async function confirmAddSub(){
-  const n=document.getElementById('asnName').value.trim();if(!n)return;
-  const a=document.getElementById('asnAssignee').value;const d=document.getElementById('asnDue').value;const b=parseFloat(document.getElementById('asnBudget').value)||0;
-  const {data:sec}=await sb.from('sections').select('assignee_email,due_date').eq('id',pendAsn.sid).single();
-  await sb.from('subsections').insert({section_id:pendAsn.sid,name:n,assignee_email:a||sec?.assignee_email||null,due_date:d||sec?.due_date||null,budget_hours:b});
-  closeModal('addSubModal');renderView();
+function openRsn(sid,cur){pendRsn={sid:sid};document.getElementById('rsnSel').innerHTML=staffOpts(cur);openM('rsnModal');}
+async function doReassign(){var v=document.getElementById('rsnSel').value;if(!v)return;await sb.from('subsections').update({assignee_email:v}).eq('id',pendRsn.sid);closeM('rsnModal');renderView();}
+function openAsn(aid,sid){pendAsn={aid:aid,sid:sid};document.getElementById('asnName').value='';document.getElementById('asnDue').value='';document.getElementById('asnBud').value='';document.getElementById('asnAss').innerHTML='<option value="">Inherit</option>'+staffOpts();openM('asnModal');}
+async function confirmAsn(){
+  var n=document.getElementById('asnName').value.trim();if(!n)return;
+  var a=document.getElementById('asnAss').value;var d=document.getElementById('asnDue').value;var b=parseFloat(document.getElementById('asnBud').value)||0;
+  var sr=await sb.from('sections').select('assignee_email,due_date').eq('id',pendAsn.sid).single();
+  await sb.from('subsections').insert({section_id:pendAsn.sid,name:n,assignee_email:a||sr.data.assignee_email||null,due_date:d||sr.data.due_date||null,budget_hours:b});
+  closeM('asnModal');renderView();
 }
 async function delSub(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderView();}
-async function updBudget(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
-
-async function saveAudDet(id){
-  const n=document.getElementById('eaN').value.trim();const cl=document.getElementById('eaCl').value.trim();const d=document.getElementById('eaDue').value;
-  if(!n){alert('Audit name cannot be empty.');return;}
-  await sb.from('audits').update({name:n,client:cl||null,due_date:d||null}).eq('id',id);toast('✅ Audit details saved.');
-}
+async function updBud(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function saveAudDet(id){var n=document.getElementById('eaN').value.trim();var cl=document.getElementById('eaCl').value.trim();var d=document.getElementById('eaDue').value;if(!n){alert('Audit name cannot be empty.');return;}await sb.from('audits').update({name:n,client:cl||null,due_date:d||null}).eq('id',id);toast('✅ Audit details saved.');}
 async function updSecA(id,v){await sb.from('sections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
 async function delSubE(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);vEdit();}
-async function addSubE(sid,inA,inD){
-  const n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a subsection name.');return;}
-  const a=document.getElementById('na_'+sid).value||inA||null;const d=document.getElementById('nd_'+sid).value||inD||null;const b=parseFloat(document.getElementById('nb_'+sid).value)||0;
-  await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999});
-  toast('✅ Subsection added.');vEdit();
-}
+async function addSubE(sid,inA,inD){var n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a name.');return;}var a=document.getElementById('na_'+sid).value||inA||null;var d=document.getElementById('nd_'+sid).value||inD||null;var b=parseFloat(document.getElementById('nb_'+sid).value)||0;await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999});toast('✅ Subsection added.');vEdit();}
+function showTeams(an,sn,sub,step,due,hrs){document.getElementById('teamsTxt').value='📋 Audit Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nCurrent Step: '+step+(due?'\nDue: '+due:'')+'\nHours Logged: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';openM('teamsModal');}
 
-function showTeams(an,sn,sub,step,due,hrs){
-  document.getElementById('teamsTxt').value='📋 Audit Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nCurrent Step: '+step+(due?'\nDue: '+due:'')+'\nHours Logged: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';
-  openModal('teamsModal');
-}
-
-// ── Password / Auth modals ────────────────────────────────────────────────
-function openChangePwd(){document.getElementById('pwd1').value='';document.getElementById('pwd2').value='';document.getElementById('pwdStatus').style.display='none';openModal('changePwdModal');}
+// password modals
+function openChangePwd(){document.getElementById('pwd1').value='';document.getElementById('pwd2').value='';document.getElementById('cpwdSt').style.display='none';openM('cpwdModal');}
 async function doChangePwd(){
-  const p1=document.getElementById('pwd1').value;const p2=document.getElementById('pwd2').value;
-  const st=document.getElementById('pwdStatus');
-  if(!p1||p1.length<6){st.className='alert alert-e';st.textContent='Min 6 characters.';st.style.display='block';return;}
-  if(p1!==p2){st.className='alert alert-e';st.textContent='Passwords do not match.';st.style.display='block';return;}
-  const {error}=await sb.auth.updateUser({password:p1});
-  if(error){st.className='alert alert-e';st.textContent=error.message;}else{st.className='alert alert-s';st.textContent='✅ Password updated!';setTimeout(()=>closeModal('changePwdModal'),1500);}
+  var p1=document.getElementById('pwd1').value;var p2=document.getElementById('pwd2').value;var st=document.getElementById('cpwdSt');
+  if(!p1||p1.length<6){st.className='al al-e';st.textContent='Min 6 characters.';st.style.display='block';return;}
+  if(p1!==p2){st.className='al al-e';st.textContent='Passwords do not match.';st.style.display='block';return;}
+  var res=await sb.auth.updateUser({password:p1});
+  if(res.error){st.className='al al-e';st.textContent=res.error.message;}else{st.className='al al-s';st.textContent='✅ Password updated!';setTimeout(function(){closeM('cpwdModal');},1500);}
   st.style.display='block';
 }
 async function doForgot(){
-  const e=document.getElementById('fgtEmail').value.trim();const st=document.getElementById('fgtStatus');
-  if(!e){st.className='alert alert-e';st.textContent='Enter your email.';st.style.display='block';return;}
-  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
-  st.className=error?'alert alert-e':'alert alert-s';st.textContent=error?error.message:'✅ Reset link sent! Check your inbox.';st.style.display='block';
+  var e=document.getElementById('fgtEmail').value.trim();var st=document.getElementById('fgtSt');
+  if(!e){st.className='al al-e';st.textContent='Enter your email.';st.style.display='block';return;}
+  var res=await sb.auth.resetPasswordForEmail(e,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
+  st.className=res.error?'al al-e':'al al-s';st.textContent=res.error?res.error.message:'✅ Reset link sent!';st.style.display='block';
 }
 
-// ── CSV import ────────────────────────────────────────────────────────────
-function dlTemplate(){
-  const csv='Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3';
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
-}
-
+// CSV import
+function dlTpl(){var csv='Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3';var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function importCSV(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
   reader.onload=function(ev){
     try{
-      const lines=ev.target.result.split('\n').filter(l=>l.trim());
+      var raw=ev.target.result;
+      var delim=raw.indexOf('\t')>-1?'\t':',';
+      var lines=raw.split('\n').filter(function(l){return l.trim();});
       if(lines.length<2){alert('CSV is empty.');return;}
-      const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z_]/g,''));
-      const si=headers.indexOf('section');const sbi=headers.indexOf('subsection');
-      const ai=headers.findIndex(h=>h.includes('assignee'));const bi=headers.findIndex(h=>h.includes('budget'));
+      var headers=lines[0].split(delim).map(function(h){return h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_');});
+      var si=headers.findIndex(function(h){return h.indexOf('section')>=0&&h.indexOf('sub')<0;});
+      var sbi=headers.findIndex(function(h){return h.indexOf('subsection')>=0;});
+      var ai=headers.findIndex(function(h){return h.indexOf('assignee')>=0||h.indexOf('email')>=0;});
+      var bi=headers.findIndex(function(h){return h.indexOf('budget')>=0||h.indexOf('hour')>=0;});
       if(si<0||sbi<0){alert('CSV must have Section and Subsection columns.');return;}
-      // Reset
-      STPLS.forEach(t=>{fSel[t.n]=false;fExtra[t.n]=[];fDet[t.n]={a:'',due:'',sb:'',subs:{}};t.s.forEach(s=>{fDet[t.n].subs[s]={a:'',due:'',b:''};});});
-      // Parse rows
-      const rows=lines.slice(1).map(l=>{const v=[];let cur='';let inQ=false;for(let i=0;i<l.length;i++){if(l[i]==='"')inQ=!inQ;else if(l[i]===','&&!inQ){v.push(cur.trim());cur='';}else cur+=l[i];}v.push(cur.trim());return v;});
-      let cnt=0;
-      rows.forEach(v=>{
-        const sec=(v[si]||'').trim();const sub=(v[sbi]||'').trim();
-        const ass=ai>=0?(v[ai]||'').trim():'';const bud=bi>=0?parseFloat(v[bi])||0:0;
-        if(!sec||!sub)return;
-        const t=STPLS.find(x=>x.n.toLowerCase()===sec.toLowerCase()||x.n.toLowerCase().includes(sec.toLowerCase())||sec.toLowerCase().includes(x.n.toLowerCase()));
-        if(!t)return;
-        fSel[t.n]=true;if(ass&&!fDet[t.n].a)fDet[t.n].a=ass;
-        const defSub=t.s.find(s=>s.toLowerCase()===sub.toLowerCase());
-        const key=defSub||sub;
-        if(!defSub&&!fExtra[t.n].includes(sub))fExtra[t.n].push(sub);
-        fDet[t.n].subs[key]={a:ass,due:'',b:bud.toString()};cnt++;
+      var rows=lines.slice(1).map(function(l){
+        if(delim==='\t')return l.split('\t').map(function(v){return v.trim().replace(/^"|"$/g,'');});
+        var v=[];var cur='';var inQ=false;
+        for(var i=0;i<l.length;i++){if(l[i]==='"')inQ=!inQ;else if(l[i]===','&&!inQ){v.push(cur.trim());cur='';}else cur+=l[i];}
+        v.push(cur.trim());return v;
       });
-      // Validate unregistered — check ALL subsection assignees individually
-      const reg=new Set(AU.map(u=>u.email.toLowerCase()));
-      const unreg=new Set();
-      STPLS.forEach(t=>{
-        if(!fSel[t.n])return;
-        // Check section-level assignee
-        if(fDet[t.n].a&&!reg.has(fDet[t.n].a.toLowerCase()))unreg.add(fDet[t.n].a);
-        // Check every subsection assignee individually
-        Object.values(fDet[t.n].subs).forEach(s=>{
-          if(s.a&&s.a.trim()&&!reg.has(s.a.toLowerCase()))unreg.add(s.a);
-        });
-        // Also check extra subs
-        (fExtra[t.n]||[]).forEach(sub=>{
-          const sd=fDet[t.n].subs[sub];
-          if(sd&&sd.a&&!reg.has(sd.a.toLowerCase()))unreg.add(sd.a);
-        });
+      var newSecs={};var cnt=0;
+      rows.forEach(function(v){
+        var sn=(v[si]||'').trim().replace(/^"|"$/g,'');
+        var sub=(v[sbi]||'').trim().replace(/^"|"$/g,'');
+        var ass=ai>=0?(v[ai]||'').trim().replace(/^"|"$/g,''):'';
+        var bud=bi>=0?parseFloat((v[bi]||'').replace(/^"|"$/g,''))||0:0;
+        if(!sn||!sub)return;
+        if(!newSecs[sn])newSecs[sn]={assignee:ass,subs:[]};
+        newSecs[sn].subs.push({name:sub,assignee:ass,budget:bud});
+        if(ass&&!newSecs[sn].assignee)newSecs[sn].assignee=ass;
+        cnt++;
       });
-      let msg='✅ '+cnt+' rows imported.';
-      if(unreg.size>0)msg+=' ⚠️ <b>'+unreg.size+' unregistered assignee'+(unreg.size>1?'s':'')+': '+[...unreg].join(', ')+'</b> — will link automatically when their accounts are created.';
-      else msg+=' All assignees are registered ✅';
-      document.getElementById('csvStatus').innerHTML=msg;
+      csvSecs=newSecs;usingCsv=true;
+      var reg=new Set(AU.map(function(u){return u.email.toLowerCase();}));
+      var unreg=new Set();
+      Object.values(newSecs).forEach(function(sd){if(sd.assignee&&!reg.has(sd.assignee.toLowerCase()))unreg.add(sd.assignee);sd.subs.forEach(function(s){if(s.assignee&&!reg.has(s.assignee.toLowerCase()))unreg.add(s.assignee);});});
+      var msg='✅ '+cnt+' rows imported across '+Object.keys(newSecs).length+' sections.';
+      if(unreg.size>0)msg+='<br/>⚠️ <b>'+unreg.size+' unregistered: '+Array.from(unreg).join(', ')+'</b> — will link when accounts are created.';
+      else msg+=' All assignees registered ✅';
+      var stEl=document.getElementById('csvSt');if(stEl)stEl.innerHTML=msg;
       e.target.value='';
-      // Read current form values for name/date
-      const nameEl=document.getElementById('faN');
-      const dueEl=document.getElementById('faDue');
-      const clientEl=document.getElementById('faCl');
-      if(nameEl&&nameEl.value.trim())fName=nameEl.value.trim();
-      if(clientEl&&clientEl.value.trim())fClient=clientEl.value.trim();
-      if(dueEl&&dueEl.value)fDue=dueEl.value;
+      var nEl=document.getElementById('faN');var dEl=document.getElementById('faDue');var cEl=document.getElementById('faCl');
+      if(nEl&&nEl.value.trim())fName=nEl.value.trim();
+      if(cEl&&cEl.value.trim())fClient=cEl.value.trim();
+      if(dEl&&dEl.value)fDue=dEl.value;
       if(fName&&fDue){fStep=2;vAdd();}
-      else{
-        // Stay on step 1 but show clear message
-        document.getElementById('csvStatus').innerHTML=msg+'<br/><span style="color:#d97706;font-weight:600;">👆 Fill in Audit Name and Due Date above, then click Next.</span>';
-      }
-    }catch(err){alert('Error reading CSV: '+err.message);console.error(err);}
+      else if(stEl)stEl.innerHTML=msg+'<br/><span style="color:#d97706;font-weight:600;">Fill in Audit Name and Due Date above, then click Next.</span>';
+    }catch(err){alert('Error reading file: '+err.message);console.error(err);}
   };
   reader.readAsText(file);
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────
-(async()=>{
-  const hash=window.location.hash;
-  if(hash&&hash.includes('access_token')){await sb.auth.signOut();window.location.hash='';return;}
-  const {data:{session}}=await sb.auth.getSession();
-  if(session)await initApp(session.user);
+// init
+(async function(){
+  var hash=window.location.hash;
+  if(hash&&hash.indexOf('access_token')>=0){await sb.auth.signOut();window.location.hash='';return;}
+  var s=await sb.auth.getSession();
+  if(s.data&&s.data.session)await initApp(s.data.session.user);
 })();
 </script>
 </body>
