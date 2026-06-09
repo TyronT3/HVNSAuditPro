@@ -487,6 +487,7 @@ function vAdd(){
       html+='</div>';
     });
     html+='</div><div style="display:flex;gap:10px;"><button onclick="setFStep(1)" class="ghost-btn" style="flex:1;">← Back</button><button id="createBtn" onclick="createAudit()" class="primary-btn" style="flex:2;">Create Audit</button></div>';
+    } // end else (template mode)
   }
   html+='</div>';
   setMain(html);
@@ -743,16 +744,32 @@ function rmExtra(sn,i){fExtra[sn].splice(i,1);vAdd();}
 
 async function createAudit(){
   const btn=document.getElementById('createBtn');if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
-  const secs=STPLS.filter(t=>fSel[t.n]);
-  if(!secs.length){alert('Select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
   const {data:aud,error:ae}=await sb.from('audits').insert({name:fName,client:fClient||null,due_date:fDue||null,firm_rate:FR,created_by:CU.id}).select().single();
   if(ae){alert('Error: '+ae.message);if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
-  let so=0;
-  for(const t of secs){
-    const d=fDet[t.n];
-    const {data:sec}=await sb.from('sections').insert({audit_id:aud.id,name:t.n,assignee_email:d.a||null,due_date:d.due||fDue||null,sort_order:so++}).select().single();
-    const allS=[...t.s,...(fExtra[t.n]||[])];let ss=0;
-    for(const sub of allS){const sd=d.subs[sub]||{};await sb.from('subsections').insert({section_id:sec.id,name:sub,assignee_email:sd.a||d.a||null,due_date:sd.due||d.due||fDue||null,budget_hours:parseFloat(sd.b)||0,sort_order:ss++});}
+
+  if(window._usingCsvImport&&window._csvSections){
+    // CSV mode — create sections and subsections from CSV data
+    let so=0;
+    for(const[secName,secData]of Object.entries(window._csvSections)){
+      const secAssignee=secData.assignee||null;
+      const {data:sec}=await sb.from('sections').insert({audit_id:aud.id,name:secName,assignee_email:secAssignee,due_date:fDue||null,sort_order:so++}).select().single();
+      let ss=0;
+      for(const sub of secData.subs){
+        await sb.from('subsections').insert({section_id:sec.id,name:sub.name,assignee_email:sub.assignee||secAssignee||null,due_date:fDue||null,budget_hours:sub.budget||0,step:'Not Started',sort_order:ss++});
+      }
+    }
+    window._csvSections=null;window._usingCsvImport=false;
+  } else {
+    // Template mode
+    const secs=STPLS.filter(t=>fSel[t.n]);
+    if(!secs.length){alert('Select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}await sb.from('audits').delete().eq('id',aud.id);return;}
+    let so=0;
+    for(const t of secs){
+      const d=fDet[t.n];
+      const {data:sec}=await sb.from('sections').insert({audit_id:aud.id,name:t.n,assignee_email:d.a||null,due_date:d.due||fDue||null,sort_order:so++}).select().single();
+      const allS=[...t.s,...(fExtra[t.n]||[])];let ss=0;
+      for(const sub of allS){const sd=d.subs[sub]||{};await sb.from('subsections').insert({section_id:sec.id,name:sub,assignee_email:sd.a||d.a||null,due_date:sd.due||d.due||fDue||null,budget_hours:parseFloat(sd.b)||0,sort_order:ss++});}
+    }
   }
   initForm();goView('dashboard');
 }
