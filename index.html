@@ -6,43 +6,43 @@
 <title>HVNS & Company — Audit Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--navy:#1A2B3C;--navy2:#2E4057;--navy3:#3a536b;--orange:#F5A623;--white:#ffffff;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;--purple:#7c3aed;}
+:root{--navy:#1A2B3C;--navy2:#2E4057;--navy3:#3a536b;--orange:#F5A623;--white:#fff;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;--purple:#7c3aed;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Calibri',sans-serif;background:var(--light);color:var(--charcoal);min-height:100vh;}
-h1,h2,h3,.heading{font-family:'Trebuchet MS',sans-serif;}
+h1,h2,h3{font-family:'Trebuchet MS',sans-serif;}
 button,input,select,textarea{font-family:'Calibri',sans-serif;}
+/* Login */
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy);}
 .login-card{background:var(--navy2);border-radius:16px;padding:48px 40px;width:400px;max-width:95vw;border:1px solid var(--navy3);box-shadow:0 20px 60px rgba(0,0,0,0.4);}
-.login-logo{text-align:center;margin-bottom:32px;}
-.login-logo .firm{font-family:'Trebuchet MS',sans-serif;font-size:22px;font-weight:700;color:var(--white);}
-.login-logo .sub{font-size:12px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.firm-name{font-family:'Trebuchet MS',sans-serif;font-size:22px;font-weight:700;color:#fff;text-align:center;}
+.firm-sub{font-size:12px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;margin-top:4px;text-align:center;}
 .orange-line{height:2px;background:var(--orange);border-radius:1px;margin:16px 0;}
 .login-card label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);display:block;margin-bottom:4px;}
 .login-card input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:14px;outline:none;}
 .login-card input:focus{border-color:var(--orange);}
-.login-btn{width:100%;padding:12px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;letter-spacing:.5px;}
+.login-btn{width:100%;padding:12px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;}
 .login-btn:hover{background:#e8951a;}
 .login-error{color:#f87171;font-size:13px;margin-top:8px;text-align:center;}
+/* App shell */
 #appShell{display:none;flex-direction:column;min-height:100vh;}
 .header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;flex-wrap:wrap;gap:8px;}
 .header-title{font-family:'Trebuchet MS',sans-serif;font-size:17px;font-weight:700;color:#fff;}
-.header-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px;}
 .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .user-pill{background:rgba(255,255,255,0.1);border-radius:20px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.8);}
-.role-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.role-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;}
 .role-manager{background:var(--orange);color:var(--navy);}
 .role-director{background:#7c3aed;color:#fff;}
 .role-staff{background:rgba(255,255,255,0.15);color:#fff;}
-.logout-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
-.logout-btn:hover{border-color:var(--orange);color:var(--orange);}
+.hdr-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
+.hdr-btn:hover{border-color:var(--orange);color:var(--orange);}
 .orange-accent{height:2px;background:var(--orange);width:100%;}
 .nav-bar{background:var(--navy2);padding:0 24px;display:flex;gap:2px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;}
-.nav-btn{padding:14px 18px;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;}
+.nav-btn{padding:14px 18px;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;}
 .nav-btn:hover{color:rgba(255,255,255,0.85);}
 .nav-btn.active{color:#fff;border-bottom-color:var(--orange);}
 .main{flex:1;max-width:1100px;margin:0 auto;padding:28px 20px;width:100%;}
+/* Cards */
 .card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:14px;overflow:hidden;border:1px solid var(--border);}
-.card-header{padding:16px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
 .stat{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:3px solid var(--orange);}
 .stat-val{font-family:'Trebuchet MS',sans-serif;font-size:24px;font-weight:700;color:var(--navy);}
@@ -51,164 +51,166 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .step-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
 .bar-wrap{background:#e5e7eb;border-radius:99px;overflow:hidden;}
 .bar-inner{height:100%;border-radius:99px;transition:width .4s;}
+/* Tables */
 .data-table{width:100%;border-collapse:collapse;font-size:13px;}
-.data-table th{background:var(--navy);color:#fff;padding:10px 14px;text-align:left;font-family:'Trebuchet MS',sans-serif;font-weight:600;font-size:12px;letter-spacing:.3px;}
+.data-table th{background:var(--navy);color:#fff;padding:10px 14px;text-align:left;font-family:'Trebuchet MS',sans-serif;font-weight:600;font-size:12px;}
 .data-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--charcoal);}
 .data-table tr:hover td{background:#f8fafc;}
 .data-table tr:last-child td{border-bottom:none;}
+/* Forms */
 .form-box{background:#fff;border-radius:14px;padding:28px;box-shadow:0 1px 6px rgba(0,0,0,0.08);max-width:720px;margin:0 auto;border:1px solid var(--border);}
-.form-section-title{font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--orange);}
+.sec-title{font-family:'Trebuchet MS',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--orange);}
 .inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;color:var(--charcoal);background:#fff;}
 .inp:focus{border-color:var(--navy);}
-.primary-btn{padding:11px 22px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:.3px;}
+.lbl{font-size:11px;font-weight:600;color:#6b7280;margin-bottom:3px;display:block;}
+.primary-btn{padding:11px 22px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
 .primary-btn:hover{background:var(--navy2);}
 .orange-btn{padding:11px 22px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
 .ghost-btn{padding:8px 16px;background:none;border:1.5px solid var(--border);color:var(--charcoal);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
 .ghost-btn:hover{border-color:var(--navy);color:var(--navy);}
 .danger-btn{padding:6px 12px;background:#fef2f2;color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
+/* Modals */
 .modal-overlay{position:fixed;inset:0;background:rgba(10,20,30,0.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
 .modal{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;}
-.modal-header{background:var(--navy);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
-.modal-header h3{font-family:'Trebuchet MS',sans-serif;color:#fff;font-size:15px;font-weight:700;}
-.modal-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;padding:0 4px;}
-.modal-close:hover{color:#fff;}
+.modal-hdr{background:var(--navy);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h3{font-family:'Trebuchet MS',sans-serif;color:#fff;font-size:15px;font-weight:700;}
+.modal-x{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;}
+.modal-x:hover{color:#fff;}
 .modal-body{padding:24px;}
-.modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:#f8fafc;}
-.section-row{display:flex;align-items:center;gap:10px;padding:11px 20px 11px 28px;cursor:pointer;border-top:1px solid var(--border);flex-wrap:wrap;}
-.sub-row{display:flex;align-items:center;gap:8px;padding:9px 20px 9px 44px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.modal-ftr{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:#f8fafc;}
+/* Step trail */
 .step-trail{display:flex;align-items:center;margin:12px 0;}
 .step-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:#fff;}
 .step-line{flex:1;height:2px;margin:0 2px;margin-bottom:14px;}
-.step-label{font-size:8px;font-weight:600;white-space:nowrap;max-width:52px;text-align:center;line-height:1.2;margin-top:3px;}
-.chk-box{width:18px;height:18px;border-radius:4px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
-.chk-box.checked{background:var(--navy);border-color:var(--navy);}
+.step-lbl{font-size:8px;font-weight:600;white-space:nowrap;max-width:52px;text-align:center;line-height:1.2;margin-top:3px;}
+/* Checkboxes */
+.chk{width:18px;height:18px;border-radius:4px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+.chk.on{background:var(--navy);border-color:var(--navy);}
+/* Alerts */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px;}
+.alert-w{background:#fff7ed;border:1px solid #fed7aa;color:#92400e;}
+.alert-e{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+.alert-s{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
+/* Tab bar */
 .tab-bar{display:flex;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);}
-.tab-item{flex:1;padding:10px;text-align:center;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
-.tab-item.active{background:var(--navy);color:#fff;}
-.tab-item:not(.active){background:#f8fafc;color:#9ca3af;}
+.tab-item{flex:1;padding:10px;text-align:center;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.tab-item.on{background:var(--navy);color:#fff;}
+.tab-item:not(.on){background:#f8fafc;color:#9ca3af;}
+/* Report */
 .report-wrap{width:90vw;max-width:900px;max-height:88vh;display:flex;flex-direction:column;}
-.report-table-wrap{flex:1;overflow-y:auto;}
-.csv-area{padding:14px 20px;border-top:1px solid var(--border);background:#f8fafc;}
-.variance-flag{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-top:10px;}
-.app-footer{background:var(--navy);padding:8px 24px;display:flex;align-items:center;justify-content:space-between;}
-.footer-text{font-size:11px;color:rgba(255,255,255,0.35);}
-.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:#9ca3af;font-size:14px;}
-.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px;}
-.alert-warning{background:#fff7ed;border:1px solid #fed7aa;color:#92400e;}
-.alert-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
-.alert-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
+.report-scroll{flex:1;overflow-y:auto;}
+/* Footer */
+.app-footer{background:var(--navy);padding:8px 24px;display:flex;justify-content:space-between;}
+.footer-txt{font-size:11px;color:rgba(255,255,255,0.35);}
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:#9ca3af;}
 @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr);}.main{padding:16px 12px;}}
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-card">
-    <div class="login-logo">
-      <div class="firm">HVNS & Company</div>
-      <div class="sub">Audit & Assurance</div>
-    </div>
+    <div class="firm-name">HVNS &amp; Company</div>
+    <div class="firm-sub">Audit &amp; Assurance</div>
     <div class="orange-line"></div>
     <div style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:20px;">Audit Tracker</div>
     <div style="display:flex;flex-direction:column;gap:14px;">
-      <div><label>Email Address</label><input type="email" id="loginEmail" placeholder="you@hvns.co.za" autocomplete="username"/></div>
-      <div><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <button class="login-btn" onclick="doLogin()">Sign In</button>
-      <div id="loginError" class="login-error" style="display:none;"></div>
+      <div><label>Email Address</label><input type="email" id="liEmail" placeholder="you@hvns.co.za"/></div>
+      <div><label>Password</label><input type="password" id="liPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="login-btn" id="liBtn" onclick="doLogin()">Sign In</button>
+      <div id="liErr" class="login-error" style="display:none;"></div>
     </div>
     <div style="text-align:center;margin-top:14px;">
-      <span onclick="showForgotPassword()" style="font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
+      <span onclick="openModal('forgotModal')" style="font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
     </div>
     <div class="orange-line" style="margin-top:16px;"></div>
     <div style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">Access restricted to authorised HVNS personnel</div>
   </div>
 </div>
 
+<!-- APP SHELL -->
 <div id="appShell" style="display:none;flex-direction:column;min-height:100vh;">
   <div class="header">
     <div>
-      <div class="header-title">HVNS & Company — Audit Tracker</div>
-      <div class="header-sub" id="headerSub">Loading...</div>
+      <div class="header-title">HVNS &amp; Company — Audit Tracker</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="hdrSub"></div>
     </div>
     <div class="header-right">
       <span class="user-pill" id="userPill"></span>
       <span class="role-badge" id="roleBadge"></span>
-      <button class="logout-btn" onclick="showChangePassword()" style="border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8);">🔑 Change Password</button>
-      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+      <button class="hdr-btn" onclick="openChangePwd()" style="border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8);">🔑 Change Password</button>
+      <button class="hdr-btn" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
   <div class="orange-accent"></div>
   <div class="nav-bar" id="navBar"></div>
-  <div class="main" id="mainContent"><div class="loading">Loading...</div></div>
+  <div class="main" id="main"><div class="loading">Loading...</div></div>
   <div class="orange-accent"></div>
   <div class="app-footer">
-    <span class="footer-text">HVNS & Company — Confidential</span>
-    <span class="footer-text" id="footerTime"></span>
+    <span class="footer-txt">HVNS &amp; Company — Confidential</span>
+    <span class="footer-txt" id="footerTime"></span>
   </div>
 </div>
 
 <!-- MODALS -->
 <div id="hoursModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:360px;">
-    <div class="modal-header"><h3>⏱ Log Time</h3><button class="modal-close" onclick="closeModal('hoursModal')">✕</button></div>
+    <div class="modal-hdr"><h3>⏱ Log Time</h3><button class="modal-x" onclick="closeModal('hoursModal')">✕</button></div>
     <div class="modal-body">
-      <div id="hoursModalText" style="font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.5;"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div><label class="lbl">Hours Spent *</label><input type="number" id="hoursInput" class="inp" min="0" step="0.25" placeholder="e.g. 2.5"/></div>
-        <div><label class="lbl">Note (optional)</label><input type="text" id="hoursNote" class="inp" placeholder="e.g. client follow-up"/></div>
+      <div id="hoursTxt" style="font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.5;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label class="lbl">Hours Spent</label><input type="number" id="hrsInput" class="inp" min="0" step="0.25" placeholder="e.g. 2.5"/></div>
+        <div><label class="lbl">Note (optional)</label><input type="text" id="hrsNote" class="inp" placeholder="e.g. client call"/></div>
       </div>
-      <div id="budgetWarning" style="display:none;" class="alert alert-warning"></div>
     </div>
-    <div class="modal-footer">
-      <button class="ghost-btn" onclick="confirmAdvance(0)">Skip Hours</button>
-      <button class="primary-btn" onclick="confirmAdvance()">Confirm & Save</button>
+    <div class="modal-ftr">
+      <button class="ghost-btn" onclick="confirmAdv(0)">Skip</button>
+      <button class="primary-btn" onclick="confirmAdv()">Confirm &amp; Save</button>
     </div>
   </div>
 </div>
 
 <div id="timesheetModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:500px;">
-    <div class="modal-header"><h3>📅 Weekly Time Reconciliation</h3><button class="modal-close" onclick="closeModal('timesheetModal')">✕</button></div>
+    <div class="modal-hdr"><h3>📅 Weekly Time Reconciliation</h3><button class="modal-x" onclick="closeModal('timesheetModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="alert alert-warning">Submit the hours you logged in the <b>firm time tracking system</b>. Select the correct week carefully before submitting.</div>
+      <div class="alert alert-w">Submit hours from your <b>firm time tracking system</b>. Select the correct week carefully.</div>
       <div>
         <label class="lbl">Week Ending (Friday)</label>
-        <select id="tsWeekEnding" class="inp" style="background:#fff;" onchange="onWeekOrSubChange()">
-        </select>
-        <div id="tsWeekLabel" style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px;"></div>
+        <select id="tsWeek" class="inp" style="background:#fff;" onchange="onTsChange()"></select>
+        <div id="tsWeekLbl" style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px;"></div>
       </div>
       <div>
         <label class="lbl">Subsection</label>
-        <select id="tsSubsection" class="inp" style="background:#fff;" onchange="onWeekOrSubChange()"></select>
-        <div id="tsAlreadySubmitted" style="display:none;" class="alert alert-warning" style="margin-top:6px;">⚠️ Already submitted for this week. Please select a different week or subsection.</div>
+        <select id="tsSub" class="inp" style="background:#fff;" onchange="onTsChange()"></select>
+        <div id="tsAlready" class="alert alert-w" style="display:none;margin-top:6px;">⚠️ Already submitted for this week/subsection.</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div><label class="lbl">Firm System Hours</label><input type="number" id="tsFirmHours" class="inp" min="0" step="0.25" oninput="calcVariance()"/></div>
-        <div>
-          <label class="lbl">App Hours (auto-calculated)</label>
-          <input type="number" id="tsAppHours" class="inp" readonly style="background:#f8fafc;"/>
-          <div id="tsAppHoursLabel" style="font-size:11px;color:#6b7280;margin-top:3px;"></div>
+        <div><label class="lbl">Firm System Hours</label><input type="number" id="tsFirm" class="inp" min="0" step="0.25" oninput="calcVar()"/></div>
+        <div><label class="lbl">App Hours (auto)</label><input type="number" id="tsApp" class="inp" readonly style="background:#f8fafc;"/>
+          <div id="tsAppLbl" style="font-size:11px;color:#6b7280;margin-top:3px;"></div>
         </div>
       </div>
-      <div id="tsVarianceBox" style="display:none;" class="variance-flag">
-        <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Variance detected — explanation required before saving</div>
-        <div id="tsVarianceAmt" style="font-size:13px;color:#92400e;margin-bottom:8px;"></div>
+      <div id="tsVarBox" style="display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Variance — explanation required</div>
+        <div id="tsVarAmt" style="font-size:13px;color:#92400e;margin-bottom:8px;"></div>
         <label class="lbl">Explanation *</label>
-        <textarea id="tsExplanation" class="inp" rows="3" placeholder="Explain the difference between firm system hours and app hours..."></textarea>
+        <textarea id="tsExp" class="inp" rows="3" placeholder="Explain the difference..."></textarea>
       </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-ftr">
       <button class="ghost-btn" onclick="closeModal('timesheetModal')">Cancel</button>
-      <button class="primary-btn" id="tsSubmitBtn" onclick="submitTimesheet()">Submit</button>
+      <button class="primary-btn" id="tsSubmitBtn" onclick="submitTs()">Submit</button>
     </div>
   </div>
 </div>
 
 <div id="reassignModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:320px;">
-    <div class="modal-header"><h3>👤 Reassign Subsection</h3><button class="modal-close" onclick="closeModal('reassignModal')">✕</button></div>
-    <div class="modal-body"><label class="lbl">Assign To</label><select id="reassignSelect" class="inp" style="background:#fff;"></select></div>
-    <div class="modal-footer">
+    <div class="modal-hdr"><h3>👤 Reassign</h3><button class="modal-x" onclick="closeModal('reassignModal')">✕</button></div>
+    <div class="modal-body"><label class="lbl">Assign To</label><select id="reassignSel" class="inp" style="background:#fff;"></select></div>
+    <div class="modal-ftr">
       <button class="ghost-btn" onclick="closeModal('reassignModal')">Cancel</button>
       <button class="primary-btn" onclick="doReassign()">Reassign</button>
     </div>
@@ -217,16 +219,16 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 
 <div id="addSubModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:400px;">
-    <div class="modal-header"><h3>➕ Add Subsection</h3><button class="modal-close" onclick="closeModal('addSubModal')">✕</button></div>
+    <div class="modal-hdr"><h3>➕ Add Subsection</h3><button class="modal-x" onclick="closeModal('addSubModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
-      <div><label class="lbl">Subsection Name *</label><input id="addSubName" class="inp" placeholder="e.g. Bank Interest Schedule"/></div>
-      <div><label class="lbl">Assignee Email</label><select id="addSubAssignee" class="inp" style="background:#fff;"></select></div>
+      <div><label class="lbl">Name *</label><input id="asnName" class="inp" placeholder="e.g. Bank Interest Schedule"/></div>
+      <div><label class="lbl">Assignee</label><select id="asnAssignee" class="inp" style="background:#fff;"></select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div><label class="lbl">Due Date</label><input type="date" id="addSubDue" class="inp"/></div>
-        <div><label class="lbl">Budget Hours</label><input type="number" id="addSubBudget" class="inp" min="0" step="0.25" placeholder="0"/></div>
+        <div><label class="lbl">Due Date</label><input type="date" id="asnDue" class="inp"/></div>
+        <div><label class="lbl">Budget Hours</label><input type="number" id="asnBudget" class="inp" min="0" step="0.25" placeholder="0"/></div>
       </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-ftr">
       <button class="ghost-btn" onclick="closeModal('addSubModal')">Cancel</button>
       <button class="primary-btn" onclick="confirmAddSub()">Add</button>
     </div>
@@ -235,1247 +237,656 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 
 <div id="teamsModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:500px;max-width:95vw;">
-    <div class="modal-header"><h3>💬 Teams Message</h3><button class="modal-close" onclick="closeModal('teamsModal')">✕</button></div>
+    <div class="modal-hdr"><h3>💬 Teams Message</h3><button class="modal-x" onclick="closeModal('teamsModal')">✕</button></div>
     <div class="modal-body">
-      <textarea id="teamsModalText" readonly onclick="this.select()" style="width:100%;height:180px;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;resize:none;outline:none;"></textarea>
+      <textarea id="teamsTxt" readonly onclick="this.select()" style="width:100%;height:180px;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;resize:none;outline:none;"></textarea>
       <div style="font-size:12px;color:#9ca3af;margin-top:8px;">Click inside → Ctrl+A → Ctrl+C → paste into Teams.</div>
     </div>
-    <div class="modal-footer"><button class="ghost-btn" onclick="closeModal('teamsModal')">Close</button></div>
+    <div class="modal-ftr"><button class="ghost-btn" onclick="closeModal('teamsModal')">Close</button></div>
   </div>
 </div>
 
 <div id="reportModal" class="modal-overlay" style="display:none;">
   <div class="modal report-wrap">
-    <div class="modal-header">
-      <div><h3 id="reportTitle"></h3><div id="reportSubtitle" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div></div>
-      <button class="modal-close" onclick="closeModal('reportModal')">✕</button>
+    <div class="modal-hdr">
+      <div><h3 id="rptTitle"></h3><div id="rptSub" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div></div>
+      <button class="modal-x" onclick="closeModal('reportModal')">✕</button>
     </div>
-    <div class="report-table-wrap"><table class="data-table"><thead id="reportHead"></thead><tbody id="reportBody"></tbody></table></div>
-    <div class="csv-area">
-      <div style="font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:6px;">📋 CSV — click inside, Ctrl+A, Ctrl+C, paste into Notepad, save as .csv, open in Excel</div>
-      <textarea id="csvText" readonly onclick="this.select()" style="width:100%;height:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-family:monospace;resize:none;outline:none;background:#fff;"></textarea>
+    <div class="report-scroll"><table class="data-table"><thead id="rptHead"></thead><tbody id="rptBody"></tbody></table></div>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);background:#f8fafc;">
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;">📋 CSV — click inside, Ctrl+A, Ctrl+C, paste into Notepad, save as .csv, open in Excel</div>
+      <textarea id="csvTxt" readonly onclick="this.select()" style="width:100%;height:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-family:monospace;resize:none;outline:none;"></textarea>
     </div>
   </div>
 </div>
 
-<div id="changePasswordModal" class="modal-overlay" style="display:none;">
+<div id="changePwdModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:380px;">
-    <div class="modal-header"><h3>🔑 Change Password</h3><button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button></div>
+    <div class="modal-hdr"><h3>🔑 Change Password</h3><button class="modal-x" onclick="closeModal('changePwdModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div><label class="lbl">New Password</label><input type="password" id="newPassword" class="inp" placeholder="Minimum 6 characters"/></div>
-      <div><label class="lbl">Confirm New Password</label><input type="password" id="confirmPassword" class="inp" placeholder="Repeat new password" onkeydown="if(event.key==='Enter')doChangePassword()"/></div>
-      <div id="changePasswordStatus" style="display:none;"></div>
+      <div><label class="lbl">New Password</label><input type="password" id="pwd1" class="inp" placeholder="Min 6 characters"/></div>
+      <div><label class="lbl">Confirm Password</label><input type="password" id="pwd2" class="inp" onkeydown="if(event.key==='Enter')doChangePwd()"/></div>
+      <div id="pwdStatus" style="display:none;"></div>
     </div>
-    <div class="modal-footer">
-      <button class="ghost-btn" onclick="closeModal('changePasswordModal')">Cancel</button>
-      <button class="primary-btn" onclick="doChangePassword()">Update Password</button>
+    <div class="modal-ftr">
+      <button class="ghost-btn" onclick="closeModal('changePwdModal')">Cancel</button>
+      <button class="primary-btn" onclick="doChangePwd()">Update Password</button>
     </div>
   </div>
 </div>
 
 <div id="addUserModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:440px;">
-    <div class="modal-header"><h3>➕ Add New User</h3><button class="modal-close" onclick="closeModal('addUserModal')">✕</button></div>
+    <div class="modal-hdr"><h3>➕ Add User Profile</h3><button class="modal-x" onclick="closeModal('addUserModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="alert alert-warning">Create the user in <b>Supabase Auth → Users → Add user</b> first, then use this form to set their name and role in the app.</div>
+      <div class="alert alert-w">First create the user in <b>Supabase Auth → Users → Add user</b>, then fill in their profile here.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div><label class="lbl">Full Name *</label><input type="text" id="newUserName" class="inp" placeholder="e.g. Sarah Johnson"/></div>
-        <div><label class="lbl">Email Address *</label><input type="email" id="newUserEmail" class="inp" placeholder="sarah@hvns.co.za"/></div>
+        <div><label class="lbl">Full Name *</label><input id="nuName" class="inp" placeholder="e.g. Sarah Johnson"/></div>
+        <div><label class="lbl">Email *</label><input id="nuEmail" class="inp" placeholder="sarah@hvns.co.za"/></div>
       </div>
       <div><label class="lbl">Role *</label>
-        <select id="newUserRole" class="inp" style="background:#fff;">
+        <select id="nuRole" class="inp" style="background:#fff;">
           <option value="staff">Staff — updates only</option>
           <option value="manager">Manager — full access</option>
           <option value="director">Director — reports only</option>
         </select>
       </div>
-      <div id="addUserStatus" style="display:none;"></div>
+      <div id="nuStatus" style="display:none;"></div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-ftr">
       <button class="ghost-btn" onclick="closeModal('addUserModal')">Cancel</button>
-      <button class="primary-btn" onclick="doAddUser()">Save User Profile</button>
+      <button class="primary-btn" onclick="doAddUser()">Save Profile</button>
     </div>
   </div>
 </div>
 
 <div id="forgotModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:380px;">
-    <div class="modal-header"><h3>🔑 Reset Password</h3><button class="modal-close" onclick="closeModal('forgotModal')">✕</button></div>
+    <div class="modal-hdr"><h3>🔑 Reset Password</h3><button class="modal-x" onclick="closeModal('forgotModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <p style="font-size:13px;color:#6b7280;line-height:1.5;">Enter your email and we'll send a password reset link.</p>
-      <div><label class="lbl">Email Address</label><input type="email" id="forgotEmail" class="inp" placeholder="you@hvns.co.za"/></div>
-      <div id="forgotStatus" style="display:none;"></div>
+      <p style="font-size:13px;color:#6b7280;">Enter your email and we'll send a reset link.</p>
+      <div><label class="lbl">Email</label><input type="email" id="fgtEmail" class="inp" placeholder="you@hvns.co.za"/></div>
+      <div id="fgtStatus" style="display:none;"></div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-ftr">
       <button class="ghost-btn" onclick="closeModal('forgotModal')">Cancel</button>
-      <button class="primary-btn" onclick="doForgotPassword()">Send Reset Link</button>
+      <button class="primary-btn" onclick="doForgot()">Send Reset Link</button>
     </div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL = 'https://lbwqkfppvrdbydtlkjtz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { redirectTo: 'https://tyront3.github.io/HVNSAuditPro/' } });
+const SURL='https://lbwqkfppvrdbydtlkjtz.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
+const sb=supabase.createClient(SURL,SKEY,{auth:{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'}});
 
-const STEPS = ["Not Started","Client Requested","Client Received","Processing","Finalising","Done"];
-const STEP_COLORS = {
-  "Not Started":      {color:"#6b7280",bg:"#f3f4f6"},
-  "Client Requested": {color:"#0891b2",bg:"#ecfeff"},
-  "Client Received":  {color:"#1A2B3C",bg:"#e8eef4"},
-  "Processing":       {color:"#7c3aed",bg:"#f5f3ff"},
-  "Finalising":       {color:"#d97706",bg:"#fffbeb"},
-  "Done":             {color:"#16a34a",bg:"#f0fdf4"},
-};
-const AT_RISK_STEPS = ["Not Started","Client Requested","Client Received"];
-const SECTION_TEMPLATES = [
-  {name:"Planning",                   subs:["Engagement Letter","Audit Plan"],                def:true},
-  {name:"Cash & Bank",                subs:["Bank Reconciliation","Bank Confirmations"],       def:true},
-  {name:"Accounts Receivable",        subs:["Debtors Listing","Circularisation Letters"],      def:true},
-  {name:"Accounts Payable",           subs:["Creditors Listing","Supplier Confirmations"],     def:true},
-  {name:"Fixed Assets",               subs:["Asset Register","Depreciation Schedule"],         def:true},
-  {name:"Inventory",                  subs:["Stock Count","Inventory Valuation"],              def:true},
-  {name:"Payroll",                    subs:["Payroll Reconciliation","Employee Confirmations"], def:true},
-  {name:"Tax & VAT",                  subs:["VAT Reconciliation","Tax Computation"],           def:true},
-  {name:"Financial Statements",       subs:["Draft Financials","Management Accounts"],         def:true},
-  {name:"Finalising",                 subs:["Signed Financials","Audit Sign-off"],             def:true},
-  {name:"Loans & Borrowings",         subs:["Loan Schedules","Loan Confirmations"],            def:false},
-  {name:"Investments & Securities",   subs:["Investment Schedule","Market Valuations"],        def:false},
-  {name:"Provisions & Contingencies", subs:["Provisions Schedule","Legal Confirmations"],      def:false},
-  {name:"Related Party Transactions", subs:["Related Party Listing","Transaction Testing"],    def:false},
-  {name:"Going Concern Review",       subs:["Cash Flow Forecast","Management Assessment"],     def:false},
+const STEPS=['Not Started','Client Requested','Client Received','Processing','Finalising','Done'];
+const SC={'Not Started':{c:'#6b7280',b:'#f3f4f6'},'Client Requested':{c:'#0891b2',b:'#ecfeff'},'Client Received':{c:'#1A2B3C',b:'#e8eef4'},'Processing':{c:'#7c3aed',b:'#f5f3ff'},'Finalising':{c:'#d97706',b:'#fffbeb'},'Done':{c:'#16a34a',b:'#f0fdf4'}};
+const AT_RISK=['Not Started','Client Requested','Client Received'];
+const STPLS=[
+  {n:'Planning',s:['Engagement Letter','Audit Plan'],d:true},
+  {n:'Cash & Bank',s:['Bank Reconciliation','Bank Confirmations'],d:true},
+  {n:'Accounts Receivable',s:['Debtors Listing','Circularisation Letters'],d:true},
+  {n:'Accounts Payable',s:['Creditors Listing','Supplier Confirmations'],d:true},
+  {n:'Fixed Assets',s:['Asset Register','Depreciation Schedule'],d:true},
+  {n:'Inventory',s:['Stock Count','Inventory Valuation'],d:true},
+  {n:'Payroll',s:['Payroll Reconciliation','Employee Confirmations'],d:true},
+  {n:'Tax & VAT',s:['VAT Reconciliation','Tax Computation'],d:true},
+  {n:'Financial Statements',s:['Draft Financials','Management Accounts'],d:true},
+  {n:'Finalising',s:['Signed Financials','Audit Sign-off'],d:true},
+  {n:'Loans & Borrowings',s:['Loan Schedules','Loan Confirmations'],d:false},
+  {n:'Investments & Securities',s:['Investment Schedule','Market Valuations'],d:false},
+  {n:'Provisions & Contingencies',s:['Provisions Schedule','Legal Confirmations'],d:false},
+  {n:'Related Party Transactions',s:['Related Party Listing','Transaction Testing'],d:false},
+  {n:'Going Concern Review',s:['Cash Flow Forecast','Management Assessment'],d:false}
 ];
 
-// ── Single declarations of all state variables ────────────────────────────
-let currentUser = null;
-let currentRole = null;
-let currentView = 'dashboard';
-let firmRate = 1000;
-let allUsers = [];
-let expandedAudit = null;
-let expandedSec = null;
-let editingAuditId = null;
-let pendingAdvance = null;
-let pendingReassign = null;
-let pendingAddSub = null;
-let formStep = 1;
-let formSel = {};
-let formSecDet = {};
-let formExtraSubs = {};
-let fAuditName = '', fClientName = '', fDefDue = '';
+let CU=null,CR=null,CV='dashboard',FR=1000,AU=[],EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
+let fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='';
 
-// ── Helpers ───────────────────────────────────────────────────────────────
-function fmt(n){ return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtHrs(n){ const v=parseFloat(n||0); return v%1===0?v.toFixed(0):(v*4===Math.round(v*4)?v.toFixed(2).replace(/\.?0+$/, ''):v.toFixed(2)); }
-function daysUntil(d){ if(!d)return 9999; const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000); }
-function subStatusFlag(due,step){ if(step==='Done'||!due)return ''; const d=daysUntil(due); if(d<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>'; if(d<=7&&AT_RISK_STEPS.includes(step))return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>'; return ''; }
-function dueBadge(d){ if(!d)return ''; const days=daysUntil(d); const label=days<0?`${Math.abs(days)}d overdue`:days===0?'Due today':`${days}d left`; const color=days<0?'#dc2626':days<=7?'#d97706':'#16a34a'; return `<span class="badge" style="color:${color};background:${color}18;">${label}</span>`; }
-function miniBar(val,h=8){ const c=val===100?'#16a34a':val>=50?'#2563eb':val>0?'#d97706':'#e5e7eb'; return `<div class="bar-wrap" style="height:${h}px;flex:1;"><div class="bar-inner" style="width:${val}%;background:${c};height:${h}px;"></div></div>`; }
-function stepTrailHTML(stepIdx){ let h=`<div class="step-trail">`; STEPS.forEach((s,i)=>{ const done=i<=stepIdx; const c=STEP_COLORS[s]; h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="step-dot" style="background:${done?c.color:'#e5e7eb'};">${done?'✓':''}</div><span class="step-label" style="color:${done?c.color:'#9ca3af'};">${s}</span></div>${i<STEPS.length-1?`<div class="step-line" style="background:${i<stepIdx?'#1A2B3C':'#e5e7eb'};"></div>`:''}`;});return h+`</div>`; }
-function staffOptions(sel=''){ return allUsers.map(u=>`<option value="${u.email}" ${u.email===sel?'selected':''}>${u.full_name} (${u.email})</option>`).join(''); }
-function closeModal(id){ document.getElementById(id).style.display='none'; }
-function showToast(msg){ let t=document.getElementById('toast'); if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;border-left:3px solid var(--orange);transition:opacity .3s;';document.body.appendChild(t);} t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';},2500); }
+// ── Helpers ──────────────────────────────────────────────────────────────
+function R(n){return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function H(n){const v=parseFloat(n||0);return v%1===0?v.toFixed(0):v.toFixed(2).replace(/\.?0+$/, '');}
+function days(d){if(!d)return 9999;const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000);}
+function dueB(d){if(!d)return '';const n=days(d);const l=n<0?Math.abs(n)+'d overdue':n===0?'Due today':n+'d left';const c=n<0?'#dc2626':n<=7?'#d97706':'#16a34a';return '<span class="badge" style="color:'+c+';background:'+c+'18;">'+l+'</span>';}
+function stFlag(due,step){if(step==='Done'||!due)return '';const n=days(due);if(n<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>';if(n<=7&&AT_RISK.includes(step))return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>';return '';}
+function bar(v,h=8){const c=v===100?'#16a34a':v>=50?'#2563eb':v>0?'#d97706':'#e5e7eb';return '<div class="bar-wrap" style="height:'+h+'px;flex:1;"><div class="bar-inner" style="width:'+v+'%;background:'+c+';height:'+h+'px;"></div></div>';}
+function trail(si){let h='<div class="step-trail">';STEPS.forEach((s,i)=>{const ok=i<=si;const c=SC[s];h+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="step-dot" style="background:'+(ok?c.c:'#e5e7eb')+'">'+(ok?'✓':'')+'</div><span class="step-lbl" style="color:'+(ok?c.c:'#9ca3af')+'">'+s+'</span></div>'+(i<STEPS.length-1?'<div class="step-line" style="background:'+(i<si?'#1A2B3C':'#e5e7eb')+'"></div>':'');});return h+'</div>';}
+function staffOpts(sel=''){return AU.map(u=>'<option value="'+u.email+'" '+(u.email===sel?'selected':'')+'>'+u.full_name+' ('+u.email+')</option>').join('');}
+function openModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;border-left:3px solid var(--orange);transition:opacity .3s;';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';},2500);}
+function setMain(html){document.getElementById('main').innerHTML=html;}
 
-// ── Auth ──────────────────────────────────────────────────────────────────
+// ── Auth ─────────────────────────────────────────────────────────────────
 async function doLogin(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pwd=document.getElementById('loginPassword').value;
-  const errEl=document.getElementById('loginError');
-  errEl.style.display='none';
-  if(!email||!pwd){showLoginError('Please enter your email and password.');return;}
+  const email=document.getElementById('liEmail').value.trim();
+  const pwd=document.getElementById('liPwd').value;
+  const err=document.getElementById('liErr');
+  err.style.display='none';
+  if(!email||!pwd){err.textContent='Please enter your email and password.';err.style.display='block';return;}
+  const btn=document.getElementById('liBtn');
+  btn.textContent='Signing in...';btn.disabled=true;
   const {data,error}=await sb.auth.signInWithPassword({email,password:pwd});
-  if(error){showLoginError(error.message);return;}
+  btn.textContent='Sign In';btn.disabled=false;
+  if(error){err.textContent=error.message;err.style.display='block';return;}
   await initApp(data.user);
 }
-function showLoginError(msg){const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';}
+
 async function doLogout(){await sb.auth.signOut();document.getElementById('appShell').style.display='none';document.getElementById('loginScreen').style.display='flex';}
 
 async function initApp(user){
-  const {data:profile,error:profileError}=await sb.from('users').select('*').eq('id',user.id).single();
-  if(profileError||!profile){showLoginError('Profile not found. Please contact your manager.');await sb.auth.signOut();return;}
-  if(!profile.active){showLoginError('Your account is not active. Contact your manager.');await sb.auth.signOut();return;}
-  currentUser=profile; currentRole=profile.role;
+  const {data:p,error:pe}=await sb.from('users').select('*').eq('id',user.id).single();
+  if(pe||!p){const e=document.getElementById('liErr');e.textContent='Profile not found. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
+  if(!p.active){const e=document.getElementById('liErr');e.textContent='Your account is not active. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
+  CU=p;CR=p.role;
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='flex';
-  document.getElementById('userPill').textContent=profile.full_name||profile.email;
-  const rb=document.getElementById('roleBadge'); rb.textContent=currentRole; rb.className=`role-badge role-${currentRole}`;
-  const {data:s}=await sb.from('settings').select('*');
-  if(s)s.forEach(r=>{if(r.key==='firm_rate')firmRate=parseFloat(r.value)||1000;});
-  const {data:users}=await sb.from('users').select('*').eq('active',true);
-  allUsers=users||[];
+  document.getElementById('userPill').textContent=p.full_name||p.email;
+  const rb=document.getElementById('roleBadge');rb.textContent=CR;rb.className='role-badge role-'+CR;
+  const {data:st}=await sb.from('settings').select('*');
+  if(st)st.forEach(r=>{if(r.key==='firm_rate')FR=parseFloat(r.value)||1000;});
+  const {data:us}=await sb.from('users').select('*').eq('active',true);
+  AU=us||[];
   buildNav();
   setInterval(()=>{document.getElementById('footerTime').textContent=new Date().toLocaleString();},1000);
-  showView('dashboard');
+  goView('dashboard');
 }
 
-sb.auth.onAuthStateChange(async(event,session)=>{
-  if(event==='SIGNED_IN'&&session)await initApp(session.user);
-});
+sb.auth.onAuthStateChange(async(ev,session)=>{if(ev==='SIGNED_IN'&&session)await initApp(session.user);});
 
-// ── Nav ───────────────────────────────────────────────────────────────────
+// ── Nav ──────────────────────────────────────────────────────────────────
 function buildNav(){
   const tabs=[['dashboard','📊 Dashboard']];
-  if(currentRole==='manager')tabs.push(['add','➕ New Audit'],['edit','✏️ Edit Audit']);
-  if(currentRole!=='director')tabs.push(['update','✏️ My Updates']);
+  if(CR==='manager')tabs.push(['add','➕ New Audit'],['edit','✏️ Edit Audit']);
+  if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['timesheet','📅 Timesheets']);
-  if(currentRole==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
-  document.getElementById('navBar').innerHTML=tabs.map(([v,l])=>`<button class="nav-btn ${currentView===v?'active':''}" onclick="showView('${v}')">${l}</button>`).join('');
+  if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
+  document.getElementById('navBar').innerHTML=tabs.map(([v,l])=>'<button class="nav-btn '+(CV===v?'active':'')+'" onclick="goView(\''+v+'\')">'+l+'</button>').join('');
 }
-function showView(v){currentView=v;buildNav();renderView();}
-
+function goView(v){CV=v;buildNav();renderView();}
 async function renderView(){
-  const el=document.getElementById('mainContent');
-  el.innerHTML=`<div class="loading">Loading...</div>`;
-  if(currentView==='dashboard')await renderDashboard();
-  else if(currentView==='add')renderAdd();
-  else if(currentView==='edit')await renderEditAudit();
-  else if(currentView==='update')await renderUpdate();
-  else if(currentView==='timesheet')await renderTimesheet();
-  else if(currentView==='users')await renderUsers();
-  else if(currentView==='settings')await renderSettings();
+  setMain('<div class="loading">Loading...</div>');
+  if(CV==='dashboard')await vDash();
+  else if(CV==='add')vAdd();
+  else if(CV==='edit')await vEdit();
+  else if(CV==='update')await vUpdate();
+  else if(CV==='timesheet')await vTs();
+  else if(CV==='users')await vUsers();
+  else if(CV==='settings')await vSettings();
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────
-async function renderDashboard(){
-  const {data:audits}=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
-  const {data:allSubs}=await sb.from('subsection_summary').select('*');
-  const allS=allSubs||[];
-  const overdueCount=allS.filter(s=>s.step!=='Done'&&s.due_date&&daysUntil(s.due_date)<0).length;
-  const atriskCount=allS.filter(s=>s.step!=='Done'&&s.due_date&&daysUntil(s.due_date)<=7&&daysUntil(s.due_date)>=0&&AT_RISK_STEPS.includes(s.step)).length;
-  const totalFee=(audits||[]).reduce((a,x)=>a+parseFloat(x.fee_value||0),0);
-  const totalBudget=(audits||[]).reduce((a,x)=>a+parseFloat(x.budget_hours||0),0);
-  const totalActual=(audits||[]).reduce((a,x)=>a+parseFloat(x.actual_hours||0),0);
-
-  let html=`<div class="stats">
-    <div class="stat"><div class="stat-val">${(audits||[]).length}</div><div class="stat-lbl">📋 Total Audits</div></div>
-    <div class="stat" style="border-left-color:#dc2626;"><div class="stat-val" style="color:#dc2626;">${overdueCount}</div><div class="stat-lbl">🔴 Items Overdue</div></div>
-    <div class="stat" style="border-left-color:#d97706;"><div class="stat-val" style="color:#d97706;">${atriskCount}</div><div class="stat-lbl">🟡 At Risk</div></div>
-    <div class="stat" style="border-left-color:#7c3aed;"><div class="stat-val" style="color:#7c3aed;">${fmt(totalFee)}</div><div class="stat-lbl">💰 Total Fee Value</div></div>
-  </div>`;
-  if(currentRole==='manager'){
-    html+=`<div class="stats" style="grid-template-columns:repeat(3,1fr);">
-      <div class="stat"><div class="stat-val">${fmtHrs(totalBudget)}h</div><div class="stat-lbl">⏱ Budget Hours</div></div>
-      <div class="stat"><div class="stat-val">${fmtHrs(totalActual)}h</div><div class="stat-lbl">⏱ Actual Hours</div></div>
-      <div class="stat" style="border-left-color:${totalActual>totalBudget?'#dc2626':'#16a34a'};"><div class="stat-val" style="color:${totalActual>totalBudget?'#dc2626':'#16a34a'};">${fmtHrs(totalBudget-totalActual)}h</div><div class="stat-lbl">📊 Hours Remaining</div></div>
-    </div>`;
-  }
-
-  if(!(audits||[]).length){
-    html+=`<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No audits yet</div>${currentRole==='manager'?`<button class="primary-btn" style="margin-top:14px;" onclick="showView('add')">Create First Audit</button>`:''}</div>`;
-    document.getElementById('mainContent').innerHTML=html;return;
-  }
-
-  for(const a of audits){
-    const isOpen=expandedAudit===a.id;
-    html+=`<div class="card">
-      <div class="card-header" onclick="toggleAudit('${a.id}')">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:16px;color:var(--navy);">${a.name}</span>
-            ${a.client?`<span class="badge" style="color:#6b7280;background:#f3f4f6;">🏢 ${a.client}</span>`:''}
-            ${dueBadge(a.due_date)}
-            <span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ ${fmtHrs(a.actual_hours)}h / ${fmtHrs(a.budget_hours)}h budget</span>
-            ${currentRole!=='staff'?`<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 ${fmt(a.fee_value)}</span>`:''}
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">${miniBar(a.progress_pct||0)}<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">${a.progress_pct||0}%</span></div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          ${currentRole!=='staff'?`<button onclick="event.stopPropagation();showReport('${a.id}')" style="padding:6px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;font-weight:600;">📊 Report</button>`:''}
-          ${currentRole==='manager'?`<button onclick="event.stopPropagation();openEditAudit('${a.id}')" style="padding:6px 12px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;font-weight:600;">✏️ Edit</button>`:''}
-          ${currentRole==='manager'?`<button onclick="event.stopPropagation();deleteAudit('${a.id}')" class="danger-btn">🗑</button>`:''}
-          <span style="font-size:18px;color:#9ca3af;">${isOpen?'▲':'▼'}</span>
-        </div>
-      </div>`;
-
-    if(isOpen){
-      const {data:sections}=await sb.from('section_summary').select('*').eq('audit_id',a.id).order('id');
-      html+=`<div style="border-top:1px solid var(--border);">`;
-      for(const sec of (sections||[])){
-        const secOpen=expandedSec===sec.id;
-        html+=`<div>
-          <div class="section-row" onclick="toggleSec('${sec.id}')" style="background:${secOpen?'#f8fafc':'#fff'};">
-            <span style="font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:700;color:var(--navy);min-width:180px;">${sec.name}</span>
-            <span style="font-size:12px;color:#9ca3af;">👤 ${sec.assignee_email||'—'}</span>
-            ${dueBadge(sec.due_date)}
-            <span style="font-size:12px;color:#7c3aed;">⏱ ${fmtHrs(sec.actual_hours)}h / ${fmtHrs(sec.budget_hours)}h</span>
-            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:100px;">${miniBar(sec.progress_pct||0,6)}<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:34px;">${sec.progress_pct||0}%</span></div>
-            ${currentRole==='manager'?`<button onclick="event.stopPropagation();openAddSub('${a.id}','${sec.id}')" style="padding:4px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+ Sub</button>`:''}
-            <span style="font-size:14px;color:#9ca3af;">${secOpen?'▲':'▼'}</span>
-          </div>`;
-        if(secOpen){
-          const {data:subs}=await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
-          html+=`<div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">${['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(h=>`<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;">${h}</span>`).join('')}</div>`;
-          for(const sub of (subs||[])){
-            const sc=STEP_COLORS[sub.step]; const st=subStatusFlag(sub.due_date,sub.step);
-            const overBudget=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
-            html+=`<div style="background:${overBudget?'#fff5f5':'#fafafa'};display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:9px 20px 9px 44px;border-top:1px solid var(--border);">
-              <span style="font-size:13px;color:var(--charcoal);font-weight:500;">${sub.name} ${st}</span>
-              <span style="font-size:12px;color:#9ca3af;">${sub.assignee_email||'—'}</span>
-              <span>${dueBadge(sub.due_date)||'—'}</span>
-              <span class="step-badge" style="color:${sc.color};background:${sc.bg};">${sub.step}</span>
-              <span style="font-size:12px;font-weight:600;color:${overBudget?'#dc2626':'var(--charcoal)'};">
-                ${currentRole==='manager'
-                  ?`<div style="display:flex;align-items:center;gap:4px;"><span>${fmtHrs(sub.actual_hours)}h /</span><input type="number" value="${parseFloat(sub.budget_hours||0)}" min="0" step="0.25" style="width:60px;padding:2px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;" onchange="updateBudgetHours('${sub.id}',this.value)" title="Edit budget hours"/><span>h</span></div>`
-                  :`${fmtHrs(sub.actual_hours)} / ${fmtHrs(sub.budget_hours)}h`}
-              </span>
-              ${currentRole!=='staff'?`<span style="font-size:12px;color:#16a34a;font-weight:600;">${fmt(sub.fee_value)}</span>`:'<span></span>'}
-              <div style="display:flex;gap:4px;">
-                ${currentRole==='manager'?`<button onclick="openReassign('${sub.id}','${sub.assignee_email}')" style="padding:3px 8px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>`:''}
-                ${currentRole==='manager'?`<button onclick="deleteSub('${sub.id}')" class="danger-btn" style="padding:3px 7px;">🗑</button>`:''}
-              </div>
-            </div>`;
+// ── Dashboard ────────────────────────────────────────────────────────────
+async function vDash(){
+  const {data:aud}=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
+  const {data:subs}=await sb.from('subsection_summary').select('*');
+  const regEmails=new Set(AU.map(u=>u.email.toLowerCase()));
+  const allS=subs||[];
+  const ov=allS.filter(s=>s.step!=='Done'&&s.due_date&&days(s.due_date)<0).length;
+  const ar=allS.filter(s=>s.step!=='Done'&&s.due_date&&days(s.due_date)<=7&&days(s.due_date)>=0&&AT_RISK.includes(s.step)).length;
+  const tf=(aud||[]).reduce((a,x)=>a+parseFloat(x.fee_value||0),0);
+  const tb=(aud||[]).reduce((a,x)=>a+parseFloat(x.budget_hours||0),0);
+  const ta=(aud||[]).reduce((a,x)=>a+parseFloat(x.actual_hours||0),0);
+  let html='<div class="stats"><div class="stat"><div class="stat-val">'+(aud||[]).length+'</div><div class="stat-lbl">📋 Total Audits</div></div><div class="stat" style="border-left-color:#dc2626;"><div class="stat-val" style="color:#dc2626;">'+ov+'</div><div class="stat-lbl">🔴 Items Overdue</div></div><div class="stat" style="border-left-color:#d97706;"><div class="stat-val" style="color:#d97706;">'+ar+'</div><div class="stat-lbl">🟡 At Risk</div></div><div class="stat" style="border-left-color:#7c3aed;"><div class="stat-val" style="color:#7c3aed;">'+R(tf)+'</div><div class="stat-lbl">💰 Total Fee Value</div></div></div>';
+  if(CR==='manager')html+='<div class="stats" style="grid-template-columns:repeat(3,1fr);"><div class="stat"><div class="stat-val">'+H(tb)+'h</div><div class="stat-lbl">⏱ Budget Hours</div></div><div class="stat"><div class="stat-val">'+H(ta)+'h</div><div class="stat-lbl">⏱ Actual Hours</div></div><div class="stat" style="border-left-color:'+(ta>tb?'#dc2626':'#16a34a')+'"><div class="stat-val" style="color:'+(ta>tb?'#dc2626':'#16a34a')+'">'+H(tb-ta)+'h</div><div class="stat-lbl">📊 Hours Remaining</div></div></div>';
+  if(!(aud||[]).length){html+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No audits yet</div>'+(CR==='manager'?'<button class="primary-btn" style="margin-top:14px;" onclick="goView(\'add\')">Create First Audit</button>':'')+'</div>';setMain(html);return;}
+  for(const a of aud){
+    const isO=EA===a.id;
+    html+='<div class="card"><div style="padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="toggleA(\''+a.id+'\')"><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:16px;color:var(--navy);">'+a.name+'</span>'+(a.client?'<span class="badge" style="color:#6b7280;background:#f3f4f6;">🏢 '+a.client+'</span>':'')+dueB(a.due_date)+'<span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ '+H(a.actual_hours)+'h / '+H(a.budget_hours)+'h</span>'+(CR!=='staff'?'<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 '+R(a.fee_value)+'</span>':'')+'</div><div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'+bar(a.progress_pct||0)+'<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">'+(a.progress_pct||0)+'%</span></div></div><div style="display:flex;gap:6px;align-items:center;">'+(CR!=='staff'?'<button onclick="event.stopPropagation();showRpt(\''+a.id+'\')" style="padding:6px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;font-weight:600;">📊 Report</button>':'')+(CR==='manager'?'<button onclick="event.stopPropagation();openEdit(\''+a.id+'\')" style="padding:6px 12px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;font-weight:600;">✏️ Edit</button>':'')+(CR==='manager'?'<button onclick="event.stopPropagation();delAudit(\''+a.id+'\')" class="danger-btn">🗑</button>':'')+'<span style="font-size:18px;color:#9ca3af;">'+(isO?'▲':'▼')+'</span></div></div>';
+    if(isO){
+      const {data:secs}=await sb.from('section_summary').select('*').eq('audit_id',a.id).order('id');
+      html+='<div style="border-top:1px solid var(--border);">';
+      for(const sec of(secs||[])){
+        const sO=ES===sec.id;
+        html+='<div><div style="display:flex;align-items:center;gap:10px;padding:11px 20px 11px 28px;cursor:pointer;border-top:1px solid var(--border);flex-wrap:wrap;background:'+(sO?'#f8fafc':'#fff')+'" onclick="toggleS(\''+sec.id+'\')"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:13px;font-weight:700;color:var(--navy);min-width:180px;">'+sec.name+'</span><span style="font-size:12px;color:#9ca3af;">👤 '+(sec.assignee_email||'—')+'</span>'+dueB(sec.due_date)+'<span style="font-size:12px;color:#7c3aed;">⏱ '+H(sec.actual_hours)+'h / '+H(sec.budget_hours)+'h</span><div style="display:flex;align-items:center;gap:8px;flex:1;min-width:100px;">'+bar(sec.progress_pct||0,6)+'<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:34px;">'+(sec.progress_pct||0)+'%</span></div>'+(CR==='manager'?'<button onclick="event.stopPropagation();openAsn(\''+a.id+'\',\''+sec.id+'\')" style="padding:4px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+ Sub</button>':'')+'<span style="font-size:14px;color:#9ca3af;">'+(sO?'▲':'▼')+'</span></div>';
+        if(sO){
+          const {data:ss}=await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
+          html+='<div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">'+['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(h=>'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;">'+h+'</span>').join('')+'</div>';
+          for(const sub of(ss||[])){
+            const c=SC[sub.step];const st=stFlag(sub.due_date,sub.step);
+            const ob=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
+            const unreg=sub.assignee_email&&!regEmails.has(sub.assignee_email.toLowerCase());
+            html+='<div style="background:'+(ob?'#fff5f5':'#fafafa')+';display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:9px 20px 9px 44px;border-top:1px solid var(--border);"><span style="font-size:13px;color:var(--charcoal);font-weight:500;">'+sub.name+' '+st+'</span><span style="font-size:12px;color:#9ca3af;">👤 '+(sub.assignee_email||'—')+(unreg?'<span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;margin-left:4px;" title="No user account yet">⚠️ No account</span>':'')+'</span><span>'+dueB(sub.due_date)+'</span><span class="step-badge" style="color:'+c.c+';background:'+c.b+'">'+sub.step+'</span><span style="font-size:12px;font-weight:600;color:'+(ob?'#dc2626':'var(--charcoal)')+';">'+(CR==='manager'?'<div style="display:flex;align-items:center;gap:4px;"><span>'+H(sub.actual_hours)+'h /</span><input type="number" value="'+parseFloat(sub.budget_hours||0)+'" min="0" step="0.25" style="width:60px;padding:2px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;" onchange="updBudget(\''+sub.id+'\',this.value)"/><span>h</span></div>':H(sub.actual_hours)+' / '+H(sub.budget_hours)+'h')+'</span>'+(CR!=='staff'?'<span style="font-size:12px;color:#16a34a;font-weight:600;">'+R(sub.fee_value)+'</span>':'<span></span>')+'<div style="display:flex;gap:4px;">'+(CR==='manager'?'<button onclick="openRsn(\''+sub.id+'\',\''+sub.assignee_email+'\')" style="padding:3px 8px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>':'')+(CR==='manager'?'<button onclick="delSub(\''+sub.id+'\')" class="danger-btn" style="padding:3px 7px;">🗑</button>':'')+'</div></div>';
           }
-          html+=`</div>`;
+          html+='</div>';
         }
-        html+=`</div>`;
+        html+='</div>';
       }
-      html+=`</div>`;
+      html+='</div>';
     }
-    html+=`</div>`;
+    html+='</div>';
   }
-  document.getElementById('mainContent').innerHTML=html;
+  setMain(html);
 }
 
-// ── Add Audit ─────────────────────────────────────────────────────────────
-function initForm(){
-  formStep=1;formSel={};formSecDet={};formExtraSubs={};fAuditName='';fClientName='';fDefDue='';
-  SECTION_TEMPLATES.forEach(t=>{
-    formSel[t.name]=t.def;
-    formSecDet[t.name]={assignee:'',due:'',sectionBudget:'',subsections:{}};
-    t.subs.forEach(s=>{formSecDet[t.name].subsections[s]={assignee:'',due:'',budget:''};});
-    formExtraSubs[t.name]=[];
-  });
-}
+// ── Add Audit ────────────────────────────────────────────────────────────
+function initForm(){fStep=1;fSel={};fDet={};fExtra={};fName='';fClient='';fDue='';STPLS.forEach(t=>{fSel[t.n]=t.d;fDet[t.n]={a:'',due:'',sb:'',subs:{}};t.s.forEach(s=>{fDet[t.n].subs[s]={a:'',due:'',b:''};});fExtra[t.n]=[];});}
 
-function renderAdd(){
-  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
-  if(!formSel||Object.keys(formSel).length===0)initForm();
-  let html=`<div class="form-box"><div class="tab-bar">
-    <div class="tab-item ${formStep===1?'active':''}" onclick="setFormStep(1)">1. Audit Details</div>
-    <div class="tab-item ${formStep===2?'active':''}">2. Sections & Assignees</div>
-  </div>`;
-  if(formStep===1){
-    html+=`<div style="display:flex;flex-direction:column;gap:14px;">
-      <div><label class="lbl">Audit Name *</label><input id="fAuditName" class="inp" value="${fAuditName}" placeholder="e.g. ABC Ltd — Year End 2025"/></div>
-      <div><label class="lbl">Client Name</label><input id="fClientName" class="inp" value="${fClientName}" placeholder="e.g. ABC Ltd"/></div>
-      <div><label class="lbl">Overall Due Date *</label><input type="date" id="fDefDue" class="inp" value="${fDefDue}"/></div>
-      <div style="border-top:1px solid var(--border);padding-top:14px;">
-        <div class="form-section-title">Or Import from CSV</div>
-        <p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Upload a CSV with columns: <b>Section, Subsection, Assignee Email, Budget Hours</b></p>
-        <div style="display:flex;gap:8px;">
-          <button onclick="downloadCSVTemplate()" class="ghost-btn" style="font-size:12px;">📥 Download Template</button>
-          <label style="cursor:pointer;"><input type="file" id="csvImportInput" accept=".csv" style="display:none;" onchange="handleCSVImport(event)"/><span class="ghost-btn" style="font-size:12px;display:inline-block;">📂 Import CSV</span></label>
-        </div>
-        <div id="csvImportStatus" style="margin-top:8px;font-size:12px;color:#16a34a;"></div>
-      </div>
-      <button onclick="goToStep2()" class="primary-btn" style="margin-top:6px;">Next: Set Up Sections →</button>
-    </div>`;
+function vAdd(){
+  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
+  if(!fSel||Object.keys(fSel).length===0)initForm();
+  let html='<div class="form-box"><div class="tab-bar"><div class="tab-item '+(fStep===1?'on':'')+'" onclick="setFStep(1)">1. Audit Details</div><div class="tab-item '+(fStep===2?'on':'')+'">2. Sections & Assignees</div></div>';
+  if(fStep===1){
+    html+='<div style="display:flex;flex-direction:column;gap:14px;"><div><label class="lbl">Audit Name *</label><input id="faN" class="inp" value="'+fName+'" placeholder="e.g. ABC Ltd — Year End 2025"/></div><div><label class="lbl">Client Name</label><input id="faCl" class="inp" value="'+fClient+'" placeholder="e.g. ABC Ltd"/></div><div><label class="lbl">Overall Due Date *</label><input type="date" id="faDue" class="inp" value="'+fDue+'"/></div><div style="border-top:1px solid var(--border);padding-top:14px;"><div class="sec-title">Or Import from CSV</div><p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: <b>Section, Subsection, Assignee Email, Budget Hours</b></p><div style="display:flex;gap:8px;"><button onclick="dlTemplate()" class="ghost-btn" style="font-size:12px;">📥 Download Template</button><label style="cursor:pointer;"><input type="file" id="csvInp" accept=".csv" style="display:none;" onchange="importCSV(event)"/><span class="ghost-btn" style="font-size:12px;display:inline-block;">📂 Import CSV</span></label></div><div id="csvStatus" style="margin-top:8px;font-size:12px;"></div></div><button onclick="goStep2()" class="primary-btn" style="margin-top:6px;">Next: Set Up Sections →</button></div>';
   } else {
-    html+=`<p style="font-size:13px;color:#6b7280;margin:0 0 14px;">Tick sections, assign staff, set budget hours per subsection.</p><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">`;
-    SECTION_TEMPLATES.forEach(t=>{
-      const isSel=formSel[t.name];
-      html+=`<div style="border-radius:10px;border:1.5px solid ${isSel?'var(--navy)':'var(--border)'};background:${isSel?'#f0f4f8':'#fafafa'};overflow:hidden;">
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;" onclick="toggleSection('${t.name}')">
-          <div class="chk-box ${isSel?'checked':''}">${isSel?'<span style="color:#fff;font-size:11px;font-weight:700;">✓</span>':''}</div>
-          <span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:13px;color:${isSel?'var(--navy)':'#9ca3af'};flex:1;">${t.name}</span>
-          ${!t.def?'<span class="badge" style="color:#9ca3af;background:#f3f4f6;">Optional</span>':''}
-        </div>`;
-      if(isSel){
-        html+=`<div style="padding:0 14px 12px;border-top:1px dashed var(--border);">
-          <div style="display:flex;gap:10px;margin-top:10px;margin-bottom:10px;flex-wrap:wrap;">
-            <div style="flex:2;min-width:140px;"><label class="lbl">Section Assignee</label>
-              <select class="inp" style="background:#fff;" onchange="setSecAssignee('${t.name}',this.value)">
-                <option value="">Select staff...</option>${staffOptions(formSecDet[t.name].assignee)}
-              </select></div>
-            <div style="flex:1;min-width:110px;"><label class="lbl">Section Due Date</label>
-              <input type="date" class="inp" value="${formSecDet[t.name].due||fDefDue}" onchange="setSecDue('${t.name}',this.value)"/></div>
-            <div style="min-width:130px;"><label class="lbl">Total Section Budget (hrs)</label>
-              <input type="number" class="inp" min="0" step="0.25" placeholder="e.g. 10" value="${formSecDet[t.name].sectionBudget||''}"
-                onchange="distributeSectionBudget('${t.name}',this.value)"/></div>
-          </div>
-          <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:6px;padding:5px 10px;background:var(--navy);border-radius:6px;margin-bottom:4px;">
-            ${['Subsection','Assignee','Due Date','⏱ Budget Hrs'].map(h=>`<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">${h}</span>`).join('')}
-          </div>`;
-        const allSubs=[...t.subs,...(formExtraSubs[t.name]||[])];
-        allSubs.forEach((sub,idx)=>{
-          const isExtra=idx>=t.subs.length;
-          const det=formSecDet[t.name].subsections[sub]||{assignee:'',due:'',budget:''};
-          html+=`<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr ${isExtra?'auto':''};gap:8px;align-items:center;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;">
-            <div><label class="lbl" style="margin:0;">↳ ${sub}</label></div>
-            <div><select class="inp" style="font-size:12px;padding:6px 8px;background:#fff;" onchange="setSubAssignee('${t.name}','${sub}',this.value)"><option value="">Inherit</option>${staffOptions(det.assignee)}</select></div>
-            <div><input type="date" class="inp" style="font-size:12px;padding:6px 8px;" value="${det.due||''}" onchange="setSubDue('${t.name}','${sub}',this.value)"/></div>
-            <div><input type="number" class="inp" style="font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25" value="${det.budget||''}" onchange="setSubBudget('${t.name}','${sub}',this.value)"/></div>
-            ${isExtra?`<button onclick="removeExtraSub('${t.name}',${idx-t.subs.length})" class="danger-btn" style="padding:6px 8px;">✕</button>`:''}
-          </div>`;
+    html+='<p style="font-size:13px;color:#6b7280;margin:0 0 14px;">Tick sections, assign staff, set budget hours.</p><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">';
+    STPLS.forEach(t=>{
+      const on=fSel[t.n];
+      html+='<div style="border-radius:10px;border:1.5px solid '+(on?'var(--navy)':'var(--border)')+';background:'+(on?'#f0f4f8':'#fafafa')+';overflow:hidden;"><div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;" onclick="togSec(\''+t.n+'\')"><div class="chk '+(on?'on':'')+'">'+(on?'<span style="color:#fff;font-size:11px;font-weight:700;">✓</span>':'')+'</div><span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:13px;color:'+(on?'var(--navy)':'#9ca3af')+';flex:1;">'+t.n+'</span>'+(t.d?'':'<span class="badge" style="color:#9ca3af;background:#f3f4f6;">Optional</span>')+'</div>';
+      if(on){
+        html+='<div style="padding:0 14px 12px;border-top:1px dashed var(--border);"><div style="display:flex;gap:10px;margin-top:10px;margin-bottom:10px;flex-wrap:wrap;"><div style="flex:2;min-width:140px;"><label class="lbl">Section Assignee</label><select class="inp" style="background:#fff;" onchange="setSA(\''+t.n+'\',this.value)"><option value="">Select staff...</option>'+staffOpts(fDet[t.n].a)+'</select></div><div style="flex:1;min-width:110px;"><label class="lbl">Due Date</label><input type="date" class="inp" value="'+(fDet[t.n].due||fDue)+'" onchange="setSD(\''+t.n+'\',this.value)"/></div><div style="min-width:130px;"><label class="lbl">Total Section Budget (hrs)</label><input type="number" class="inp" min="0" step="0.25" placeholder="e.g. 10" value="'+(fDet[t.n].sb||'')+'" onchange="distBudget(\''+t.n+'\',this.value)"/></div></div>';
+        html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:6px;padding:5px 10px;background:var(--navy);border-radius:6px;margin-bottom:4px;">'+['Subsection','Assignee','Due Date','⏱ Budget Hrs'].map(h=>'<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">'+h+'</span>').join('')+'</div>';
+        const allS=[...t.s,...(fExtra[t.n]||[])];
+        allS.forEach((sub,idx)=>{
+          const ex=idx>=t.s.length;
+          const det=fDet[t.n].subs[sub]||{a:'',due:'',b:''};
+          html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr '+(ex?'auto':'')+';gap:8px;align-items:center;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;"><div><label class="lbl" style="margin:0;">↳ '+sub+'</label></div><div><select class="inp" style="font-size:12px;padding:6px 8px;background:#fff;" onchange="setSubA(\''+t.n+'\',\''+sub+'\',this.value)"><option value="">Inherit</option>'+staffOpts(det.a)+'</select></div><div><input type="date" class="inp" style="font-size:12px;padding:6px 8px;" value="'+(det.due||'')+'" onchange="setSubD(\''+t.n+'\',\''+sub+'\',this.value)"/></div><div><input type="number" class="inp" style="font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25" value="'+(det.b||'')+'" onchange="setSubB(\''+t.n+'\',\''+sub+'\',this.value)"/></div>'+(ex?'<button onclick="rmExtra(\''+t.n+'\','+(idx-t.s.length)+')" class="danger-btn" style="padding:6px 8px;">✕</button>':'')+'</div>';
         });
-        html+=`<div style="display:flex;gap:8px;margin-top:8px;">
-          <input id="extraSubInp_${t.name.replace(/\s+/g,'_')}" class="inp" style="font-size:12px;padding:7px 10px;" placeholder="Add custom subsection..." onkeydown="if(event.key==='Enter')addExtraSub('${t.name}')"/>
-          <button onclick="addExtraSub('${t.name}')" style="padding:7px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;">+</button>
-        </div></div>`;
+        html+='<div style="display:flex;gap:8px;margin-top:8px;"><input id="ei_'+t.n.replace(/\s+/g,'_')+'" class="inp" style="font-size:12px;padding:7px 10px;" placeholder="Add custom subsection..." onkeydown="if(event.key===\'Enter\')addExtra(\''+t.n+'\')"/><button onclick="addExtra(\''+t.n+'\')" style="padding:7px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;">+</button></div></div>';
       }
-      html+=`</div>`;
+      html+='</div>';
     });
-    html+=`</div><div style="display:flex;gap:10px;">
-      <button onclick="setFormStep(1)" class="ghost-btn" style="flex:1;">← Back</button>
-      <button onclick="createAudit()" class="primary-btn" style="flex:2;" id="createAuditBtn">Create Audit</button>
-    </div>`;
+    html+='</div><div style="display:flex;gap:10px;"><button onclick="setFStep(1)" class="ghost-btn" style="flex:1;">← Back</button><button id="createBtn" onclick="createAudit()" class="primary-btn" style="flex:2;">Create Audit</button></div>';
   }
-  html+=`</div>`;
-  document.getElementById('mainContent').innerHTML=html;
+  html+='</div>';
+  setMain(html);
 }
 
-// ── Edit Audit ─────────────────────────────────────────────────────────────
-function openEditAudit(auditId){ editingAuditId=auditId; showView('edit'); }
+// ── Edit Audit ───────────────────────────────────────────────────────────
+function openEdit(id){editAID=id;goView('edit');}
 
-async function renderEditAudit(){
-  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
-  const {data:audits}=await sb.from('audits').select('*').eq('archived',false).order('name');
-  if(!audits||!audits.length){document.getElementById('mainContent').innerHTML=`<div style="text-align:center;padding:60px;color:#9ca3af;">No audits found.</div>`;return;}
-  if(!editingAuditId)editingAuditId=audits[0].id;
-  const audit=audits.find(a=>a.id===editingAuditId)||audits[0];
-  editingAuditId=audit.id;
-  const {data:sections}=await sb.from('sections').select('*').eq('audit_id',audit.id).order('sort_order');
-  const {data:subsections}=await sb.from('subsections').select('*').in('section_id',(sections||[]).map(s=>s.id)).order('sort_order');
-  const subsBySec={};
-  (subsections||[]).forEach(sub=>{if(!subsBySec[sub.section_id])subsBySec[sub.section_id]=[];subsBySec[sub.section_id].push(sub);});
-
-  let html=`<div class="form-box" style="max-width:820px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-      <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">✏️ Edit Audit</span>
-      <select class="inp" style="width:280px;background:#fff;" onchange="editingAuditId=this.value;renderEditAudit();">
-        ${audits.map(a=>`<option value="${a.id}" ${a.id===audit.id?'selected':''}>${a.name}${a.client?' — '+a.client:''}</option>`).join('')}
-      </select>
-    </div>
-    <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid var(--border);">
-      <div class="form-section-title">Audit Details</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;">
-        <div><label class="lbl">Audit Name</label><input class="inp" id="editAuditName" value="${audit.name}"/></div>
-        <div><label class="lbl">Client</label><input class="inp" id="editAuditClient" value="${audit.client||''}"/></div>
-        <div><label class="lbl">Due Date</label><input type="date" class="inp" id="editAuditDue" value="${audit.due_date||''}"/></div>
-      </div>
-      <button onclick="saveAuditDetails('${audit.id}')" class="primary-btn" style="margin-top:14px;">Save Audit Details</button>
-    </div>
-    <div class="form-section-title">Sections & Subsections</div>
-    <p style="font-size:12px;color:#6b7280;margin:8px 0 14px;">Changes save immediately on change.</p>`;
-
-  (sections||[]).forEach(sec=>{
-    const subs=subsBySec[sec.id]||[];
-    html+=`<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;">
-      <div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span style="font-family:'Trebuchet MS',sans-serif;font-weight:700;color:#fff;font-size:14px;flex:1;">${sec.name}</span>
-        <label style="font-size:11px;color:rgba(255,255,255,0.6);">Assignee</label>
-        <select class="inp" style="width:160px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updateSectionAssignee('${sec.id}',this.value)">
-          <option value="">Unassigned</option>${allUsers.map(u=>`<option value="${u.email}" ${u.email===sec.assignee_email?'selected':''}>${u.full_name}</option>`).join('')}
-        </select>
-        <label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label>
-        <input type="date" class="inp" value="${sec.due_date||''}" style="width:140px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updateSectionDue('${sec.id}',this.value)"/>
-      </div>
-      <div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:7px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">
-        ${['Subsection','Assignee','Due Date','Budget Hrs',''].map(h=>`<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">${h}</span>`).join('')}
-      </div>`;
-    subs.forEach(sub=>{
-      html+=`<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;">
-        <span style="font-size:13px;font-weight:500;color:var(--charcoal);">↳ ${sub.name}</span>
-        <select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updateSubAssignee('${sub.id}',this.value)">
-          <option value="">Unassigned</option>${allUsers.map(u=>`<option value="${u.email}" ${u.email===sub.assignee_email?'selected':''}>${u.full_name}</option>`).join('')}
-        </select>
-        <input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="${sub.due_date||''}" onchange="updateSubDue('${sub.id}',this.value)"/>
-        <input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="${parseFloat(sub.budget_hours||0)}" min="0" step="0.25" onchange="updateSubBudgetEdit('${sub.id}',this.value)"/>
-        <button onclick="deleteSubEdit('${sub.id}')" class="danger-btn" style="padding:5px 8px;">🗑</button>
-      </div>`;
+async function vEdit(){
+  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
+  const {data:auds}=await sb.from('audits').select('*').eq('archived',false).order('name');
+  if(!auds||!auds.length){setMain('<div style="text-align:center;padding:60px;color:#9ca3af;">No audits found.</div>');return;}
+  if(!editAID)editAID=auds[0].id;
+  const aud=auds.find(a=>a.id===editAID)||auds[0];
+  editAID=aud.id;
+  const {data:secs}=await sb.from('sections').select('*').eq('audit_id',aud.id).order('sort_order');
+  const {data:subsAll}=await sb.from('subsections').select('*').in('section_id',(secs||[]).map(s=>s.id)).order('sort_order');
+  const sbySec={};(subsAll||[]).forEach(s=>{if(!sbySec[s.section_id])sbySec[s.section_id]=[];sbySec[s.section_id].push(s);});
+  const regEmails=new Set(AU.map(u=>u.email.toLowerCase()));
+  const unreg=new Set();(subsAll||[]).forEach(s=>{if(s.assignee_email&&!regEmails.has(s.assignee_email.toLowerCase()))unreg.add(s.assignee_email);});
+  let html='<div class="form-box" style="max-width:820px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">✏️ Edit Audit</span><select class="inp" style="width:280px;background:#fff;" onchange="editAID=this.value;vEdit();"><br>'+auds.map(a=>'<option value="'+a.id+'" '+(a.id===aud.id?'selected':'')+'>'+a.name+(a.client?' — '+a.client:'')+'</option>').join('')+'</select></div>'+(unreg.size>0?'<div class="alert alert-w" style="margin-bottom:16px;">⚠️ <b>'+unreg.size+' assignee'+(unreg.size>1?'s':'')+' have no account yet:</b> '+[...unreg].join(', ')+'. They will link automatically once their accounts are created.</div>':'')+'<div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid var(--border);"><div class="sec-title">Audit Details</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;"><div><label class="lbl">Audit Name</label><input class="inp" id="eaN" value="'+aud.name+'"/></div><div><label class="lbl">Client</label><input class="inp" id="eaCl" value="'+(aud.client||'')+'"/></div><div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div></div><button onclick="saveAudDet(\''+aud.id+'\')" class="primary-btn" style="margin-top:14px;">Save Audit Details</button></div><div class="sec-title">Sections &amp; Subsections</div><p style="font-size:12px;color:#6b7280;margin:8px 0 14px;">Changes save immediately.</p>';
+  (secs||[]).forEach(sec=>{
+    const ss=sbySec[sec.id]||[];
+    html+='<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;"><div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;color:#fff;font-size:14px;flex:1;">'+sec.name+'</span><label style="font-size:11px;color:rgba(255,255,255,0.6);">Assignee</label><select class="inp" style="width:160px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecA(\''+sec.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(u=>'<option value="'+u.email+'" '+(u.email===sec.assignee_email?'selected':'')+'>'+u.full_name+'</option>').join('')+'</select><label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label><input type="date" class="inp" value="'+(sec.due_date||'')+'" style="width:140px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecD(\''+sec.id+'\',this.value)"/></div><div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:7px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">'+['Subsection','Assignee','Due Date','Budget Hrs',''].map(h=>'<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">'+h+'</span>').join('')+'</div>';
+    ss.forEach(sub=>{
+      const unreg2=sub.assignee_email&&!regEmails.has(sub.assignee_email.toLowerCase());
+      html+='<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;"><span style="font-size:13px;font-weight:500;">↳ '+sub.name+(unreg2?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️ No account</span>':'')+'</span><select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updSubA(\''+sub.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(u=>'<option value="'+u.email+'" '+(u.email===sub.assignee_email?'selected':'')+'>'+u.full_name+'</option>').join('')+'</select><input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub.due_date||'')+'" onchange="updSubD(\''+sub.id+'\',this.value)"/><input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub.id+'\',this.value)"/><button onclick="delSubE(\''+sub.id+'\')" class="danger-btn" style="padding:5px 8px;">🗑</button></div>';
     });
-    html+=`<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <input id="newSubName_${sec.id}" class="inp" style="flex:2;min-width:140px;font-size:12px;padding:6px 10px;" placeholder="New subsection name..."/>
-      <select id="newSubAssignee_${sec.id}" class="inp" style="flex:1;min-width:130px;font-size:12px;padding:6px 8px;background:#fff;">
-        <option value="">Inherit assignee</option>${allUsers.map(u=>`<option value="${u.email}">${u.full_name}</option>`).join('')}
-      </select>
-      <input type="date" id="newSubDue_${sec.id}" class="inp" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;"/>
-      <input type="number" id="newSubBudget_${sec.id}" class="inp" style="width:80px;font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25"/>
-      <button onclick="addSubToSection('${sec.id}','${sec.assignee_email||''}','${sec.due_date||''}')" style="padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">+ Add</button>
-    </div></div>`;
+    html+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input id="ns_'+sec.id+'" class="inp" style="flex:2;min-width:140px;font-size:12px;padding:6px 10px;" placeholder="New subsection name..."/><select id="na_'+sec.id+'" class="inp" style="flex:1;min-width:130px;font-size:12px;padding:6px 8px;background:#fff;"><option value="">Inherit</option>'+AU.map(u=>'<option value="'+u.email+'">'+u.full_name+'</option>').join('')+'</select><input type="date" id="nd_'+sec.id+'" class="inp" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;"/><input type="number" id="nb_'+sec.id+'" class="inp" style="width:80px;font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25"/><button onclick="addSubE(\''+sec.id+'\',\''+sec.assignee_email+'\',\''+sec.due_date+'\')" style="padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">+ Add</button></div></div>';
   });
-  html+=`</div>`;
-  document.getElementById('mainContent').innerHTML=html;
+  html+='</div>';
+  setMain(html);
 }
 
-async function saveAuditDetails(id){
-  const name=document.getElementById('editAuditName').value.trim();
-  const client=document.getElementById('editAuditClient').value.trim();
-  const due=document.getElementById('editAuditDue').value;
-  if(!name){alert('Audit name cannot be empty.');return;}
-  const {error}=await sb.from('audits').update({name,client:client||null,due_date:due||null}).eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
-  showToast('✅ Audit details saved.');
-}
-async function updateSectionAssignee(id,val){await sb.from('sections').update({assignee_email:val||null}).eq('id',id);showToast('Assignee updated.');}
-async function updateSectionDue(id,val){await sb.from('sections').update({due_date:val||null}).eq('id',id);showToast('Due date updated.');}
-async function updateSubAssignee(id,val){await sb.from('subsections').update({assignee_email:val||null}).eq('id',id);showToast('Assignee updated.');}
-async function updateSubDue(id,val){await sb.from('subsections').update({due_date:val||null}).eq('id',id);showToast('Due date updated.');}
-async function updateSubBudgetEdit(id,val){await sb.from('subsections').update({budget_hours:parseFloat(val)||0}).eq('id',id);showToast('Budget hours updated.');}
-async function deleteSubEdit(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderEditAudit();}
-async function addSubToSection(secId,inheritAssignee,inheritDue){
-  const name=document.getElementById(`newSubName_${secId}`).value.trim();
-  if(!name){alert('Please enter a subsection name.');return;}
-  const assignee=document.getElementById(`newSubAssignee_${secId}`).value||inheritAssignee||null;
-  const due=document.getElementById(`newSubDue_${secId}`).value||inheritDue||null;
-  const budget=parseFloat(document.getElementById(`newSubBudget_${secId}`).value)||0;
-  await sb.from('subsections').insert({section_id:secId,name,assignee_email:assignee,due_date:due,budget_hours:budget,step:'Not Started',sort_order:999});
-  showToast('✅ Subsection added.');renderEditAudit();
-}
-
-// ── Update View ───────────────────────────────────────────────────────────
-async function renderUpdate(){
-  const myEmail=currentUser.email;
-  const {data:subs}=await sb.from('subsection_summary').select('*').eq('assignee_email',myEmail);
-  const {data:sections}=await sb.from('sections').select('*');
-  const {data:audits}=await sb.from('audits').select('*');
-  const secMap={},auditMap={};
-  (sections||[]).forEach(s=>secMap[s.id]=s);
-  (audits||[]).forEach(a=>auditMap[a.id]=a);
-
-  // Timesheet button — show countdown if not Monday
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0=Sun,1=Mon...6=Sat
-  const isMonday = dayOfWeek === 1;
-  const daysUntilMonday = isMonday ? 0 : (8 - dayOfWeek) % 7 || 7;
-  const timesheetBtn = isMonday
-    ? `<button onclick="openTimesheetModal()" class="orange-btn" style="font-size:13px;padding:8px 16px;">📅 Submit Weekly Timesheet</button>`
-    : `<button disabled style="font-size:13px;padding:8px 16px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;" title="Timesheets can only be submitted on Mondays">📅 Submit Timesheet<br/><span style="font-size:10px;">Opens in ${daysUntilMonday} day${daysUntilMonday!==1?'s':''} (Monday)</span></button>`;
-
-  let html=`<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-    <div><span style="font-family:'Trebuchet MS',sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">${myEmail}</span></div>
-    ${timesheetBtn}
-  </div>`;
-
-  if(!(subs||[]).length){
-    html+=`<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>`;
-    document.getElementById('mainContent').innerHTML=html;return;
-  }
-
-  const byAudit={};
-  (subs||[]).forEach(sub=>{const sec=secMap[sub.section_id];if(!sec)return;const aud=auditMap[sec.audit_id];if(!aud)return;if(!byAudit[aud.id])byAudit[aud.id]={audit:aud,items:[]};byAudit[aud.id].items.push({sub,sec});});
-
-  for(const [,group] of Object.entries(byAudit)){
-    html+=`<div style="margin-bottom:20px;"><div style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">📋 ${group.audit.name}${group.audit.client?` <span style="font-weight:400;font-size:13px;color:#9ca3af;">— ${group.audit.client}</span>`:''}</div><div style="display:flex;flex-direction:column;gap:10px;">`;
-    for(const {sub,sec} of group.items){
-      const sc=STEP_COLORS[sub.step]; const stepIdx=STEPS.indexOf(sub.step); const isDone=sub.step==='Done';
-      const overBudget=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
-      html+=`<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid ${overBudget?'#dc2626':sc.color};border:1px solid var(--border);border-left-width:4px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-          <div>
-            <div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">${sec.name}</div>
-            <div style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;color:var(--navy);">${sub.name}</div>
-            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">
-              ${dueBadge(sub.due_date)}${subStatusFlag(sub.due_date,sub.step)}
-              <span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ ${fmtHrs(sub.actual_hours)}h / ${fmtHrs(sub.budget_hours)}h budget</span>
-              ${overBudget?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':''}
-            </div>
-          </div>
-          <span class="step-badge" style="color:${sc.color};background:${sc.bg};">${sub.step}</span>
-        </div>
-        ${stepTrailHTML(stepIdx)}
-        <div style="display:flex;gap:8px;">
-          ${stepIdx>0?`<button onclick="regressStep('${sub.id}','${sub.section_id}')" class="ghost-btn">← Back</button>`:''}
-          ${!isDone
-            ?`<button onclick="requestAdvance('${sub.id}','${sub.section_id}','${sub.name}','${STEPS[stepIdx+1]}','${sub.budget_hours}','${sub.actual_hours}')" class="primary-btn" style="flex:1;">Mark as: ${STEPS[stepIdx+1]} →</button>`
-            :`<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;border:1px solid #bbf7d0;">✅ Complete!</div>`
-          }
-        </div>
-        <button onclick="showTeams('${group.audit.name}','${sec.name}','${sub.name}','${sub.step}','${sub.due_date||''}','${fmtHrs(sub.actual_hours)}')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>
-      </div>`;
+// ── Update View ──────────────────────────────────────────────────────────
+async function vUpdate(){
+  const me=CU.email;
+  const {data:ss}=await sb.from('subsection_summary').select('*').eq('assignee_email',me);
+  const {data:secs}=await sb.from('sections').select('*');
+  const {data:auds}=await sb.from('audits').select('*');
+  const sm={},am={};(secs||[]).forEach(s=>sm[s.id]=s);(auds||[]).forEach(a=>am[a.id]=a);
+  const today=new Date();const dow=today.getDay();const isMon=dow===1;
+  const daysToMon=isMon?0:(8-dow)%7||7;
+  const tsBtn=isMon?'<button onclick="openTs()" class="orange-btn" style="font-size:13px;padding:8px 16px;">📅 Submit Weekly Timesheet</button>':'<button disabled style="font-size:13px;padding:8px 16px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;">📅 Timesheets<br/><span style="font-size:10px;">Opens Monday ('+daysToMon+' day'+(daysToMon!==1?'s':'')+' away)</span></button>';
+  let html='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'+tsBtn+'</div>';
+  if(!(ss||[]).length){html+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(html);return;}
+  const byA={};(ss||[]).forEach(sub=>{const sec=sm[sub.section_id];if(!sec)return;const a=am[sec.audit_id];if(!a)return;if(!byA[a.id])byA[a.id]={a,items:[]};byA[a.id].items.push({sub,sec});});
+  for(const[,g]of Object.entries(byA)){
+    html+='<div style="margin-bottom:20px;"><div style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">📋 '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
+    for(const{sub,sec}of g.items){
+      const c=SC[sub.step];const si=STEPS.indexOf(sub.step);const done=sub.step==='Done';
+      const ob=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
+      html+='<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c.c)+';border:1px solid var(--border);border-left-width:4px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;"><div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec.name+'</div><div style="font-family:\'Trebuchet MS\',sans-serif;font-weight:700;font-size:15px;color:var(--navy);">'+sub.name+'</div><div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">'+dueB(sub.due_date)+stFlag(sub.due_date,sub.step)+'<span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ '+H(sub.actual_hours)+'h / '+H(sub.budget_hours)+'h budget</span>'+(ob?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':'')+'</div></div><span class="step-badge" style="color:'+c.c+';background:'+c.b+'">'+sub.step+'</span></div>'+trail(si)+'<div style="display:flex;gap:8px;">'+(si>0?'<button onclick="regressStep(\''+sub.id+'\')" class="ghost-btn">← Back</button>':'')+(done?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Complete!</div>':'<button onclick="reqAdv(\''+sub.id+'\',\''+sub.name+'\',\''+STEPS[si+1]+'\','+sub.budget_hours+','+sub.actual_hours+')" class="primary-btn" style="flex:1;">Mark as: '+STEPS[si+1]+' →</button>')+'</div><button onclick="showTeams(\''+g.a.name+'\',\''+sec.name+'\',\''+sub.name+'\',\''+sub.step+'\',\''+(sub.due_date||'')+'\',\''+H(sub.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button></div>';
     }
-    html+=`</div></div>`;
+    html+='</div></div>';
   }
-  document.getElementById('mainContent').innerHTML=html;
+  setMain(html);
 }
 
-// ── Timesheet ─────────────────────────────────────────────────────────────
-async function renderTimesheet(){
-  const isManager=currentRole==='manager'||currentRole==='director';
-  if(isManager){
-    const {data:entries}=await sb.from('timesheet_variance_summary').select('*').order('week_ending',{ascending:false}).limit(200);
-    const allE=entries||[];
-    const flagged=allE.filter(e=>Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending');
+// ── Timesheets ───────────────────────────────────────────────────────────
+function getFridays(n=4){const fs=[];let d=new Date();d.setHours(0,0,0,0);const dow=d.getDay();d.setDate(d.getDate()-(dow===6?0:dow===0?1:dow+1));for(let i=0;i<n;i++){fs.push(new Date(d));d.setDate(d.getDate()-7);}return fs;}
+function fmtFri(dt,i){const now=new Date();now.setHours(0,0,0,0);const wks=Math.round((now-dt)/86400000/7);const lbl=dt.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});const ago=wks===0?'this past Friday':wks===1?'last week':wks+' weeks ago';return '<option value="'+dt.toISOString().slice(0,10)+'">'+lbl+' — '+ago+'</option>';}
 
-    // Build report CSV
-    function buildTimesheetCSV(){
-      const headers=['Week Ending','Staff Email','Audit','Section','Subsection','Firm System Hrs','App Hrs','Variance','Explanation','Status','Submitted At'];
-      const rows=allE.map(e=>[
-        e.week_ending,e.submitted_by_email,e.audit_name,e.section_name,e.subsection_name,
-        fmtHrs(e.firm_system_hours),fmtHrs(e.app_hours),
-        (parseFloat(e.variance||0)>0?'+':'')+fmtHrs(e.variance||0),
-        e.explanation||'',e.status,
-        e.submitted_at?new Date(e.submitted_at).toLocaleString('en-ZA'):''
-      ]);
-      return [headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    }
-
-    // Filter state
-    const weekOptions=[...new Set(allE.map(e=>e.week_ending))].sort().reverse();
-    const staffOptions2=[...new Set(allE.map(e=>e.submitted_by_email))].sort();
-
-    let html=`
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
-      <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">Timesheet Reconciliation Report</span>
-      <button onclick="showTimesheetReport()" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📊 Export Full Report</button>
-    </div>`;
-
-    if(flagged.length) html+=`<div class="alert alert-warning" style="margin-bottom:16px;">⚠️ <b>${flagged.length}</b> variance${flagged.length>1?'s':''} pending review — highlighted below.</div>`;
-
-    // Summary stats
-    const totalFirmHrs=allE.reduce((a,e)=>a+parseFloat(e.firm_system_hours||0),0);
-    const totalAppHrs=allE.reduce((a,e)=>a+parseFloat(e.app_hours||0),0);
-    const totalVariance=totalFirmHrs-totalAppHrs;
-    html+=`<div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
-      <div class="stat"><div class="stat-val">${allE.length}</div><div class="stat-lbl">Total Submissions</div></div>
-      <div class="stat"><div class="stat-val">${fmtHrs(totalFirmHrs)}h</div><div class="stat-lbl">Total Firm System Hrs</div></div>
-      <div class="stat"><div class="stat-val">${fmtHrs(totalAppHrs)}h</div><div class="stat-lbl">Total App Hrs</div></div>
-      <div class="stat" style="border-left-color:${Math.abs(totalVariance)>0?'#dc2626':'#16a34a'};"><div class="stat-val" style="color:${Math.abs(totalVariance)>0?'#dc2626':'#16a34a'};">${totalVariance>0?'+':''}${fmtHrs(totalVariance)}h</div><div class="stat-lbl">Total Variance</div></div>
-    </div>`;
-
-    // Filters
-    html+=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
-      <select id="tsFilterWeek" class="inp" style="width:200px;background:#fff;" onchange="applyTimesheetFilter()">
-        <option value="">All weeks</option>
-        ${weekOptions.map(w=>`<option value="${w}">${w}</option>`).join('')}
-      </select>
-      <select id="tsFilterStaff" class="inp" style="width:200px;background:#fff;" onchange="applyTimesheetFilter()">
-        <option value="">All staff</option>
-        ${staffOptions2.map(s=>`<option value="${s}">${s}</option>`).join('')}
-      </select>
-      <select id="tsFilterStatus" class="inp" style="width:160px;background:#fff;" onchange="applyTimesheetFilter()">
-        <option value="">All statuses</option>
-        <option value="reviewed">✅ Reviewed</option>
-        <option value="pending">⏳ Pending</option>
-        <option value="flagged">🚩 Flagged</option>
-      </select>
-      <button onclick="applyTimesheetFilter()" class="ghost-btn" style="font-size:12px;">🔄 Refresh</button>
-    </div>`;
-
-    html+=`<div style="overflow-x:auto;" id="tsTableWrap">`;
-    html+=buildTimesheetTable(allE);
-    html+=`</div>`;
-
-    // Store data globally for filtering
-    window._tsAllEntries=allE;
-    window._tsCSV=buildTimesheetCSV;
-
-    document.getElementById('mainContent').innerHTML=html;
-  } else {
-    // Staff view
-    const {data:entries}=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',currentUser.id).order('week_ending',{ascending:false}).limit(50);
-    let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">My Timesheets</span>
-      <button onclick="openTimesheetModal()" class="orange-btn">📅 Submit Timesheet</button>
-    </div>`;
-    if(!(entries||[]).length) html+=`<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>`;
-    else{
-      html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr>
-        <th>Week Ending</th><th>Audit → Section → Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th>
-      </tr></thead><tbody>`;
-      (entries||[]).forEach(e=>{
-        const v=parseFloat(e.variance||0);
-        html+=`<tr>
-          <td style="white-space:nowrap;">${e.week_ending}</td>
-          <td style="font-size:12px;">${e.subsections?.sections?.audits?.name||''} → ${e.subsections?.sections?.name||''} → ${e.subsections?.name||'—'}</td>
-          <td style="font-weight:600;">${fmtHrs(e.firm_system_hours)}h</td>
-          <td style="font-weight:600;">${fmtHrs(e.app_hours)}h</td>
-          <td style="font-weight:700;color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};">${v>0?'+':''}${fmtHrs(v)}h</td>
-          <td style="font-size:12px;max-width:180px;">${e.explanation||'—'}</td>
-          <td><span class="badge" style="color:${e.status==='reviewed'?'#16a34a':'#d97706'};background:${e.status==='reviewed'?'#f0fdf4':'#fffbeb'};">${e.status==='reviewed'?'✅ Matched':'⏳ Under Review'}</span></td>
-          <td style="font-size:11px;color:#9ca3af;">${e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):''}</td>
-        </tr>`;
-      });
-      html+=`</tbody></table></div>`;
-    }
-    document.getElementById('mainContent').innerHTML=html;
-  }
+async function openTs(){
+  const {data:ss}=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',CU.email);
+  document.getElementById('tsSub').innerHTML=(ss||[]).map(s=>'<option value="'+s.id+'">'+(s.sections?.audits?.name||'')+' → '+(s.sections?.name||'')+' → '+s.name+'</option>').join('');
+  const frids=getFridays(4);
+  document.getElementById('tsWeek').innerHTML=frids.map((f,i)=>fmtFri(f,i)).join('');
+  document.getElementById('tsFirm').value='';document.getElementById('tsApp').value='';
+  document.getElementById('tsVarBox').style.display='none';document.getElementById('tsExp').value='';
+  document.getElementById('tsAlready').style.display='none';
+  document.getElementById('tsWeekLbl').textContent='';document.getElementById('tsAppLbl').textContent='';
+  await onTsChange();
+  openModal('timesheetModal');
 }
 
-function buildTimesheetTable(entries){
-  if(!entries.length) return `<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheet entries found.</div>`;
-  let t=`<table class="data-table"><thead><tr>
-    <th>Week Ending</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th>
-    <th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th>
-  </tr></thead><tbody>`;
-  entries.forEach(e=>{
-    const v=parseFloat(e.variance||0); const hasVar=Math.abs(v)>0.01;
-    const rowBg=hasVar&&e.status==='pending'?'#fff7ed':e.status==='flagged'?'#fef2f2':'#fff';
-    t+=`<tr style="background:${rowBg};">
-      <td style="white-space:nowrap;font-weight:600;">${e.week_ending}</td>
-      <td style="font-size:12px;">${e.submitted_by_email}</td>
-      <td style="font-size:12px;">${e.audit_name||'—'}</td>
-      <td style="font-size:12px;">${e.section_name||'—'}</td>
-      <td style="font-size:12px;">${e.subsection_name||'—'}</td>
-      <td style="font-weight:600;">${fmtHrs(e.firm_system_hours)}h</td>
-      <td style="font-weight:600;">${fmtHrs(e.app_hours)}h</td>
-      <td style="font-weight:700;color:${v>0?'#dc2626':v<0?'#16a34a':'#16a34a'};">${v===0?'✅ Match':(v>0?'▲ +':'▼ ')+fmtHrs(Math.abs(v))+'h'}</td>
-      <td style="font-size:12px;max-width:200px;color:${hasVar?'#92400e':'#6b7280'};">${e.explanation||'—'}</td>
-      <td>
-        <span class="badge" style="color:${e.status==='reviewed'?'#16a34a':e.status==='flagged'?'#dc2626':'#d97706'};background:${e.status==='reviewed'?'#f0fdf4':e.status==='flagged'?'#fef2f2':'#fffbeb'};">
-          ${e.status==='reviewed'?'✅ Reviewed':e.status==='flagged'?'🚩 Flagged':'⏳ Pending'}
-        </span>
-        ${e.status==='pending'&&hasVar?`<button onclick="flagEntry('${e.id}')" style="margin-left:4px;padding:2px 7px;background:#fef2f2;color:#dc2626;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">🚩 Flag</button>`:''}
-        ${e.status==='pending'?`<button onclick="approveEntry('${e.id}')" style="margin-left:2px;padding:2px 7px;background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">✅ Approve</button>`:''}
-      </td>
-      <td style="font-size:11px;color:#9ca3af;white-space:nowrap;">${e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):''}</td>
-    </tr>`;
-  });
-  t+=`</tbody></table>`;
-  return t;
-}
-
-function applyTimesheetFilter(){
-  const week=document.getElementById('tsFilterWeek')?.value||'';
-  const staff=document.getElementById('tsFilterStaff')?.value||'';
-  const status=document.getElementById('tsFilterStatus')?.value||'';
-  let filtered=(window._tsAllEntries||[]);
-  if(week) filtered=filtered.filter(e=>e.week_ending===week);
-  if(staff) filtered=filtered.filter(e=>e.submitted_by_email===staff);
-  if(status) filtered=filtered.filter(e=>e.status===status);
-  document.getElementById('tsTableWrap').innerHTML=buildTimesheetTable(filtered);
-}
-
-function showTimesheetReport(){
-  if(!window._tsCSV){alert('No data loaded.');return;}
-  const csv=window._tsCSV();
-  document.getElementById('reportTitle').textContent='📊 Timesheet Reconciliation Report';
-  document.getElementById('reportSubtitle').textContent=`${(window._tsAllEntries||[]).length} submissions · Full export for comparison with firm system`;
-  document.getElementById('reportHead').innerHTML='';
-  document.getElementById('reportBody').innerHTML=`<tr><td colspan="10" style="padding:20px;color:#6b7280;font-size:13px;">Use the CSV below to compare against your firm time tracking system. Copy and open in Excel.</td></tr>`;
-  document.getElementById('csvText').value=csv;
-  document.getElementById('reportModal').style.display='flex';
-}
-
-async function flagEntry(id){
-  await sb.from('timesheet_entries').update({status:'flagged',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id);
-  showToast('🚩 Entry flagged for follow-up.');
-  renderTimesheet();
-}
-
-async function approveEntry(id){
-  await sb.from('timesheet_entries').update({status:'reviewed',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id);
-  showToast('✅ Entry approved.');
-  renderTimesheet();
-}
-
-function getPastFridays(count=4){
-  const fridays=[];
-  const today=new Date(); today.setHours(0,0,0,0);
-  // Find most recent Friday
-  let d=new Date(today);
-  const dow=d.getDay();
-  const daysBack=dow===0?1:dow===6?0:(dow+1)%7+1; // days to last Friday
-  d.setDate(d.getDate()-(dow===6?0:dow===0?1:dow+1));
-  for(let i=0;i<count;i++){
-    fridays.push(new Date(d));
-    d.setDate(d.getDate()-7);
-  }
-  return fridays;
-}
-
-function formatFridayOption(date,idx){
-  const now=new Date(); now.setHours(0,0,0,0);
-  const diff=Math.round((now-date)/86400000);
-  const weeks=Math.round(diff/7);
-  const label=date.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
-  const ago=weeks===0?'this past Friday':weeks===1?'last week':`${weeks} weeks ago`;
-  return `<option value="${date.toISOString().slice(0,10)}">${label} — ${ago}</option>`;
-}
-
-async function openTimesheetModal(){
-  const {data:subs}=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',currentUser.email);
-  const sel=document.getElementById('tsSubsection');
-  sel.innerHTML=(subs||[]).map(s=>`<option value="${s.id}">${s.sections?.audits?.name||''} → ${s.sections?.name||''} → ${s.name}</option>`).join('');
-
-  // Populate week dropdown
-  const fridays=getPastFridays(4);
-  const weekSel=document.getElementById('tsWeekEnding');
-  weekSel.innerHTML=fridays.map((f,i)=>formatFridayOption(f,i)).join('');
-
-  document.getElementById('tsFirmHours').value='';
-  document.getElementById('tsAppHours').value='';
-  document.getElementById('tsVarianceBox').style.display='none';
-  document.getElementById('tsExplanation') && (document.getElementById('tsExplanation').value='');
-  document.getElementById('tsAlreadySubmitted').style.display='none';
-  document.getElementById('tsWeekLabel').textContent='';
-  document.getElementById('tsAppHoursLabel').textContent='';
-
-  await onWeekOrSubChange();
-  document.getElementById('timesheetModal').style.display='flex';
-}
-
-async function onWeekOrSubChange(){
-  const subId=document.getElementById('tsSubsection').value;
-  const weekEnd=document.getElementById('tsWeekEnding').value;
-  if(!subId||!weekEnd) return;
-
-  // Show week label
-  const weekDate=new Date(weekEnd);
-  const weekStart=new Date(weekDate); weekStart.setDate(weekStart.getDate()-6);
-  const fmt2=(d)=>d.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',yyyy:'numeric'});
-  document.getElementById('tsWeekLabel').textContent=`📅 Covers ${fmt2(weekStart)} — ${fmt2(weekDate)}`;
-
-  // Check if already submitted
-  const {data:existing}=await sb.from('timesheet_entries')
-    .select('id').eq('subsection_id',subId).eq('week_ending',weekEnd).eq('submitted_by',currentUser.id).maybeSingle();
-
-  const alreadyDone=!!existing;
-  document.getElementById('tsAlreadySubmitted').style.display=alreadyDone?'block':'none';
-  document.getElementById('tsSubmitBtn').disabled=alreadyDone;
-  document.getElementById('tsSubmitBtn').style.opacity=alreadyDone?'0.5':'1';
-  document.getElementById('tsFirmHours').disabled=alreadyDone;
-
-  if(!alreadyDone){
-    // Auto-calculate app hours for this week
+async function onTsChange(){
+  const subId=document.getElementById('tsSub').value;
+  const weekEnd=document.getElementById('tsWeek').value;
+  if(!subId||!weekEnd)return;
+  const wd=new Date(weekEnd);const ws=new Date(wd);ws.setDate(ws.getDate()-6);
+  const fmt2=d=>d.toLocaleDateString('en-ZA',{day:'2-digit',month:'short'});
+  document.getElementById('tsWeekLbl').textContent='📅 Covers '+fmt2(ws)+' — '+fmt2(wd);
+  const {data:ex}=await sb.from('timesheet_entries').select('id').eq('subsection_id',subId).eq('week_ending',weekEnd).eq('submitted_by',CU.id).maybeSingle();
+  const locked=!!ex;
+  document.getElementById('tsAlready').style.display=locked?'block':'none';
+  document.getElementById('tsSubmitBtn').disabled=locked;document.getElementById('tsSubmitBtn').style.opacity=locked?'0.5':'1';
+  document.getElementById('tsFirm').disabled=locked;
+  if(!locked){
     const {data:logs}=await sb.from('step_logs').select('hours,logged_at').eq('subsection_id',subId);
-    const appHrs=(logs||[]).filter(l=>{
-      const d=new Date(l.logged_at); d.setHours(0,0,0,0);
-      return d>=weekStart&&d<=weekDate;
-    }).reduce((a,l)=>a+parseFloat(l.hours||0),0);
-    document.getElementById('tsAppHours').value=appHrs.toFixed(2);
-    document.getElementById('tsAppHoursLabel').textContent=`Hours logged in app for ${fmt2(weekStart)} – ${fmt2(weekDate)}`;
-    document.getElementById('tsVarianceBox').style.display='none';
-    document.getElementById('tsFirmHours').value='';
+    const app=(logs||[]).filter(l=>{const d=new Date(l.logged_at);d.setHours(0,0,0,0);return d>=ws&&d<=wd;}).reduce((a,l)=>a+parseFloat(l.hours||0),0);
+    document.getElementById('tsApp').value=app.toFixed(2);
+    document.getElementById('tsAppLbl').textContent='Hours logged in app: '+fmt2(ws)+' – '+fmt2(wd);
+    document.getElementById('tsVarBox').style.display='none';document.getElementById('tsFirm').value='';
   }
 }
 
-async function calcVariance(){
-  const firmHrs=parseFloat(document.getElementById('tsFirmHours').value)||0;
-  const appHrs=parseFloat(document.getElementById('tsAppHours').value)||0;
-  const v=firmHrs-appHrs;
-  const vbox=document.getElementById('tsVarianceBox');
-  if(Math.abs(v)>0.01){
-    vbox.style.display='block';
-    document.getElementById('tsVarianceAmt').textContent=`Firm system: ${fmtHrs(firmHrs)}h | App: ${fmtHrs(appHrs)}h | Variance: ${v>0?'+':''}${fmtHrs(v)}h`;
-  } else {
-    vbox.style.display='none';
-  }
+function calcVar(){
+  const f=parseFloat(document.getElementById('tsFirm').value)||0;
+  const a=parseFloat(document.getElementById('tsApp').value)||0;
+  const v=f-a;
+  if(Math.abs(v)>0.01){document.getElementById('tsVarBox').style.display='block';document.getElementById('tsVarAmt').textContent='Firm: '+H(f)+'h | App: '+H(a)+'h | Variance: '+(v>0?'+':'')+H(v)+'h';}
+  else document.getElementById('tsVarBox').style.display='none';
 }
 
-async function submitTimesheet(){
-  const subId=document.getElementById('tsSubsection').value;
-  const weekEnd=document.getElementById('tsWeekEnding').value;
-  const firmHrs=parseFloat(document.getElementById('tsFirmHours').value)||0;
-  const appHrs=parseFloat(document.getElementById('tsAppHours').value)||0;
-  const variance=Math.abs(firmHrs-appHrs);
-  const hasVariance=variance>0.01;
-  if(hasVariance){
-    const exp=document.getElementById('tsExplanation').value.trim();
-    if(!exp){alert('Please provide an explanation for the variance before submitting.');return;}
-  }
-  const exp=document.getElementById('tsExplanation')?.value.trim()||'';
-  const status=hasVariance?'pending':'reviewed';
-  const {error}=await sb.from('timesheet_entries').insert({
-    subsection_id:subId,week_ending:weekEnd,
-    firm_system_hours:firmHrs,app_hours:appHrs,
-    explanation:exp||null,
-    submitted_by:currentUser.id,submitted_by_email:currentUser.email,
-    status
-  });
-  if(error){alert('Error submitting: '+error.message);return;}
+async function submitTs(){
+  const subId=document.getElementById('tsSub').value;
+  const weekEnd=document.getElementById('tsWeek').value;
+  const f=parseFloat(document.getElementById('tsFirm').value)||0;
+  const a=parseFloat(document.getElementById('tsApp').value)||0;
+  const hasVar=Math.abs(f-a)>0.01;
+  if(hasVar&&!document.getElementById('tsExp').value.trim()){alert('Please explain the variance.');return;}
+  const exp=document.getElementById('tsExp').value.trim();
+  await sb.from('timesheet_entries').insert({subsection_id:subId,week_ending:weekEnd,firm_system_hours:f,app_hours:a,explanation:exp||null,submitted_by:CU.id,submitted_by_email:CU.email,status:hasVar?'pending':'reviewed'});
   closeModal('timesheetModal');
-  showToast(hasVariance?'⏳ Timesheet submitted — variance flagged for manager review.':'✅ Timesheet submitted and matched.');
-  showView('timesheet');
+  toast(hasVar?'⏳ Submitted — variance flagged for review.':'✅ Timesheet submitted — hours matched.');
+  goView('timesheet');
 }
 
-// ── Users ─────────────────────────────────────────────────────────────────
-async function renderUsers(){
-  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
-  const {data:users}=await sb.from('users').select('*').order('full_name');
-  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-    <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">User Management</span>
-    <button onclick="document.getElementById('addUserModal').style.display='flex'" class="orange-btn">➕ Add User</button>
-  </div>
-  <div class="alert alert-warning" style="margin-bottom:16px;">
-    To add a user: first create them in <b>Supabase Auth → Users → Add user</b>, then click <b>Add User</b> here to set their name and role. Share their temporary password with them — they can change it via <b>🔑 Change Password</b> after login.
-  </div>
-  <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>`;
-  (users||[]).forEach(u=>{
-    html+=`<tr>
-      <td style="font-weight:600;">${u.full_name}</td><td>${u.email}</td>
-      <td><span class="badge role-badge role-${u.role}">${u.role}</span></td>
-      <td><span style="color:${u.active?'#16a34a':'#dc2626'};font-weight:600;">${u.active?'✅ Active':'❌ Inactive'}</span></td>
-      <td style="display:flex;gap:6px;align-items:center;">
-        <select class="inp" style="width:110px;font-size:12px;padding:5px 8px;background:#fff;" onchange="updateRole('${u.id}',this.value)">
-          ${['staff','manager','director'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
-        </select>
-        <button onclick="toggleActive('${u.id}',${u.active})" class="${u.active?'danger-btn':'ghost-btn'}" style="font-size:12px;white-space:nowrap;">${u.active?'Deactivate':'Activate'}</button>
-        ${u.id!==currentUser.id?`<button onclick="resetUserPassword('${u.email}')" style="padding:5px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Reset Pwd</button>`:''}
-      </td>
-    </tr>`;
-  });
-  html+=`</tbody></table>`;
-  document.getElementById('mainContent').innerHTML=html;
+async function vTs(){
+  const isMgr=CR==='manager'||CR==='director';
+  if(isMgr){
+    const {data:ents}=await sb.from('timesheet_variance_summary').select('*').order('week_ending',{ascending:false}).limit(200);
+    const all=ents||[];
+    const flagged=all.filter(e=>Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending');
+    const weeks=[...new Set(all.map(e=>e.week_ending))].sort().reverse();
+    const staff=[...new Set(all.map(e=>e.submitted_by_email))].sort();
+    const tf=all.reduce((a,e)=>a+parseFloat(e.firm_system_hours||0),0);
+    const ta=all.reduce((a,e)=>a+parseFloat(e.app_hours||0),0);
+    const tv=tf-ta;
+    window._tsAll=all;window._tsCsv=()=>buildTsCsv(all);
+    let html='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">Timesheet Reconciliation Report</span><button onclick="showTsRpt()" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📊 Export Full Report</button></div>';
+    if(flagged.length)html+='<div class="alert alert-w" style="margin-bottom:16px;">⚠️ <b>'+flagged.length+' variance'+(flagged.length>1?'s':'')+' pending review</b> — highlighted below.</div>';
+    html+='<div class="stats" style="margin-bottom:16px;"><div class="stat"><div class="stat-val">'+all.length+'</div><div class="stat-lbl">Total Submissions</div></div><div class="stat"><div class="stat-val">'+H(tf)+'h</div><div class="stat-lbl">Total Firm System Hrs</div></div><div class="stat"><div class="stat-val">'+H(ta)+'h</div><div class="stat-lbl">Total App Hrs</div></div><div class="stat" style="border-left-color:'+(Math.abs(tv)>0?'#dc2626':'#16a34a')+'"><div class="stat-val" style="color:'+(Math.abs(tv)>0?'#dc2626':'#16a34a')+'">'+(tv>0?'+':'')+H(tv)+'h</div><div class="stat-lbl">Total Variance</div></div></div>';
+    html+='<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><select id="tfW" class="inp" style="width:200px;background:#fff;" onchange="filterTs()"><option value="">All weeks</option>'+weeks.map(w=>'<option value="'+w+'">'+w+'</option>').join('')+'</select><select id="tfS" class="inp" style="width:200px;background:#fff;" onchange="filterTs()"><option value="">All staff</option>'+staff.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select><select id="tfSt" class="inp" style="width:160px;background:#fff;" onchange="filterTs()"><option value="">All statuses</option><option value="reviewed">✅ Reviewed</option><option value="pending">⏳ Pending</option><option value="flagged">🚩 Flagged</option></select></div>';
+    html+='<div id="tsTableWrap">'+buildTsTable(all)+'</div>';
+    setMain(html);
+  } else {
+    const {data:ents}=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',CU.id).order('week_ending',{ascending:false}).limit(50);
+    let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">My Timesheets</span><button onclick="openTs()" class="orange-btn">📅 Submit Timesheet</button></div>';
+    if(!(ents||[]).length){html+='<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>';}
+    else{html+='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Audit → Section → Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>'+(ents||[]).map(e=>{const v=parseFloat(e.variance||0);return '<tr><td>'+e.week_ending+'</td><td style="font-size:12px;">'+(e.subsections?.sections?.audits?.name||'')+' → '+(e.subsections?.sections?.name||'')+' → '+(e.subsections?.name||'—')+'</td><td style="font-weight:600;">'+H(e.firm_system_hours)+'h</td><td style="font-weight:600;">'+H(e.app_hours)+'h</td><td style="font-weight:700;color:'+(v>0?'#dc2626':v<0?'#16a34a':'#6b7280')+'">'+(v>0?'+':'')+H(v)+'h</td><td style="font-size:12px;max-width:180px;">'+(e.explanation||'—')+'</td><td><span class="badge" style="color:'+(e.status==='reviewed'?'#16a34a':'#d97706')+';background:'+(e.status==='reviewed'?'#f0fdf4':'#fffbeb')+'">'+(e.status==='reviewed'?'✅ Matched':'⏳ Under Review')+'</span></td></tr>';}).join('')+'</tbody></table></div>';}
+    setMain(html);
+  }
+}
+
+function buildTsTable(ents){
+  if(!ents.length)return '<div style="text-align:center;padding:40px;color:#9ca3af;">No entries found.</div>';
+  return '<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th></tr></thead><tbody>'+ents.map(e=>{const v=parseFloat(e.variance||0);const hv=Math.abs(v)>0.01;const bg=hv&&e.status==='pending'?'#fff7ed':e.status==='flagged'?'#fef2f2':'#fff';return '<tr style="background:'+bg+'"><td style="white-space:nowrap;font-weight:600;">'+e.week_ending+'</td><td style="font-size:12px;">'+e.submitted_by_email+'</td><td style="font-size:12px;">'+(e.audit_name||'—')+'</td><td style="font-size:12px;">'+(e.section_name||'—')+'</td><td style="font-size:12px;">'+(e.subsection_name||'—')+'</td><td style="font-weight:600;">'+H(e.firm_system_hours)+'h</td><td style="font-weight:600;">'+H(e.app_hours)+'h</td><td style="font-weight:700;color:'+(v===0?'#16a34a':v>0?'#dc2626':'#16a34a')+'">'+(v===0?'✅ Match':(v>0?'▲ +':'▼ ')+H(Math.abs(v))+'h')+'</td><td style="font-size:12px;max-width:200px;color:'+(hv?'#92400e':'#6b7280')+'">'+(e.explanation||'—')+'</td><td><span class="badge" style="color:'+(e.status==='reviewed'?'#16a34a':e.status==='flagged'?'#dc2626':'#d97706')+';background:'+(e.status==='reviewed'?'#f0fdf4':e.status==='flagged'?'#fef2f2':'#fffbeb')+'">'+(e.status==='reviewed'?'✅ Reviewed':e.status==='flagged'?'🚩 Flagged':'⏳ Pending')+'</span>'+(e.status==='pending'&&hv?'<button onclick="flagTs(\''+e.id+'\')" style="margin-left:4px;padding:2px 7px;background:#fef2f2;color:#dc2626;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">🚩</button>':'')+(e.status==='pending'?'<button onclick="approveTs(\''+e.id+'\')" style="margin-left:2px;padding:2px 7px;background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">✅</button>':'')+'</td><td style="font-size:11px;color:#9ca3af;white-space:nowrap;">'+(e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):'')+'</td></tr>';}).join('')+'</tbody></table></div>';
+}
+
+function buildTsCsv(ents){
+  const h=['Week Ending','Staff Email','Audit','Section','Subsection','Firm System Hrs','App Hrs','Variance','Explanation','Status','Submitted At'];
+  const rows=ents.map(e=>[e.week_ending,e.submitted_by_email,e.audit_name,e.section_name,e.subsection_name,H(e.firm_system_hours),H(e.app_hours),(parseFloat(e.variance||0)>0?'+':'')+H(e.variance||0),e.explanation||'',e.status,e.submitted_at?new Date(e.submitted_at).toLocaleString('en-ZA'):'']);
+  return [h,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+}
+
+function filterTs(){
+  const w=document.getElementById('tfW')?.value||'';const s=document.getElementById('tfS')?.value||'';const st=document.getElementById('tfSt')?.value||'';
+  let f=window._tsAll||[];
+  if(w)f=f.filter(e=>e.week_ending===w);if(s)f=f.filter(e=>e.submitted_by_email===s);if(st)f=f.filter(e=>e.status===st);
+  document.getElementById('tsTableWrap').innerHTML=buildTsTable(f);
+}
+
+function showTsRpt(){
+  if(!window._tsCsv){alert('No data.');return;}
+  document.getElementById('rptTitle').textContent='📊 Timesheet Reconciliation Report';
+  document.getElementById('rptSub').textContent=(window._tsAll||[]).length+' submissions — compare with firm system export';
+  document.getElementById('rptHead').innerHTML='';
+  document.getElementById('rptBody').innerHTML='<tr><td colspan="10" style="padding:20px;color:#6b7280;font-size:13px;">Use the CSV below to cross-reference with your firm time tracking system. Copy, paste into Notepad, save as .csv, open in Excel.</td></tr>';
+  document.getElementById('csvTxt').value=window._tsCsv();
+  openModal('reportModal');
+}
+
+async function flagTs(id){await sb.from('timesheet_entries').update({status:'flagged',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('🚩 Entry flagged.');vTs();}
+async function approveTs(id){await sb.from('timesheet_entries').update({status:'reviewed',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('✅ Entry approved.');vTs();}
+
+// ── Users ────────────────────────────────────────────────────────────────
+async function vUsers(){
+  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
+  const {data:us}=await sb.from('users').select('*').order('full_name');
+  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">User Management</span><button onclick="openModal(\'addUserModal\')" class="orange-btn">➕ Add User</button></div><div class="alert alert-w" style="margin-bottom:16px;">Create user in <b>Supabase Auth → Users → Add user</b> first, then add their profile here. Share the temp password — they can change it via 🔑 Change Password after login.</div><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>';
+  (us||[]).forEach(u=>{html+='<tr><td style="font-weight:600;">'+u.full_name+'</td><td>'+u.email+'</td><td><span class="badge role-badge role-'+u.role+'">'+u.role+'</span></td><td><span style="color:'+(u.active?'#16a34a':'#dc2626')+';font-weight:600;">'+(u.active?'✅ Active':'❌ Inactive')+'</span></td><td style="display:flex;gap:6px;align-items:center;"><select class="inp" style="width:110px;font-size:12px;padding:5px 8px;background:#fff;" onchange="updRole(\''+u.id+'\',this.value)">'+['staff','manager','director'].map(r=>'<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+r+'</option>').join('')+'</select><button onclick="togActive(\''+u.id+'\','+u.active+')" class="'+(u.active?'danger-btn':'ghost-btn')+'" style="font-size:12px;white-space:nowrap;">'+(u.active?'Deactivate':'Activate')+'</button>'+(u.id!==CU.id?'<button onclick="resetPwd(\''+u.email+'\')" style="padding:5px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Reset Pwd</button>':'')+'</td></tr>';});
+  html+='</tbody></table>';
+  setMain(html);
 }
 
 async function doAddUser(){
-  const name=document.getElementById('newUserName').value.trim();
-  const email=document.getElementById('newUserEmail').value.trim();
-  const role=document.getElementById('newUserRole').value;
-  const status=document.getElementById('addUserStatus');
-  status.style.display='none';
-  if(!name||!email){status.className='alert alert-error';status.textContent='Please fill in name and email.';status.style.display='block';return;}
-  const {data:authUser}=await sb.from('users').select('id').eq('email',email).single().catch(()=>({data:null}));
-  if(authUser){status.className='alert alert-warning';status.textContent='A user with this email already exists.';status.style.display='block';return;}
-  const {error}=await sb.from('users').upsert({email,full_name:name,role,active:true},{onConflict:'email'});
-  if(error){status.className='alert alert-error';status.textContent='Error: '+error.message+'. Make sure the user was created in Supabase Auth first.';status.style.display='block';return;}
-  allUsers=[...allUsers,{email,full_name:name,role,active:true}];
-  status.className='alert alert-success';status.textContent=`✅ Profile saved for ${name}.`;status.style.display='block';
-  setTimeout(()=>{closeModal('addUserModal');renderUsers();},1500);
+  const n=document.getElementById('nuName').value.trim();const e=document.getElementById('nuEmail').value.trim();const r=document.getElementById('nuRole').value;
+  const st=document.getElementById('nuStatus');st.style.display='none';
+  if(!n||!e){st.className='alert alert-e';st.textContent='Fill in name and email.';st.style.display='block';return;}
+  const {error}=await sb.from('users').upsert({email:e,full_name:n,role:r,active:true},{onConflict:'email'});
+  if(error){st.className='alert alert-e';st.textContent='Error: '+error.message+'. Make sure user exists in Supabase Auth first.';st.style.display='block';return;}
+  AU=[...AU,{email:e,full_name:n,role:r,active:true}];
+  st.className='alert alert-s';st.textContent='✅ Profile saved for '+n+'.';st.style.display='block';
+  setTimeout(()=>{closeModal('addUserModal');vUsers();},1500);
 }
 
-async function updateRole(userId,role){await sb.from('users').update({role}).eq('id',userId);showToast('Role updated.');}
-async function toggleActive(userId,current){await sb.from('users').update({active:!current}).eq('id',userId);renderUsers();}
-async function resetUserPassword(email){
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
-  if(error)alert('Error: '+error.message);
-  else showToast(`✅ Reset email sent to ${email}`);
-}
+async function updRole(id,role){await sb.from('users').update({role}).eq('id',id);toast('Role updated.');}
+async function togActive(id,cur){await sb.from('users').update({active:!cur}).eq('id',id);vUsers();}
+async function resetPwd(email){const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});if(error)alert('Error: '+error.message);else toast('✅ Reset email sent to '+email);}
 
-// ── Settings ──────────────────────────────────────────────────────────────
-async function renderSettings(){
-  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
+// ── Settings ─────────────────────────────────────────────────────────────
+async function vSettings(){
+  if(CR!=='manager'){setMain('<div class="alert alert-e">Access denied.</div>');return;}
   const {data:s}=await sb.from('settings').select('*');
   const rate=(s||[]).find(x=>x.key==='firm_rate')?.value||'1000';
-  const fname=(s||[]).find(x=>x.key==='firm_name')?.value||'HVNS & Company';
-  document.getElementById('mainContent').innerHTML=`<div class="form-box">
-    <div style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Firm Settings</div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div><label class="lbl">Firm Hourly Rate (R)</label><input type="number" id="settingRate" class="inp" value="${rate}" min="0" step="50"/></div>
-      <div><label class="lbl">Firm Name</label><input type="text" id="settingFirmName" class="inp" value="${fname}"/></div>
-      <button onclick="saveSettings()" class="primary-btn">Save Settings</button>
-    </div>
-  </div>`;
+  const fn=(s||[]).find(x=>x.key==='firm_name')?.value||'HVNS & Company';
+  setMain('<div class="form-box"><div style="font-family:\'Trebuchet MS\',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">Firm Settings</div><div style="display:flex;flex-direction:column;gap:14px;"><div><label class="lbl">Firm Hourly Rate (R)</label><input type="number" id="sRate" class="inp" value="'+rate+'" min="0" step="50"/></div><div><label class="lbl">Firm Name</label><input type="text" id="sFirm" class="inp" value="'+fn+'"/></div><button onclick="saveSettings()" class="primary-btn">Save Settings</button></div></div>');
 }
-
 async function saveSettings(){
-  const rate=document.getElementById('settingRate')?.value;
-  const name=document.getElementById('settingFirmName')?.value;
-  if(rate)await sb.from('settings').upsert({key:'firm_rate',value:rate},{onConflict:'key'});
-  if(name)await sb.from('settings').upsert({key:'firm_name',value:name},{onConflict:'key'});
-  firmRate=parseFloat(rate)||1000;
-  showToast('✅ Settings saved.');
+  const r=document.getElementById('sRate')?.value;const n=document.getElementById('sFirm')?.value;
+  if(r)await sb.from('settings').upsert({key:'firm_rate',value:r},{onConflict:'key'});
+  if(n)await sb.from('settings').upsert({key:'firm_name',value:n},{onConflict:'key'});
+  FR=parseFloat(r)||1000;toast('✅ Settings saved.');
 }
 
 // ── Report ────────────────────────────────────────────────────────────────
-async function showReport(auditId){
-  if(currentRole==='staff')return;
-  const {data:audit}=await sb.from('audits').select('*').eq('id',auditId).single();
-  const {data:subs}=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id)').eq('sections.audit_id',auditId);
-  const rows=(subs||[]).map(s=>({section:s.sections?.name||'',subsection:s.name,assignee:s.assignee_email||'',due:s.due_date||'',step:s.step,progress:s.progress_pct||0,budget:parseFloat(s.budget_hours||0),actual:parseFloat(s.actual_hours||0),variance:(parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0)),fee:parseFloat(s.fee_value||0)}));
-  document.getElementById('reportTitle').textContent=`📊 ${audit?.name} — Detailed Report`;
-  const totalBudget=rows.reduce((a,r)=>a+r.budget,0);
-  const totalActual=rows.reduce((a,r)=>a+r.actual,0);
-  const totalFee=rows.reduce((a,r)=>a+r.fee,0);
-  document.getElementById('reportSubtitle').textContent=`${rows.length} items · Budget: ${fmtHrs(totalBudget)}h · Actual: ${fmtHrs(totalActual)}h · Fee: ${fmt(totalFee)}`;
-  document.getElementById('reportHead').innerHTML=`<tr>${['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance','Fee Value'].map(h=>`<th>${h}</th>`).join('')}</tr>`;
-  document.getElementById('reportBody').innerHTML=rows.map((r,i)=>{
-    const sc=STEP_COLORS[r.step];const over=r.variance<0;
-    return `<tr style="background:${over?'#fff5f5':i%2===0?'#fff':'#f8fafc'};">
-      <td style="font-weight:600;color:var(--navy);">${r.section}</td><td>${r.subsection}</td>
-      <td style="color:#6b7280;font-size:12px;">${r.assignee}</td><td style="font-size:12px;">${r.due||'—'}</td>
-      <td><span class="step-badge" style="color:${sc.color};background:${sc.bg};">${r.step}</span></td>
-      <td><div style="display:flex;align-items:center;gap:6px;">${miniBar(r.progress,6)}<b>${r.progress}%</b></div></td>
-      <td style="font-weight:600;">${fmtHrs(r.budget)}h</td>
-      <td style="font-weight:600;">${fmtHrs(r.actual)}h</td>
-      <td style="font-weight:700;color:${over?'#dc2626':'#16a34a'};">${r.variance>0?'+':''}${fmtHrs(r.variance)}h</td>
-      <td style="font-weight:600;color:#16a34a;">${fmt(r.fee)}</td>
-    </tr>`;
-  }).join('');
-  const headers=['Section','Subsection','Assignee','Due Date','Step','Progress %','Budget Hours','Actual Hours','Variance Hours','Fee Value (R)'];
-  const csvRows=[headers,...rows.map(r=>[r.section,r.subsection,r.assignee,r.due,r.step,r.progress,fmtHrs(r.budget),fmtHrs(r.actual),fmtHrs(r.variance),r.fee.toFixed(2)])];
-  document.getElementById('csvText').value=csvRows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  document.getElementById('reportModal').style.display='flex';
+async function showRpt(id){
+  if(CR==='staff')return;
+  const {data:a}=await sb.from('audits').select('*').eq('id',id).single();
+  const {data:ss}=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id)').eq('sections.audit_id',id);
+  const rows=(ss||[]).map(s=>({sec:s.sections?.name||'',sub:s.name,ass:s.assignee_email||'',due:s.due_date||'',step:s.step,prog:s.progress_pct||0,bud:parseFloat(s.budget_hours||0),act:parseFloat(s.actual_hours||0),var:parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0),fee:parseFloat(s.fee_value||0)}));
+  document.getElementById('rptTitle').textContent='📊 '+a?.name+' — Report';
+  const tb=rows.reduce((a,r)=>a+r.bud,0);const ta=rows.reduce((a,r)=>a+r.act,0);const tf=rows.reduce((a,r)=>a+r.fee,0);
+  document.getElementById('rptSub').textContent=rows.length+' items · Budget: '+H(tb)+'h · Actual: '+H(ta)+'h · Fee: '+R(tf);
+  document.getElementById('rptHead').innerHTML='<tr>'+['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance','Fee Value'].map(h=>'<th>'+h+'</th>').join('')+'</tr>';
+  document.getElementById('rptBody').innerHTML=rows.map((r,i)=>{const c=SC[r.step];const ov=r.var<0;return '<tr style="background:'+(ov?'#fff5f5':i%2===0?'#fff':'#f8fafc')+'"><td style="font-weight:600;color:var(--navy);">'+r.sec+'</td><td>'+r.sub+'</td><td style="color:#6b7280;font-size:12px;">'+r.ass+'</td><td style="font-size:12px;">'+(r.due||'—')+'</td><td><span class="step-badge" style="color:'+c.c+';background:'+c.b+'">'+r.step+'</span></td><td><div style="display:flex;align-items:center;gap:6px;">'+bar(r.prog,6)+'<b>'+r.prog+'%</b></div></td><td style="font-weight:600;">'+H(r.bud)+'h</td><td style="font-weight:600;">'+H(r.act)+'h</td><td style="font-weight:700;color:'+(ov?'#dc2626':'#16a34a')+'">'+(r.var>0?'+':'')+H(r.var)+'h</td><td style="font-weight:600;color:#16a34a;">'+R(r.fee)+'</td></tr>';}).join('');
+  const h=['Section','Subsection','Assignee','Due Date','Step','Progress %','Budget Hours','Actual Hours','Variance Hours','Fee Value (R)'];
+  document.getElementById('csvTxt').value=[h,...rows.map(r=>[r.sec,r.sub,r.ass,r.due,r.step,r.prog,H(r.bud),H(r.act),H(r.var),r.fee.toFixed(2)])].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  openModal('reportModal');
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────
-function toggleAudit(id){expandedAudit=expandedAudit===id?null:id;expandedSec=null;renderView();}
-function toggleSec(id){expandedSec=expandedSec===id?null:id;renderView();}
-function setFormStep(s){formStep=s;renderAdd();}
-
-function goToStep2(){
-  fAuditName=document.getElementById('fAuditName').value.trim();
-  fClientName=document.getElementById('fClientName').value.trim();
-  fDefDue=document.getElementById('fDefDue').value;
-  if(!fAuditName||!fDefDue){alert('Please fill in Audit Name and Due Date.');return;}
-  formStep=2;renderAdd();
+// ── Actions ──────────────────────────────────────────────────────────────
+function toggleA(id){EA=EA===id?null:id;ES=null;vDash();}
+function toggleS(id){ES=ES===id?null:id;vDash();}
+function setFStep(s){fStep=s;vAdd();}
+function goStep2(){fName=document.getElementById('faN').value.trim();fClient=document.getElementById('faCl').value.trim();fDue=document.getElementById('faDue').value;if(!fName||!fDue){alert('Please fill in Audit Name and Due Date.');return;}fStep=2;vAdd();}
+function togSec(n){fSel[n]=!fSel[n];vAdd();}
+function setSA(sec,v){fDet[sec].a=v;}function setSD(sec,v){fDet[sec].due=v;}
+function setSubA(sec,sub,v){if(!fDet[sec].subs[sub])fDet[sec].subs[sub]={};fDet[sec].subs[sub].a=v;}
+function setSubD(sec,sub,v){if(!fDet[sec].subs[sub])fDet[sec].subs[sub]={};fDet[sec].subs[sub].due=v;}
+function setSubB(sec,sub,v){if(!fDet[sec].subs[sub])fDet[sec].subs[sub]={};fDet[sec].subs[sub].b=v;}
+function distBudget(sn,total){
+  const h=parseFloat(total)||0;fDet[sn].sb=h;
+  const t=STPLS.find(x=>x.n===sn);
+  const all=[...(t?.s||[]),...(fExtra[sn]||[])];if(!all.length)return;
+  const per=(h/all.length).toFixed(2);
+  all.forEach(sub=>{if(!fDet[sn].subs[sub])fDet[sn].subs[sub]={a:'',due:'',b:''};fDet[sn].subs[sub].b=per;});
+  vAdd();
 }
-function toggleSection(name){formSel[name]=!formSel[name];renderAdd();}
-function setSecAssignee(sec,val){formSecDet[sec].assignee=val;}
-function setSecDue(sec,val){formSecDet[sec].due=val;}
-function setSubAssignee(sec,sub,val){if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={};formSecDet[sec].subsections[sub].assignee=val;}
-function setSubDue(sec,sub,val){if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={};formSecDet[sec].subsections[sub].due=val;}
-function setSubBudget(sec,sub,val){if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={};formSecDet[sec].subsections[sub].budget=val;}
-function distributeSectionBudget(secName,totalHrs){
-  const hrs=parseFloat(totalHrs)||0;
-  formSecDet[secName].sectionBudget=hrs;
-  const t=SECTION_TEMPLATES.find(x=>x.name===secName);
-  const allSubs=[...(t?.subs||[]),...(formExtraSubs[secName]||[])];
-  if(!allSubs.length)return;
-  const perSub=(hrs/allSubs.length).toFixed(2);
-  allSubs.forEach(sub=>{if(!formSecDet[secName].subsections[sub])formSecDet[secName].subsections[sub]={assignee:'',due:'',budget:''};formSecDet[secName].subsections[sub].budget=perSub;});
-  renderAdd();
-}
-function addExtraSub(secName){
-  const key=secName.replace(/\s+/g,'_');
-  const inp=document.getElementById('extraSubInp_'+key);
-  if(!inp||!inp.value.trim())return;
-  formExtraSubs[secName].push(inp.value.trim());
-  formSecDet[secName].subsections[inp.value.trim()]={assignee:'',due:'',budget:''};
-  renderAdd();
-}
-function removeExtraSub(secName,idx){formExtraSubs[secName].splice(idx,1);renderAdd();}
+function addExtra(sn){const k=sn.replace(/\s+/g,'_');const inp=document.getElementById('ei_'+k);if(!inp||!inp.value.trim())return;fExtra[sn].push(inp.value.trim());fDet[sn].subs[inp.value.trim()]={a:'',due:'',b:''};vAdd();}
+function rmExtra(sn,i){fExtra[sn].splice(i,1);vAdd();}
 
 async function createAudit(){
-  const btn=document.getElementById('createAuditBtn');
-  if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
-  const sections=SECTION_TEMPLATES.filter(t=>formSel[t.name]);
-  if(!sections.length){alert('Please select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
-  const {data:audit,error:ae}=await sb.from('audits').insert({name:fAuditName,client:fClientName||null,due_date:fDefDue||null,firm_rate:firmRate,created_by:currentUser.id}).select().single();
-  if(ae){alert('Error creating audit: '+ae.message);if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
-  let sortOrder=0;
-  for(const t of sections){
-    const d=formSecDet[t.name];
-    const {data:sec}=await sb.from('sections').insert({audit_id:audit.id,name:t.name,assignee_email:d.assignee||null,due_date:d.due||fDefDue||null,sort_order:sortOrder++}).select().single();
-    const allSubs=[...t.subs,...(formExtraSubs[t.name]||[])];
-    let subSort=0;
-    for(const sub of allSubs){
-      const sd=d.subsections[sub]||{};
-      await sb.from('subsections').insert({section_id:sec.id,name:sub,assignee_email:sd.assignee||d.assignee||null,due_date:sd.due||d.due||fDefDue||null,budget_hours:parseFloat(sd.budget)||0,sort_order:subSort++});
-    }
+  const btn=document.getElementById('createBtn');if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
+  const secs=STPLS.filter(t=>fSel[t.n]);
+  if(!secs.length){alert('Select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
+  const {data:aud,error:ae}=await sb.from('audits').insert({name:fName,client:fClient||null,due_date:fDue||null,firm_rate:FR,created_by:CU.id}).select().single();
+  if(ae){alert('Error: '+ae.message);if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
+  let so=0;
+  for(const t of secs){
+    const d=fDet[t.n];
+    const {data:sec}=await sb.from('sections').insert({audit_id:aud.id,name:t.n,assignee_email:d.a||null,due_date:d.due||fDue||null,sort_order:so++}).select().single();
+    const allS=[...t.s,...(fExtra[t.n]||[])];let ss=0;
+    for(const sub of allS){const sd=d.subs[sub]||{};await sb.from('subsections').insert({section_id:sec.id,name:sub,assignee_email:sd.a||d.a||null,due_date:sd.due||d.due||fDue||null,budget_hours:parseFloat(sd.b)||0,sort_order:ss++});}
   }
-  initForm();showView('dashboard');
+  initForm();goView('dashboard');
 }
 
-async function deleteAudit(id){if(!confirm('Delete this audit and all its data?'))return;await sb.from('audits').delete().eq('id',id);renderView();}
+async function delAudit(id){if(!confirm('Delete this audit?'))return;await sb.from('audits').delete().eq('id',id);EA=null;renderView();}
 
-function requestAdvance(subId,secId,subName,nextStep,budget,actual){
-  pendingAdvance={subId,secId,nextStep};
-  const remaining=parseFloat(budget)-parseFloat(actual);
-  document.getElementById('hoursModalText').innerHTML=`Moving <b>${subName}</b> to <b>${nextStep}</b>.<br/>How many hours did you spend on this step?${parseFloat(budget)>0?`<br/><span style="color:#6b7280;font-size:11px;">Budget remaining: ${fmtHrs(remaining)}h</span>`:''}`;
-  document.getElementById('hoursInput').value='';
-  document.getElementById('hoursNote').value='';
-  document.getElementById('budgetWarning').style.display='none';
-  document.getElementById('hoursModal').style.display='flex';
+function reqAdv(sid,name,next,bud,act){
+  pendAdv={sid,next};
+  const rem=parseFloat(bud)-parseFloat(act);
+  document.getElementById('hoursTxt').innerHTML='Moving <b>'+name+'</b> to <b>'+next+'</b>.<br/>Hours spent on this step?'+(parseFloat(bud)>0?'<br/><span style="color:#6b7280;font-size:11px;">Budget remaining: '+H(rem)+'h</span>':'');
+  document.getElementById('hrsInput').value='';document.getElementById('hrsNote').value='';
+  openModal('hoursModal');
 }
-
-async function confirmAdvance(skip){
-  const hrs=skip===0?0:parseFloat(document.getElementById('hoursInput').value)||0;
-  const note=document.getElementById('hoursNote')?.value||'';
-  const {subId,secId,nextStep}=pendingAdvance;
-  await sb.from('subsections').update({step:nextStep}).eq('id',subId);
-  if(hrs>0)await sb.from('step_logs').insert({subsection_id:subId,step:nextStep,hours:hrs,logged_by:currentUser.id,logged_by_email:currentUser.email,note:note||null});
+async function confirmAdv(skip){
+  const hrs=skip===0?0:parseFloat(document.getElementById('hrsInput').value)||0;
+  const note=document.getElementById('hrsNote').value||'';
+  const{sid,next}=pendAdv;
+  await sb.from('subsections').update({step:next}).eq('id',sid);
+  if(hrs>0)await sb.from('step_logs').insert({subsection_id:sid,step:next,hours:hrs,logged_by:CU.id,logged_by_email:CU.email,note:note||null});
   closeModal('hoursModal');renderView();
 }
-
-async function regressStep(subId){
-  const {data:sub}=await sb.from('subsections').select('step').eq('id',subId).single();
-  const idx=STEPS.indexOf(sub.step);
-  if(idx<=0)return;
-  await sb.from('subsections').update({step:STEPS[idx-1]}).eq('id',subId);
-  renderView();
+async function regressStep(sid){
+  const {data:s}=await sb.from('subsections').select('step').eq('id',sid).single();
+  const i=STEPS.indexOf(s.step);if(i<=0)return;
+  await sb.from('subsections').update({step:STEPS[i-1]}).eq('id',sid);renderView();
 }
 
-function openReassign(subId,current){
-  pendingReassign={subId};
-  const sel=document.getElementById('reassignSelect');
-  sel.innerHTML=allUsers.map(u=>`<option value="${u.email}" ${u.email===current?'selected':''}>${u.full_name} (${u.email})</option>`).join('');
-  document.getElementById('reassignModal').style.display='flex';
-}
-async function doReassign(){
-  const val=document.getElementById('reassignSelect').value;if(!val)return;
-  await sb.from('subsections').update({assignee_email:val}).eq('id',pendingReassign.subId);
-  closeModal('reassignModal');renderView();
-}
+function openRsn(sid,cur){pendRsn={sid};document.getElementById('reassignSel').innerHTML=staffOpts(cur);openModal('reassignModal');}
+async function doReassign(){const v=document.getElementById('reassignSel').value;if(!v)return;await sb.from('subsections').update({assignee_email:v}).eq('id',pendRsn.sid);closeModal('reassignModal');renderView();}
 
-function openAddSub(auditId,secId){
-  pendingAddSub={auditId,secId};
-  document.getElementById('addSubName').value='';
-  document.getElementById('addSubDue').value='';
-  document.getElementById('addSubBudget').value='';
-  document.getElementById('addSubAssignee').innerHTML=`<option value="">Inherit from section</option>`+allUsers.map(u=>`<option value="${u.email}">${u.full_name}</option>`).join('');
-  document.getElementById('addSubModal').style.display='flex';
-}
+function openAsn(aid,sid){pendAsn={aid,sid};document.getElementById('asnName').value='';document.getElementById('asnDue').value='';document.getElementById('asnBudget').value='';document.getElementById('asnAssignee').innerHTML='<option value="">Inherit</option>'+staffOpts();openModal('addSubModal');}
 async function confirmAddSub(){
-  const name=document.getElementById('addSubName').value.trim();if(!name)return;
-  const assignee=document.getElementById('addSubAssignee').value;
-  const due=document.getElementById('addSubDue').value;
-  const budget=parseFloat(document.getElementById('addSubBudget').value)||0;
-  const {data:sec}=await sb.from('sections').select('assignee_email,due_date').eq('id',pendingAddSub.secId).single();
-  await sb.from('subsections').insert({section_id:pendingAddSub.secId,name,assignee_email:assignee||sec?.assignee_email||null,due_date:due||sec?.due_date||null,budget_hours:budget});
+  const n=document.getElementById('asnName').value.trim();if(!n)return;
+  const a=document.getElementById('asnAssignee').value;const d=document.getElementById('asnDue').value;const b=parseFloat(document.getElementById('asnBudget').value)||0;
+  const {data:sec}=await sb.from('sections').select('assignee_email,due_date').eq('id',pendAsn.sid).single();
+  await sb.from('subsections').insert({section_id:pendAsn.sid,name:n,assignee_email:a||sec?.assignee_email||null,due_date:d||sec?.due_date||null,budget_hours:b});
   closeModal('addSubModal');renderView();
 }
-async function deleteSub(subId){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',subId);renderView();}
+async function delSub(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderView();}
+async function updBudget(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
 
-function showTeams(auditName,secName,subName,step,due,hours){
-  const msg=`📋 Audit Update — HVNS & Company\nAudit: ${auditName}\nSection: ${secName} — ${subName}\nCurrent Step: ${step}${due?'\nDue: '+due:''}\nHours Logged: ${hours}h\n\nPlease update your progress in the Audit Tracker.`;
-  document.getElementById('teamsModalText').value=msg;
-  document.getElementById('teamsModal').style.display='flex';
+async function saveAudDet(id){
+  const n=document.getElementById('eaN').value.trim();const cl=document.getElementById('eaCl').value.trim();const d=document.getElementById('eaDue').value;
+  if(!n){alert('Audit name cannot be empty.');return;}
+  await sb.from('audits').update({name:n,client:cl||null,due_date:d||null}).eq('id',id);toast('✅ Audit details saved.');
 }
-
-async function updateBudgetHours(subId,value){
-  const hrs=parseFloat(value)||0;
-  await sb.from('subsections').update({budget_hours:hrs}).eq('id',subId);
-  showToast('Budget hours updated.');
-}
-
-function showChangePassword(){
-  document.getElementById('newPassword').value='';
-  document.getElementById('confirmPassword').value='';
-  document.getElementById('changePasswordStatus').style.display='none';
-  document.getElementById('changePasswordModal').style.display='flex';
-}
-async function doChangePassword(){
-  const pwd=document.getElementById('newPassword').value;
-  const confirm=document.getElementById('confirmPassword').value;
-  const status=document.getElementById('changePasswordStatus');
-  if(!pwd||pwd.length<6){status.className='alert alert-error';status.textContent='Password must be at least 6 characters.';status.style.display='block';return;}
-  if(pwd!==confirm){status.className='alert alert-error';status.textContent='Passwords do not match.';status.style.display='block';return;}
-  const {error}=await sb.auth.updateUser({password:pwd});
-  if(error){status.className='alert alert-error';status.textContent=error.message;}
-  else{status.className='alert alert-success';status.textContent='✅ Password updated successfully!';setTimeout(()=>closeModal('changePasswordModal'),1500);}
-  status.style.display='block';
+async function updSecA(id,v){await sb.from('sections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
+async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
+async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
+async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
+async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function delSubE(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);vEdit();}
+async function addSubE(sid,inA,inD){
+  const n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a subsection name.');return;}
+  const a=document.getElementById('na_'+sid).value||inA||null;const d=document.getElementById('nd_'+sid).value||inD||null;const b=parseFloat(document.getElementById('nb_'+sid).value)||0;
+  await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999});
+  toast('✅ Subsection added.');vEdit();
 }
 
-function showForgotPassword(){
-  document.getElementById('forgotEmail').value='';
-  document.getElementById('forgotStatus').style.display='none';
-  document.getElementById('forgotModal').style.display='flex';
-}
-async function doForgotPassword(){
-  const email=document.getElementById('forgotEmail').value.trim();
-  const status=document.getElementById('forgotStatus');
-  if(!email){status.className='alert alert-error';status.textContent='Please enter your email address.';status.style.display='block';return;}
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
-  if(error){status.className='alert alert-error';status.textContent=error.message;}
-  else{status.className='alert alert-success';status.textContent='✅ Reset link sent! Check your inbox.';}
-  status.style.display='block';
+function showTeams(an,sn,sub,step,due,hrs){
+  document.getElementById('teamsTxt').value='📋 Audit Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nCurrent Step: '+step+(due?'\nDue: '+due:'')+'\nHours Logged: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';
+  openModal('teamsModal');
 }
 
-function downloadCSVTemplate(){
-  const csv=`Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3`;
+// ── Password / Auth modals ────────────────────────────────────────────────
+function openChangePwd(){document.getElementById('pwd1').value='';document.getElementById('pwd2').value='';document.getElementById('pwdStatus').style.display='none';openModal('changePwdModal');}
+async function doChangePwd(){
+  const p1=document.getElementById('pwd1').value;const p2=document.getElementById('pwd2').value;
+  const st=document.getElementById('pwdStatus');
+  if(!p1||p1.length<6){st.className='alert alert-e';st.textContent='Min 6 characters.';st.style.display='block';return;}
+  if(p1!==p2){st.className='alert alert-e';st.textContent='Passwords do not match.';st.style.display='block';return;}
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){st.className='alert alert-e';st.textContent=error.message;}else{st.className='alert alert-s';st.textContent='✅ Password updated!';setTimeout(()=>closeModal('changePwdModal'),1500);}
+  st.style.display='block';
+}
+async function doForgot(){
+  const e=document.getElementById('fgtEmail').value.trim();const st=document.getElementById('fgtStatus');
+  if(!e){st.className='alert alert-e';st.textContent='Enter your email.';st.style.display='block';return;}
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
+  st.className=error?'alert alert-e':'alert alert-s';st.textContent=error?error.message:'✅ Reset link sent! Check your inbox.';st.style.display='block';
+}
+
+// ── CSV import ────────────────────────────────────────────────────────────
+function dlTemplate(){
+  const csv='Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3';
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-function handleCSVImport(e){
-  const file=e.target.files[0]; if(!file) return;
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(ev){
     try{
       const lines=ev.target.result.split('\n').filter(l=>l.trim());
-      if(lines.length<2){alert('CSV appears to be empty.');return;}
+      if(lines.length<2){alert('CSV is empty.');return;}
       const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z_]/g,''));
-      const secIdx=headers.indexOf('section');
-      const subIdx=headers.indexOf('subsection');
-      const assIdx=headers.findIndex(h=>h.includes('assignee'));
-      const budIdx=headers.findIndex(h=>h.includes('budget'));
-      if(secIdx<0||subIdx<0){alert('CSV must have Section and Subsection columns.');return;}
-
-      // Reset all sections to unticked first
-      SECTION_TEMPLATES.forEach(t=>{
-        formSel[t.name]=false;
-        formExtraSubs[t.name]=[];
-        formSecDet[t.name]={assignee:'',due:'',sectionBudget:'',subsections:{}};
-        t.subs.forEach(s=>{formSecDet[t.name].subsections[s]={assignee:'',due:'',budget:''};});
+      const si=headers.indexOf('section');const sbi=headers.indexOf('subsection');
+      const ai=headers.findIndex(h=>h.includes('assignee'));const bi=headers.findIndex(h=>h.includes('budget'));
+      if(si<0||sbi<0){alert('CSV must have Section and Subsection columns.');return;}
+      // Reset
+      STPLS.forEach(t=>{fSel[t.n]=false;fExtra[t.n]=[];fDet[t.n]={a:'',due:'',sb:'',subs:{}};t.s.forEach(s=>{fDet[t.n].subs[s]={a:'',due:'',b:''};});});
+      // Parse rows
+      const rows=lines.slice(1).map(l=>{const v=[];let cur='';let inQ=false;for(let i=0;i<l.length;i++){if(l[i]==='"')inQ=!inQ;else if(l[i]===','&&!inQ){v.push(cur.trim());cur='';}else cur+=l[i];}v.push(cur.trim());return v;});
+      let cnt=0;
+      rows.forEach(v=>{
+        const sec=(v[si]||'').trim();const sub=(v[sbi]||'').trim();
+        const ass=ai>=0?(v[ai]||'').trim():'';const bud=bi>=0?parseFloat(v[bi])||0:0;
+        if(!sec||!sub)return;
+        const t=STPLS.find(x=>x.n.toLowerCase()===sec.toLowerCase()||x.n.toLowerCase().includes(sec.toLowerCase())||sec.toLowerCase().includes(x.n.toLowerCase()));
+        if(!t)return;
+        fSel[t.n]=true;if(ass&&!fDet[t.n].a)fDet[t.n].a=ass;
+        const defSub=t.s.find(s=>s.toLowerCase()===sub.toLowerCase());
+        const key=defSub||sub;
+        if(!defSub&&!fExtra[t.n].includes(sub))fExtra[t.n].push(sub);
+        fDet[t.n].subs[key]={a:ass,due:'',b:bud.toString()};cnt++;
       });
-
-      let importedRows=0;
-      const rows=lines.slice(1).map(l=>{
-        // Handle quoted CSV values
-        const vals=[]; let cur=''; let inQ=false;
-        for(let i=0;i<l.length;i++){
-          if(l[i]==='"'){inQ=!inQ;}
-          else if(l[i]===','&&!inQ){vals.push(cur.trim());cur='';}
-          else cur+=l[i];
-        }
-        vals.push(cur.trim());
-        return vals;
-      });
-
-      rows.forEach(vals=>{
-        const secName=(vals[secIdx]||'').trim();
-        const subName=(vals[subIdx]||'').trim();
-        const assignee=assIdx>=0?(vals[assIdx]||'').trim():'';
-        const budget=budIdx>=0?parseFloat(vals[budIdx])||0:0;
-        if(!secName||!subName)return;
-
-        // Find matching template section (case-insensitive partial match)
-        const t=SECTION_TEMPLATES.find(x=>
-          x.name.toLowerCase()===secName.toLowerCase()||
-          x.name.toLowerCase().includes(secName.toLowerCase())||
-          secName.toLowerCase().includes(x.name.toLowerCase())
-        );
-
-        if(t){
-          // Enable this section
-          formSel[t.name]=true;
-          // Set section-level assignee if not set yet
-          if(assignee&&!formSecDet[t.name].assignee) formSecDet[t.name].assignee=assignee;
-
-          // Check if subsection is a default one
-          const isDefault=t.subs.some(s=>s.toLowerCase()===subName.toLowerCase());
-          if(isDefault){
-            const matchedSub=t.subs.find(s=>s.toLowerCase()===subName.toLowerCase());
-            formSecDet[t.name].subsections[matchedSub]={assignee,due:'',budget:budget.toString()};
-          } else {
-            // It's a custom subsection
-            if(!formExtraSubs[t.name].includes(subName)){
-              formExtraSubs[t.name].push(subName);
-            }
-            formSecDet[t.name].subsections[subName]={assignee,due:'',budget:budget.toString()};
-          }
-          importedRows++;
-        } else {
-          // Section not in templates — skip with warning
-          console.warn(`Section "${secName}" not found in templates, skipping.`);
-        }
-      });
-
-      // Validate assignees against registered users
-      const registeredEmails=new Set(allUsers.map(u=>u.email.toLowerCase()));
-      const unregistered=new Set();
-      SECTION_TEMPLATES.forEach(t=>{
-        if(!formSel[t.name])return;
-        const allSubs=[...t.subs,...(formExtraSubs[t.name]||[])];
-        allSubs.forEach(sub=>{
-          const a=(formSecDet[t.name].subsections[sub]?.assignee||'').toLowerCase();
-          if(a&&!registeredEmails.has(a)) unregistered.add(a);
-        });
-        const sa=(formSecDet[t.name].assignee||'').toLowerCase();
-        if(sa&&!registeredEmails.has(sa)) unregistered.add(sa);
-      });
-
-      let statusMsg=`✅ ${importedRows} rows imported from CSV.`;
-      if(unregistered.size>0){
-        statusMsg+=` ⚠️ ${unregistered.size} assignee${unregistered.size>1?'s':''} not yet registered as users: <b>${[...unregistered].join(', ')}</b>. Their sections will still be saved — they'll automatically link when you create their user accounts.`;
-      } else {
-        statusMsg+=` All assignees are registered users ✅`;
-      }
-      document.getElementById('csvImportStatus').innerHTML=statusMsg;
+      // Validate unregistered
+      const reg=new Set(AU.map(u=>u.email.toLowerCase()));const unreg=new Set();
+      STPLS.forEach(t=>{if(!fSel[t.n])return;Object.values(fDet[t.n].subs).forEach(s=>{if(s.a&&!reg.has(s.a.toLowerCase()))unreg.add(s.a);});if(fDet[t.n].a&&!reg.has(fDet[t.n].a.toLowerCase()))unreg.add(fDet[t.n].a);});
+      let msg='✅ '+cnt+' rows imported.';
+      if(unreg.size>0)msg+=' ⚠️ <b>'+unreg.size+' unregistered assignee'+(unreg.size>1?'s':'')+': '+[...unreg].join(', ')+'</b> — will link automatically when their accounts are created.';
+      else msg+=' All assignees are registered ✅';
+      document.getElementById('csvStatus').innerHTML=msg;
       e.target.value='';
-
-      // Auto-advance to step 2 so they can see the result
-      const auditNameEl=document.getElementById('fAuditName');
-      const defDueEl=document.getElementById('fDefDue');
-      fAuditName=auditNameEl?.value.trim()||fAuditName;
-      fClientName=document.getElementById('fClientName')?.value.trim()||fClientName;
-      fDefDue=defDueEl?.value||fDefDue;
-      if(!fAuditName||!fDefDue){
-        document.getElementById('csvImportStatus').textContent=`✅ ${importedRows} rows imported. Fill in Audit Name and Due Date, then click Next.`;
-        return;
-      }
-      formStep=2; renderAdd();
-    } catch(err){
-      alert('Error reading CSV: '+err.message);
-      console.error(err);
-    }
+      fName=document.getElementById('faN')?.value.trim()||fName;
+      fClient=document.getElementById('faCl')?.value.trim()||fClient;
+      fDue=document.getElementById('faDue')?.value||fDue;
+      if(fName&&fDue){fStep=2;vAdd();}
+    }catch(err){alert('Error reading CSV: '+err.message);console.error(err);}
   };
   reader.readAsText(file);
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────────────
 (async()=>{
   const hash=window.location.hash;
   if(hash&&hash.includes('access_token')){await sb.auth.signOut();window.location.hash='';return;}
