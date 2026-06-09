@@ -177,7 +177,10 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
       <button class="login-btn" onclick="doLogin()">Sign In</button>
       <div id="loginError" class="login-error" style="display:none;"></div>
     </div>
-    <div class="orange-line" style="margin-top:24px;"></div>
+    <div style="text-align:center;margin-top:14px;">
+      <span onclick="showForgotPassword()" style="font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
+    </div>
+    <div class="orange-line" style="margin-top:16px;"></div>
     <div style="font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">Access restricted to authorised HVNS personnel</div>
   </div>
 </div>
@@ -391,8 +394,17 @@ function showLoginError(msg){ const e=document.getElementById('loginError'); e.t
 async function doLogout(){ await sb.auth.signOut(); document.getElementById('appShell').style.display='none'; document.getElementById('loginScreen').style.display='flex'; }
 
 async function initApp(user){
-  const {data:profile} = await sb.from('users').select('*').eq('id',user.id).single();
-  if(!profile||!profile.active){ showLoginError('Your account is not active. Contact your manager.'); await sb.auth.signOut(); return; }
+  const {data:profile, error:profileError} = await sb.from('users').select('*').eq('id',user.id).single();
+  if(profileError||!profile){ 
+    showLoginError('Profile not found. Please try logging in again.');
+    await sb.auth.signOut(); 
+    return; 
+  }
+  if(!profile.active){ 
+    showLoginError('Your account is not active. Contact your manager.'); 
+    await sb.auth.signOut(); 
+    return; 
+  }
   currentUser = profile;
   currentRole = profile.role;
   document.getElementById('loginScreen').style.display='none';
@@ -1041,6 +1053,13 @@ function handleCSVImport(e){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (async()=>{
+  // Clear any stale magic link sessions
+  const hash = window.location.hash;
+  if(hash && hash.includes('access_token')){
+    await sb.auth.signOut();
+    window.location.hash = '';
+    return;
+  }
   const {data:{session}}=await sb.auth.getSession();
   if(session) await initApp(session.user);
 })();
