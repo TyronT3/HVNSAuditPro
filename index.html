@@ -1360,21 +1360,117 @@ function downloadCSVTemplate(){
 }
 
 function handleCSVImport(e){
-  const file=e.target.files[0];if(!file)return;
+  const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=function(ev){
-    const lines=ev.target.result.split('\n').filter(l=>l.trim());
-    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
-    const rows=lines.slice(1).map(l=>{const vals=l.split(',');return Object.fromEntries(headers.map((h,i)=>[h,vals[i]?.trim()||'']));});
-    rows.forEach(r=>{
-      const secName=r['section']||r['section_name'];const subName=r['subsection']||r['subsection_name'];
-      const assignee=r['assignee_email']||r['assignee']||'';const budget=parseFloat(r['budget_hours']||r['budget'])||0;
-      if(!secName||!subName)return;
-      const t=SECTION_TEMPLATES.find(x=>x.name.toLowerCase()===secName.toLowerCase());
-      if(t){formSel[t.name]=true;if(!formSecDet[t.name].subsections[subName])formSecDet[t.name].subsections[subName]={assignee:'',due:'',budget:''};formSecDet[t.name].subsections[subName].assignee=assignee;formSecDet[t.name].subsections[subName].budget=budget;if(assignee)formSecDet[t.name].assignee=assignee;}
-    });
-    document.getElementById('csvImportStatus').textContent=`✅ ${rows.length} rows imported. Review sections below.`;
-    e.target.value='';
+    try{
+      const lines=ev.target.result.split('\n').filter(l=>l.trim());
+      if(lines.length<2){alert('CSV appears to be empty.');return;}
+      const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z_]/g,''));
+      const secIdx=headers.indexOf('section');
+      const subIdx=headers.indexOf('subsection');
+      const assIdx=headers.findIndex(h=>h.includes('assignee'));
+      const budIdx=headers.findIndex(h=>h.includes('budget'));
+      if(secIdx<0||subIdx<0){alert('CSV must have Section and Subsection columns.');return;}
+
+      // Reset all sections to unticked first
+      SECTION_TEMPLATES.forEach(t=>{
+        formSel[t.name]=false;
+        formExtraSubs[t.name]=[];
+        formSecDet[t.name]={assignee:'',due:'',sectionBudget:'',subsections:{}};
+        t.subs.forEach(s=>{formSecDet[t.name].subsections[s]={assignee:'',due:'',budget:''};});
+      });
+
+      let importedRows=0;
+      const rows=lines.slice(1).map(l=>{
+        // Handle quoted CSV values
+        const vals=[]; let cur=''; let inQ=false;
+        for(let i=0;i<l.length;i++){
+          if(l[i]==='"'){inQ=!inQ;}
+          else if(l[i]===','&&!inQ){vals.push(cur.trim());cur='';}
+          else cur+=l[i];
+        }
+        vals.push(cur.trim());
+        return vals;
+      });
+
+      rows.forEach(vals=>{
+        const secName=(vals[secIdx]||'').trim();
+        const subName=(vals[subIdx]||'').trim();
+        const assignee=assIdx>=0?(vals[assIdx]||'').trim():'';
+        const budget=budIdx>=0?parseFloat(vals[budIdx])||0:0;
+        if(!secName||!subName)return;
+
+        // Find matching template section (case-insensitive partial match)
+        const t=SECTION_TEMPLATES.find(x=>
+          x.name.toLowerCase()===secName.toLowerCase()||
+          x.name.toLowerCase().includes(secName.toLowerCase())||
+          secName.toLowerCase().includes(x.name.toLowerCase())
+        );
+
+        if(t){
+          // Enable this section
+          formSel[t.name]=true;
+          // Set section-level assignee if not set yet
+          if(assignee&&!formSecDet[t.name].assignee) formSecDet[t.name].assignee=assignee;
+
+          // Check if subsection is a default one
+          const isDefault=t.subs.some(s=>s.toLowerCase()===subName.toLowerCase());
+          if(isDefault){
+            const matchedSub=t.subs.find(s=>s.toLowerCase()===subName.toLowerCase());
+            formSecDet[t.name].subsections[matchedSub]={assignee,due:'',budget:budget.toString()};
+          } else {
+            // It's a custom subsection
+            if(!formExtraSubs[t.name].includes(subName)){
+              formExtraSubs[t.name].push(subName);
+            }
+            formSecDet[t.name].subsections[subName]={assignee,due:'',budget:budget.toString()};
+          }
+          importedRows++;
+        } else {
+          // Section not in templates — skip with warning
+          console.warn(`Section "${secName}" not found in templates, skipping.`);
+        }
+      });
+
+      // Validate assignees against registered users
+      const registeredEmails=new Set(allUsers.map(u=>u.email.toLowerCase()));
+      const unregistered=new Set();
+      SECTION_TEMPLATES.forEach(t=>{
+        if(!formSel[t.name])return;
+        const allSubs=[...t.subs,...(formExtraSubs[t.name]||[])];
+        allSubs.forEach(sub=>{
+          const a=(formSecDet[t.name].subsections[sub]?.assignee||'').toLowerCase();
+          if(a&&!registeredEmails.has(a)) unregistered.add(a);
+        });
+        const sa=(formSecDet[t.name].assignee||'').toLowerCase();
+        if(sa&&!registeredEmails.has(sa)) unregistered.add(sa);
+      });
+
+      let statusMsg=`✅ ${importedRows} rows imported from CSV.`;
+      if(unregistered.size>0){
+        statusMsg+=` ⚠️ ${unregistered.size} assignee${unregistered.size>1?'s':''} not yet registered as users: <b>${[...unregistered].join(', ')}</b>. Their sections will still be saved — they'll automatically link when you create their user accounts.`;
+      } else {
+        statusMsg+=` All assignees are registered users ✅`;
+      }
+      document.getElementById('csvImportStatus').innerHTML=statusMsg;
+      e.target.value='';
+
+      // Auto-advance to step 2 so they can see the result
+      const auditNameEl=document.getElementById('fAuditName');
+      const defDueEl=document.getElementById('fDefDue');
+      fAuditName=auditNameEl?.value.trim()||fAuditName;
+      fClientName=document.getElementById('fClientName')?.value.trim()||fClientName;
+      fDefDue=defDueEl?.value||fDefDue;
+      if(!fAuditName||!fDefDue){
+        document.getElementById('csvImportStatus').textContent=`✅ ${importedRows} rows imported. Fill in Audit Name and Due Date, then click Next.`;
+        return;
+      }
+      formStep=2; renderAdd();
+    } catch(err){
+      alert('Error reading CSV: '+err.message);
+      console.error(err);
+    }
   };
   reader.readAsText(file);
 }
