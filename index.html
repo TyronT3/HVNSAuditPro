@@ -453,6 +453,11 @@ async function renderView(){
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function fmt(n){ return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtHrs(n){ 
+  const v=parseFloat(n||0);
+  // Show up to 2 decimal places but strip trailing zeros — 8.25 stays 8.25, 8.00 shows 8, 8.50 shows 8.5
+  return v % 1 === 0 ? v.toFixed(0) : (v*4===Math.round(v*4) ? v.toFixed(2).replace(/\.?0+$/,'') : v.toFixed(2));
+}
 function daysUntil(d){ if(!d)return 9999; const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000); }
 function subStatusFlag(due,step){
   if(step==='Done') return '';
@@ -500,9 +505,9 @@ async function renderDashboard(){
 
   if(currentRole==='manager'){
     html+=`<div class="stats" style="grid-template-columns:repeat(3,1fr);">
-      <div class="stat"><div class="stat-val">${totalBudget.toFixed(1)}h</div><div class="stat-lbl">⏱ Budget Hours</div></div>
-      <div class="stat"><div class="stat-val">${totalActual.toFixed(1)}h</div><div class="stat-lbl">⏱ Actual Hours</div></div>
-      <div class="stat" style="border-left-color:${totalActual>totalBudget?'#dc2626':'#16a34a'};"><div class="stat-val" style="color:${totalActual>totalBudget?'#dc2626':'#16a34a'};">${(totalBudget-totalActual).toFixed(1)}h</div><div class="stat-lbl">📊 Hours Remaining</div></div>
+      <div class="stat"><div class="stat-val">${fmtHrs(totalBudget)}h</div><div class="stat-lbl">⏱ Budget Hours</div></div>
+      <div class="stat"><div class="stat-val">${fmtHrs(totalActual)}h</div><div class="stat-lbl">⏱ Actual Hours</div></div>
+      <div class="stat" style="border-left-color:${totalActual>totalBudget?'#dc2626':'#16a34a'};"><div class="stat-val" style="color:${totalActual>totalBudget?'#dc2626':'#16a34a'};">${fmtHrs(totalBudget-totalActual)}h</div><div class="stat-lbl">📊 Hours Remaining</div></div>
     </div>`;
   }
 
@@ -520,7 +525,7 @@ async function renderDashboard(){
             <span style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:16px;color:var(--navy);">${a.name}</span>
             ${a.client?`<span class="badge" style="color:#6b7280;background:#f3f4f6;">🏢 ${a.client}</span>`:''}
             ${dueBadge(a.due_date)}
-            <span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ ${parseFloat(a.actual_hours||0).toFixed(1)}h / ${parseFloat(a.budget_hours||0).toFixed(1)}h budget</span>
+            <span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ ${fmtHrs(a.actual_hours)}h / ${fmtHrs(a.budget_hours)}h budget</span>
             ${currentRole!=='staff'?`<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 ${fmt(a.fee_value)}</span>`:''}
           </div>
           <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
@@ -544,7 +549,7 @@ async function renderDashboard(){
             <span style="font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:700;color:var(--navy);min-width:180px;">${sec.name}</span>
             <span style="font-size:12px;color:#9ca3af;">👤 ${sec.assignee_email||'—'}</span>
             ${dueBadge(sec.due_date)}
-            <span style="font-size:12px;color:#7c3aed;">⏱ ${parseFloat(sec.actual_hours||0).toFixed(1)}h / ${parseFloat(sec.budget_hours||0).toFixed(1)}h</span>
+            <span style="font-size:12px;color:#7c3aed;">⏱ ${fmtHrs(sec.actual_hours)}h / ${fmtHrs(sec.budget_hours)}h</span>
             <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:100px;">${miniBar(sec.progress_pct||0,6)}<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:34px;">${sec.progress_pct||0}%</span></div>
             ${currentRole==='manager'?`<button onclick="event.stopPropagation();openAddSub('${a.id}','${sec.id}')" style="padding:4px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+ Sub</button>`:''}
             <span style="font-size:14px;color:#9ca3af;">${secOpen?'▲':'▼'}</span>
@@ -706,7 +711,7 @@ async function renderUpdate(){
             <div style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;color:var(--navy);">${sub.name}</div>
             <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">
               ${dueBadge(sub.due_date)}${subStatusFlag(sub.due_date,sub.step)}
-              <span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ ${parseFloat(sub.actual_hours||0).toFixed(1)} / ${parseFloat(sub.budget_hours||0).toFixed(1)}h budget</span>
+              <span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ ${fmtHrs(sub.actual_hours)}h / ${fmtHrs(sub.budget_hours)}h budget</span>
               ${overBudget?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':''}
             </div>
           </div>
@@ -760,8 +765,8 @@ async function renderTimesheet(){
       html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>`;
       (entries||[]).forEach(e=>{
         const v=parseFloat(e.variance||0);
-        html+=`<tr><td>${e.week_ending}</td><td>${e.subsections?.name||'—'}</td><td>${parseFloat(e.firm_system_hours||0).toFixed(1)}h</td><td>${parseFloat(e.app_hours||0).toFixed(1)}h</td>
-          <td style="color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};font-weight:600;">${v>0?'+':''}${v.toFixed(1)}h</td>
+        html+=`<tr><td>${e.week_ending}</td><td>${e.subsections?.name||'—'}</td>      <td>${fmtHrs(e.firm_system_hours)}h</td><td>${fmtHrs(e.app_hours)}h</td>
+        <td style="color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};font-weight:600;">${v>0?'+':''}${fmtHrs(v)}h</td>
           <td style="font-size:12px;">${e.explanation||'—'}</td>
           <td><span class="badge" style="color:${e.status==='pending'?'#d97706':'#16a34a'};background:${e.status==='pending'?'#fffbeb':'#f0fdf4'};">${e.status}</span></td>
         </tr>`;
@@ -805,13 +810,27 @@ async function submitTimesheet(){
   const weekEnd=document.getElementById('tsWeekEnding').value;
   const firmHrs=parseFloat(document.getElementById('tsFirmHours').value)||0;
   const appHrs=parseFloat(document.getElementById('tsAppHours').value)||0;
-  const v=firmHrs-appHrs;
-  if(Math.abs(v)>0.01){
+  const variance=Math.abs(firmHrs-appHrs);
+  const hasVariance=variance>0.01;
+
+  if(hasVariance){
     const exp=document.getElementById('tsExplanation').value.trim();
-    if(!exp){ alert('Please provide an explanation for the variance.'); return; }
+    if(!exp){ alert('Please provide an explanation for the variance before submitting.'); return; }
   }
+
   const exp=document.getElementById('tsExplanation').value.trim();
-  await sb.from('timesheet_entries').insert({subsection_id:subId,week_ending:weekEnd,firm_system_hours:firmHrs,app_hours:appHrs,explanation:exp||null,submitted_by:currentUser.id,submitted_by_email:currentUser.email,status:'pending'});
+  const status=hasVariance?'pending':'reviewed';
+
+  await sb.from('timesheet_entries').insert({
+    subsection_id:subId,
+    week_ending:weekEnd,
+    firm_system_hours:firmHrs,
+    app_hours:appHrs,
+    explanation:exp||null,
+    submitted_by:currentUser.id,
+    submitted_by_email:currentUser.email,
+    status
+  });
   closeModal('timesheetModal');
   showView('timesheet');
 }
@@ -901,6 +920,12 @@ async function resetUserPassword(email){
   else alert(`✅ Password reset email sent to ${email}`);
 }
 
+async function updateBudgetHours(subId, value){
+  const hrs = parseFloat(value)||0;
+  const {error} = await sb.from('subsections').update({budget_hours:hrs}).eq('id',subId);
+  if(error) alert('Error updating budget hours: '+error.message);
+}
+
 async function updateRole(userId,role){ await sb.from('users').update({role}).eq('id',userId); }
 async function toggleActive(userId,current){ await sb.from('users').update({active:!current}).eq('id',userId); renderUsers(); }
 
@@ -942,10 +967,10 @@ async function showReport(auditId){
     fee:parseFloat(s.fee_value||0).toFixed(2),budgetFee:parseFloat(s.budget_fee||0).toFixed(2)
   }));
   document.getElementById('reportTitle').textContent=`📊 ${audit?.name} — Detailed Report`;
-  const totalBudget=rows.reduce((a,r)=>a+parseFloat(r.budget),0).toFixed(1);
-  const totalActual=rows.reduce((a,r)=>a+parseFloat(r.actual),0).toFixed(1);
-  const totalFee=rows.reduce((a,r)=>a+parseFloat(r.fee),0);
-  document.getElementById('reportSubtitle').textContent=`${rows.length} items · Budget: ${totalBudget}h · Actual: ${totalActual}h · Fee: ${fmt(totalFee)}`;
+  const totalBudgetR=rows.reduce((a,r)=>a+parseFloat(r.budget),0);
+  const totalActualR=rows.reduce((a,r)=>a+parseFloat(r.actual),0);
+  const totalFeeR=rows.reduce((a,r)=>a+parseFloat(r.fee),0);
+  document.getElementById('reportSubtitle').textContent=`${rows.length} items · Budget: ${fmtHrs(totalBudgetR)}h · Actual: ${fmtHrs(totalActualR)}h · Fee: ${fmt(totalFeeR)}`;
   document.getElementById('reportHead').innerHTML=`<tr>${['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance','Fee Value'].map(h=>`<th>${h}</th>`).join('')}</tr>`;
   document.getElementById('reportBody').innerHTML=rows.map((r,i)=>{
     const sc=STEP_COLORS[r.step]; const over=parseFloat(r.variance)<0;
@@ -954,9 +979,9 @@ async function showReport(auditId){
       <td style="color:#6b7280;font-size:12px;">${r.assignee}</td><td style="font-size:12px;">${r.due||'—'}</td>
       <td><span class="step-badge" style="color:${sc.color};background:${sc.bg};">${r.step}</span></td>
       <td><div style="display:flex;align-items:center;gap:6px;">${miniBar(r.progress,6)}<b>${r.progress}%</b></div></td>
-      <td style="font-weight:600;">${r.budget}h</td>
-      <td style="font-weight:600;">${r.actual}h</td>
-      <td style="font-weight:700;color:${over?'#dc2626':'#16a34a'};">${parseFloat(r.variance)>0?'+':''}${r.variance}h</td>
+      <td style="font-weight:600;">${fmtHrs(r.budget)}h</td>
+      <td style="font-weight:600;">${fmtHrs(r.actual)}h</td>
+      <td style="font-weight:700;color:${over?'#dc2626':'#16a34a'};">${parseFloat(r.variance)>0?'+':''}${fmtHrs(r.variance)}h</td>
       <td style="font-weight:600;color:#16a34a;">${fmt(r.fee)}</td>
     </tr>`;
   }).join('');
