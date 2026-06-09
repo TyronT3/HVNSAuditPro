@@ -6,27 +6,11 @@
 <title>HVNS & Company — Audit Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── HVNS Brand ── */
-:root{
-  --navy:#1A2B3C;
-  --navy2:#2E4057;
-  --navy3:#3a536b;
-  --orange:#F5A623;
-  --white:#ffffff;
-  --charcoal:#4A4A4A;
-  --light:#F4F6F8;
-  --border:#e2e8f0;
-  --red:#dc2626;
-  --green:#16a34a;
-  --amber:#d97706;
-  --purple:#7c3aed;
-}
+:root{--navy:#1A2B3C;--navy2:#2E4057;--navy3:#3a536b;--orange:#F5A623;--white:#ffffff;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;--purple:#7c3aed;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Calibri',sans-serif;background:var(--light);color:var(--charcoal);min-height:100vh;}
 h1,h2,h3,.heading{font-family:'Trebuchet MS',sans-serif;}
 button,input,select,textarea{font-family:'Calibri',sans-serif;}
-
-/* ── Login ── */
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy);}
 .login-card{background:var(--navy2);border-radius:16px;padding:48px 40px;width:400px;max-width:95vw;border:1px solid var(--navy3);box-shadow:0 20px 60px rgba(0,0,0,0.4);}
 .login-logo{text-align:center;margin-bottom:32px;}
@@ -39,14 +23,11 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .login-btn{width:100%;padding:12px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:8px;letter-spacing:.5px;}
 .login-btn:hover{background:#e8951a;}
 .login-error{color:#f87171;font-size:13px;margin-top:8px;text-align:center;}
-
-/* ── App Shell ── */
 #appShell{display:none;flex-direction:column;min-height:100vh;}
-.header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;}
-.header-left{display:flex;align-items:center;gap:16px;}
+.header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;flex-wrap:wrap;gap:8px;}
 .header-title{font-family:'Trebuchet MS',sans-serif;font-size:17px;font-weight:700;color:#fff;}
 .header-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px;}
-.header-right{display:flex;align-items:center;gap:12px;}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .user-pill{background:rgba(255,255,255,0.1);border-radius:20px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.8);}
 .role-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
 .role-manager{background:var(--orange);color:var(--navy);}
@@ -55,52 +36,36 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .logout-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
 .logout-btn:hover{border-color:var(--orange);color:var(--orange);}
 .orange-accent{height:2px;background:var(--orange);width:100%;}
-.nav-bar{background:var(--navy2);padding:0 24px;display:flex;gap:2px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.nav-bar{background:var(--navy2);padding:0 24px;display:flex;gap:2px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;}
 .nav-btn{padding:14px 18px;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;}
 .nav-btn:hover{color:rgba(255,255,255,0.85);}
 .nav-btn.active{color:#fff;border-bottom-color:var(--orange);}
 .main{flex:1;max-width:1100px;margin:0 auto;padding:28px 20px;width:100%;}
-
-/* ── Cards ── */
 .card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:14px;overflow:hidden;border:1px solid var(--border);}
-.card-dark{background:var(--navy2);border:1px solid rgba(255,255,255,0.08);}
 .card-header{padding:16px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;}
-
-/* ── Stats ── */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
 .stat{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:3px solid var(--orange);}
 .stat-val{font-family:'Trebuchet MS',sans-serif;font-size:24px;font-weight:700;color:var(--navy);}
 .stat-lbl{font-size:12px;color:#6b7280;margin-top:3px;}
-
-/* ── Badges ── */
 .badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap;}
 .step-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
-
-/* ── Progress Bar ── */
 .bar-wrap{background:#e5e7eb;border-radius:99px;overflow:hidden;}
 .bar-inner{height:100%;border-radius:99px;transition:width .4s;}
-
-/* ── Tables ── */
 .data-table{width:100%;border-collapse:collapse;font-size:13px;}
 .data-table th{background:var(--navy);color:#fff;padding:10px 14px;text-align:left;font-family:'Trebuchet MS',sans-serif;font-weight:600;font-size:12px;letter-spacing:.3px;}
 .data-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--charcoal);}
 .data-table tr:hover td{background:#f8fafc;}
 .data-table tr:last-child td{border-bottom:none;}
-
-/* ── Forms ── */
 .form-box{background:#fff;border-radius:14px;padding:28px;box-shadow:0 1px 6px rgba(0,0,0,0.08);max-width:720px;margin:0 auto;border:1px solid var(--border);}
 .form-section-title{font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--orange);}
 .inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;color:var(--charcoal);background:#fff;}
 .inp:focus{border-color:var(--navy);}
-.lbl{font-size:11px;font-weight:600;color:#6b7280;margin-bottom:3px;display:block;}
 .primary-btn{padding:11px 22px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:.3px;}
 .primary-btn:hover{background:var(--navy2);}
 .orange-btn{padding:11px 22px;background:var(--orange);color:var(--navy);border:none;border-radius:8px;font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
 .ghost-btn{padding:8px 16px;background:none;border:1.5px solid var(--border);color:var(--charcoal);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
 .ghost-btn:hover{border-color:var(--navy);color:var(--navy);}
 .danger-btn{padding:6px 12px;background:#fef2f2;color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
-
-/* ── Modal ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(10,20,30,0.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
 .modal{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;}
 .modal-header{background:var(--navy);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
@@ -109,60 +74,34 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .modal-close:hover{color:#fff;}
 .modal-body{padding:24px;}
 .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:#f8fafc;}
-
-/* ── Section rows ── */
 .section-row{display:flex;align-items:center;gap:10px;padding:11px 20px 11px 28px;cursor:pointer;border-top:1px solid var(--border);flex-wrap:wrap;}
 .sub-row{display:flex;align-items:center;gap:8px;padding:9px 20px 9px 44px;border-top:1px solid var(--border);flex-wrap:wrap;}
-
-/* ── Step trail ── */
 .step-trail{display:flex;align-items:center;margin:12px 0;}
 .step-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:#fff;}
 .step-line{flex:1;height:2px;margin:0 2px;margin-bottom:14px;}
 .step-label{font-size:8px;font-weight:600;white-space:nowrap;max-width:52px;text-align:center;line-height:1.2;margin-top:3px;}
-
-/* ── Chk ── */
 .chk-box{width:18px;height:18px;border-radius:4px;border:2px solid #d1d5db;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
 .chk-box.checked{background:var(--navy);border-color:var(--navy);}
-
-/* ── Tab bar ── */
 .tab-bar{display:flex;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);}
 .tab-item{flex:1;padding:10px;text-align:center;font-family:'Trebuchet MS',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
 .tab-item.active{background:var(--navy);color:#fff;}
 .tab-item:not(.active){background:#f8fafc;color:#9ca3af;}
-
-/* ── Hours modal specific ── */
-.hours-log-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #f1f5f9;}
-
-/* ── Report ── */
 .report-wrap{width:90vw;max-width:900px;max-height:88vh;display:flex;flex-direction:column;}
 .report-table-wrap{flex:1;overflow-y:auto;}
 .csv-area{padding:14px 20px;border-top:1px solid var(--border);background:#f8fafc;}
-
-/* ── Variance flag ── */
 .variance-flag{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-top:10px;}
-
-/* ── Footer ── */
 .app-footer{background:var(--navy);padding:8px 24px;display:flex;align-items:center;justify-content:space-between;}
 .footer-text{font-size:11px;color:rgba(255,255,255,0.35);}
-
-/* ── Loading ── */
 .loading{display:flex;align-items:center;justify-content:center;padding:60px;color:#9ca3af;font-size:14px;}
-
-/* ── Alert ── */
 .alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px;}
 .alert-warning{background:#fff7ed;border:1px solid #fed7aa;color:#92400e;}
 .alert-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
 .alert-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
-
-@media(max-width:640px){
-  .stats{grid-template-columns:repeat(2,1fr);}
-  .main{padding:16px 12px;}
-}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr);}.main{padding:16px 12px;}}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-logo">
@@ -185,14 +124,11 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
-<!-- ══ APP ════════════════════════════════════════════════════════════════ -->
 <div id="appShell" style="display:none;flex-direction:column;min-height:100vh;">
   <div class="header">
-    <div class="header-left">
-      <div>
-        <div class="header-title">HVNS & Company — Audit Tracker</div>
-        <div class="header-sub" id="headerSub">Loading...</div>
-      </div>
+    <div>
+      <div class="header-title">HVNS & Company — Audit Tracker</div>
+      <div class="header-sub" id="headerSub">Loading...</div>
     </div>
     <div class="header-right">
       <span class="user-pill" id="userPill"></span>
@@ -211,7 +147,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
-<!-- ══ MODALS ════════════════════════════════════════════════════════════ -->
+<!-- MODALS -->
 <div id="hoursModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:360px;">
     <div class="modal-header"><h3>⏱ Log Time</h3><button class="modal-close" onclick="closeModal('hoursModal')">✕</button></div>
@@ -234,7 +170,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   <div class="modal" style="width:480px;">
     <div class="modal-header"><h3>📅 Weekly Time Reconciliation</h3><button class="modal-close" onclick="closeModal('timesheetModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="alert alert-warning">Submit the hours you logged in the <b>firm time tracking system</b> for this week. Any variance against app hours will require an explanation.</div>
+      <div class="alert alert-warning">Submit hours you logged in the <b>firm time tracking system</b> for this week. Any variance against app hours requires an explanation.</div>
       <div><label class="lbl">Week Ending (Friday)</label><input type="date" id="tsWeekEnding" class="inp"/></div>
       <div><label class="lbl">Subsection</label><select id="tsSubsection" class="inp" style="background:#fff;"></select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -245,7 +181,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
         <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Variance detected — explanation required</div>
         <div id="tsVarianceAmt" style="font-size:13px;color:#92400e;margin-bottom:8px;"></div>
         <label class="lbl">Explanation *</label>
-        <textarea id="tsExplanation" class="inp" rows="3" placeholder="Explain the difference between firm system hours and app hours..."></textarea>
+        <textarea id="tsExplanation" class="inp" rows="3" placeholder="Explain the difference..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -274,7 +210,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
       <div><label class="lbl">Assignee Email</label><select id="addSubAssignee" class="inp" style="background:#fff;"></select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="lbl">Due Date</label><input type="date" id="addSubDue" class="inp"/></div>
-        <div><label class="lbl">Budget Hours</label><input type="number" id="addSubBudget" class="inp" min="0" step="0.5" placeholder="0"/></div>
+        <div><label class="lbl">Budget Hours</label><input type="number" id="addSubBudget" class="inp" min="0" step="0.25" placeholder="0"/></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -288,7 +224,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   <div class="modal" style="width:500px;max-width:95vw;">
     <div class="modal-header"><h3>💬 Teams Message</h3><button class="modal-close" onclick="closeModal('teamsModal')">✕</button></div>
     <div class="modal-body">
-      <textarea id="teamsModalText" readonly onclick="this.select()" style="width:100%;height:180px;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;resize:none;outline:none;color:var(--charcoal);background:#f8fafc;"></textarea>
+      <textarea id="teamsModalText" readonly onclick="this.select()" style="width:100%;height:180px;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:monospace;resize:none;outline:none;"></textarea>
       <div style="font-size:12px;color:#9ca3af;margin-top:8px;">Click inside → Ctrl+A → Ctrl+C → paste into Teams.</div>
     </div>
     <div class="modal-footer"><button class="ghost-btn" onclick="closeModal('teamsModal')">Close</button></div>
@@ -303,38 +239,72 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
     </div>
     <div class="report-table-wrap"><table class="data-table"><thead id="reportHead"></thead><tbody id="reportBody"></tbody></table></div>
     <div class="csv-area">
-      <div style="font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:6px;">📋 CSV Export — click inside, Ctrl+A, Ctrl+C, paste into Notepad, save as <b>.csv</b>, open in Excel</div>
+      <div style="font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:6px;">📋 CSV — click inside, Ctrl+A, Ctrl+C, paste into Notepad, save as .csv, open in Excel</div>
       <textarea id="csvText" readonly onclick="this.select()" style="width:100%;height:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-family:monospace;resize:none;outline:none;background:#fff;"></textarea>
     </div>
   </div>
 </div>
 
-<div id="settingsModal" class="modal-overlay" style="display:none;">
+<div id="changePasswordModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="width:380px;">
-    <div class="modal-header"><h3>⚙️ Firm Settings</h3><button class="modal-close" onclick="closeModal('settingsModal')">✕</button></div>
+    <div class="modal-header"><h3>🔑 Change Password</h3><button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div><label class="lbl">Firm Hourly Rate (R)</label><input type="number" id="settingRate" class="inp" min="0" step="50" placeholder="1000"/></div>
-      <div><label class="lbl">Firm Name</label><input type="text" id="settingFirmName" class="inp"/></div>
+      <div><label class="lbl">New Password</label><input type="password" id="newPassword" class="inp" placeholder="Minimum 6 characters"/></div>
+      <div><label class="lbl">Confirm New Password</label><input type="password" id="confirmPassword" class="inp" placeholder="Repeat new password" onkeydown="if(event.key==='Enter')doChangePassword()"/></div>
+      <div id="changePasswordStatus" style="display:none;"></div>
     </div>
     <div class="modal-footer">
-      <button class="ghost-btn" onclick="closeModal('settingsModal')">Cancel</button>
-      <button class="primary-btn" onclick="saveSettings()">Save Settings</button>
+      <button class="ghost-btn" onclick="closeModal('changePasswordModal')">Cancel</button>
+      <button class="primary-btn" onclick="doChangePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<div id="addUserModal" class="modal-overlay" style="display:none;">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header"><h3>➕ Add New User</h3><button class="modal-close" onclick="closeModal('addUserModal')">✕</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="alert alert-warning">Create the user in <b>Supabase Auth → Users → Add user</b> first, then use this form to set their name and role in the app.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label class="lbl">Full Name *</label><input type="text" id="newUserName" class="inp" placeholder="e.g. Sarah Johnson"/></div>
+        <div><label class="lbl">Email Address *</label><input type="email" id="newUserEmail" class="inp" placeholder="sarah@hvns.co.za"/></div>
+      </div>
+      <div><label class="lbl">Role *</label>
+        <select id="newUserRole" class="inp" style="background:#fff;">
+          <option value="staff">Staff — updates only</option>
+          <option value="manager">Manager — full access</option>
+          <option value="director">Director — reports only</option>
+        </select>
+      </div>
+      <div id="addUserStatus" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="ghost-btn" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="primary-btn" onclick="doAddUser()">Save User Profile</button>
+    </div>
+  </div>
+</div>
+
+<div id="forgotModal" class="modal-overlay" style="display:none;">
+  <div class="modal" style="width:380px;">
+    <div class="modal-header"><h3>🔑 Reset Password</h3><button class="modal-close" onclick="closeModal('forgotModal')">✕</button></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <p style="font-size:13px;color:#6b7280;line-height:1.5;">Enter your email and we'll send a password reset link.</p>
+      <div><label class="lbl">Email Address</label><input type="email" id="forgotEmail" class="inp" placeholder="you@hvns.co.za"/></div>
+      <div id="forgotStatus" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="ghost-btn" onclick="closeModal('forgotModal')">Cancel</button>
+      <button class="primary-btn" onclick="doForgotPassword()">Send Reset Link</button>
     </div>
   </div>
 </div>
 
 <script>
-// ══ CONFIG — paste your Supabase URL and anon key here ══════════════════
 const SUPABASE_URL = 'https://lbwqkfppvrdbydtlkjtz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
-// ════════════════════════════════════════════════════════════════════════
-
 const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    redirectTo: 'https://tyront3.github.io/HVNSAuditPro/'
-  }
-});
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { redirectTo: 'https://tyront3.github.io/HVNSAuditPro/' } });
 
 const STEPS = ["Not Started","Client Requested","Client Received","Processing","Finalising","Done"];
 const STEP_COLORS = {
@@ -364,6 +334,7 @@ const SECTION_TEMPLATES = [
   {name:"Going Concern Review",       subs:["Cash Flow Forecast","Management Assessment"],     def:false},
 ];
 
+// ── Single declarations of all state variables ────────────────────────────
 let currentUser = null;
 let currentRole = null;
 let currentView = 'dashboard';
@@ -371,6 +342,7 @@ let firmRate = 1000;
 let allUsers = [];
 let expandedAudit = null;
 let expandedSec = null;
+let editingAuditId = null;
 let pendingAdvance = null;
 let pendingReassign = null;
 let pendingAddSub = null;
@@ -378,123 +350,89 @@ let formStep = 1;
 let formSel = {};
 let formSecDet = {};
 let formExtraSubs = {};
-let fAuditName='', fClientName='', fDefDue='';
+let fAuditName = '', fClientName = '', fDefDue = '';
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmt(n){ return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtHrs(n){ const v=parseFloat(n||0); return v%1===0?v.toFixed(0):(v*4===Math.round(v*4)?v.toFixed(2).replace(/\.?0+$/, ''):v.toFixed(2)); }
+function daysUntil(d){ if(!d)return 9999; const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000); }
+function subStatusFlag(due,step){ if(step==='Done'||!due)return ''; const d=daysUntil(due); if(d<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>'; if(d<=7&&AT_RISK_STEPS.includes(step))return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>'; return ''; }
+function dueBadge(d){ if(!d)return ''; const days=daysUntil(d); const label=days<0?`${Math.abs(days)}d overdue`:days===0?'Due today':`${days}d left`; const color=days<0?'#dc2626':days<=7?'#d97706':'#16a34a'; return `<span class="badge" style="color:${color};background:${color}18;">${label}</span>`; }
+function miniBar(val,h=8){ const c=val===100?'#16a34a':val>=50?'#2563eb':val>0?'#d97706':'#e5e7eb'; return `<div class="bar-wrap" style="height:${h}px;flex:1;"><div class="bar-inner" style="width:${val}%;background:${c};height:${h}px;"></div></div>`; }
+function stepTrailHTML(stepIdx){ let h=`<div class="step-trail">`; STEPS.forEach((s,i)=>{ const done=i<=stepIdx; const c=STEP_COLORS[s]; h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="step-dot" style="background:${done?c.color:'#e5e7eb'};">${done?'✓':''}</div><span class="step-label" style="color:${done?c.color:'#9ca3af'};">${s}</span></div>${i<STEPS.length-1?`<div class="step-line" style="background:${i<stepIdx?'#1A2B3C':'#e5e7eb'};"></div>`:''}`;});return h+`</div>`; }
+function staffOptions(sel=''){ return allUsers.map(u=>`<option value="${u.email}" ${u.email===sel?'selected':''}>${u.full_name} (${u.email})</option>`).join(''); }
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+function showToast(msg){ let t=document.getElementById('toast'); if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;border-left:3px solid var(--orange);transition:opacity .3s;';document.body.appendChild(t);} t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';},2500); }
 
 // ── Auth ──────────────────────────────────────────────────────────────────
 async function doLogin(){
-  const email = document.getElementById('loginEmail').value.trim();
-  const pwd   = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
+  const email=document.getElementById('loginEmail').value.trim();
+  const pwd=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginError');
   errEl.style.display='none';
-  if(!email||!pwd){ showLoginError('Please enter your email and password.'); return; }
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pwd});
-  if(error){ showLoginError(error.message); return; }
+  if(!email||!pwd){showLoginError('Please enter your email and password.');return;}
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pwd});
+  if(error){showLoginError(error.message);return;}
   await initApp(data.user);
 }
-function showLoginError(msg){ const e=document.getElementById('loginError'); e.textContent=msg; e.style.display='block'; }
-async function doLogout(){ await sb.auth.signOut(); document.getElementById('appShell').style.display='none'; document.getElementById('loginScreen').style.display='flex'; }
+function showLoginError(msg){const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';}
+async function doLogout(){await sb.auth.signOut();document.getElementById('appShell').style.display='none';document.getElementById('loginScreen').style.display='flex';}
 
 async function initApp(user){
-  const {data:profile, error:profileError} = await sb.from('users').select('*').eq('id',user.id).single();
-  if(profileError||!profile){ 
-    showLoginError('Profile not found. Please try logging in again.');
-    await sb.auth.signOut(); 
-    return; 
-  }
-  if(!profile.active){ 
-    showLoginError('Your account is not active. Contact your manager.'); 
-    await sb.auth.signOut(); 
-    return; 
-  }
-  currentUser = profile;
-  currentRole = profile.role;
+  const {data:profile,error:profileError}=await sb.from('users').select('*').eq('id',user.id).single();
+  if(profileError||!profile){showLoginError('Profile not found. Please contact your manager.');await sb.auth.signOut();return;}
+  if(!profile.active){showLoginError('Your account is not active. Contact your manager.');await sb.auth.signOut();return;}
+  currentUser=profile; currentRole=profile.role;
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='flex';
-  document.getElementById('userPill').textContent = profile.full_name || profile.email;
-  const rb = document.getElementById('roleBadge');
-  rb.textContent = currentRole; rb.className = `role-badge role-${currentRole}`;
-  const {data:s} = await sb.from('settings').select('*');
-  if(s){ s.forEach(r=>{ if(r.key==='firm_rate') firmRate=parseFloat(r.value)||1000; }); }
-  const {data:users} = await sb.from('users').select('*').eq('active',true);
-  allUsers = users||[];
+  document.getElementById('userPill').textContent=profile.full_name||profile.email;
+  const rb=document.getElementById('roleBadge'); rb.textContent=currentRole; rb.className=`role-badge role-${currentRole}`;
+  const {data:s}=await sb.from('settings').select('*');
+  if(s)s.forEach(r=>{if(r.key==='firm_rate')firmRate=parseFloat(r.value)||1000;});
+  const {data:users}=await sb.from('users').select('*').eq('active',true);
+  allUsers=users||[];
   buildNav();
-  setInterval(()=>{ document.getElementById('footerTime').textContent=new Date().toLocaleString(); },1000);
+  setInterval(()=>{document.getElementById('footerTime').textContent=new Date().toLocaleString();},1000);
   showView('dashboard');
 }
 
 sb.auth.onAuthStateChange(async(event,session)=>{
-  if(event==='SIGNED_IN'&&session) await initApp(session.user);
+  if(event==='SIGNED_IN'&&session)await initApp(session.user);
 });
 
 // ── Nav ───────────────────────────────────────────────────────────────────
 function buildNav(){
-  const nav = document.getElementById('navBar');
-  const tabs = [['dashboard','📊 Dashboard']];
-  if(currentRole==='manager') tabs.push(['add','➕ New Audit']);
-  if(currentRole!=='director') tabs.push(['update','✏️ My Updates']);
+  const tabs=[['dashboard','📊 Dashboard']];
+  if(currentRole==='manager')tabs.push(['add','➕ New Audit'],['edit','✏️ Edit Audit']);
+  if(currentRole!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['timesheet','📅 Timesheets']);
-  if(currentRole==='manager') tabs.push(['users','👥 Users']);
-  if(currentRole==='manager') tabs.push(['settings','⚙️ Settings']);
-  nav.innerHTML = tabs.map(([v,l])=>`<button class="nav-btn ${currentView===v?'active':''}" onclick="showView('${v}')">${l}</button>`).join('');
+  if(currentRole==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
+  document.getElementById('navBar').innerHTML=tabs.map(([v,l])=>`<button class="nav-btn ${currentView===v?'active':''}" onclick="showView('${v}')">${l}</button>`).join('');
 }
-function showView(v){ currentView=v; buildNav(); renderView(); }
+function showView(v){currentView=v;buildNav();renderView();}
 
-// ── Render ────────────────────────────────────────────────────────────────
 async function renderView(){
   const el=document.getElementById('mainContent');
   el.innerHTML=`<div class="loading">Loading...</div>`;
-  if(currentView==='dashboard') await renderDashboard();
-  else if(currentView==='add') renderAdd();
-  else if(currentView==='update') await renderUpdate();
-  else if(currentView==='timesheet') await renderTimesheet();
-  else if(currentView==='users') await renderUsers();
-  else if(currentView==='settings') await renderSettings();
+  if(currentView==='dashboard')await renderDashboard();
+  else if(currentView==='add')renderAdd();
+  else if(currentView==='edit')await renderEditAudit();
+  else if(currentView==='update')await renderUpdate();
+  else if(currentView==='timesheet')await renderTimesheet();
+  else if(currentView==='users')await renderUsers();
+  else if(currentView==='settings')await renderSettings();
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────
-function fmt(n){ return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtHrs(n){ 
-  const v=parseFloat(n||0);
-  // Show up to 2 decimal places but strip trailing zeros — 8.25 stays 8.25, 8.00 shows 8, 8.50 shows 8.5
-  return v % 1 === 0 ? v.toFixed(0) : (v*4===Math.round(v*4) ? v.toFixed(2).replace(/\.?0+$/,'') : v.toFixed(2));
-}
-function daysUntil(d){ if(!d)return 9999; const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000); }
-function subStatusFlag(due,step){
-  if(step==='Done') return '';
-  if(!due) return '';
-  const d=daysUntil(due);
-  if(d<0) return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>';
-  if(d<=7&&AT_RISK_STEPS.includes(step)) return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>';
-  return '';
-}
-function dueBadge(d){
-  if(!d) return '';
-  const days=daysUntil(d);
-  const label=days<0?`${Math.abs(days)}d overdue`:days===0?'Due today':`${days}d left`;
-  const color=days<0?'#dc2626':days<=7?'#d97706':'#16a34a';
-  return `<span class="badge" style="color:${color};background:${color}18;">${label}</span>`;
-}
-function miniBar(val,h=8){ const c=val===100?'#16a34a':val>=50?'#2563eb':val>0?'#d97706':'#e5e7eb'; return `<div class="bar-wrap" style="height:${h}px;flex:1;"><div class="bar-inner" style="width:${val}%;background:${c};height:${h}px;"></div></div>`; }
-function stepTrailHTML(stepIdx){
-  let h=`<div class="step-trail">`;
-  STEPS.forEach((s,i)=>{ const done=i<=stepIdx; const c=STEP_COLORS[s]; h+=`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="step-dot" style="background:${done?c.color:'#e5e7eb'};">${done?'✓':''}</div><span class="step-label" style="color:${done?c.color:'#9ca3af'};">${s}</span></div>${i<STEPS.length-1?`<div class="step-line" style="background:${i<stepIdx?'#1A2B3C':'#e5e7eb'};"></div>`:''}`;});
-  return h+`</div>`;
-}
-function staffOptions(inc=''){
-  return allUsers.map(u=>`<option value="${u.email}" ${u.email===inc?'selected':''}>${u.full_name} (${u.email})</option>`).join('');
-}
-function closeModal(id){ document.getElementById(id).style.display='none'; }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────
 async function renderDashboard(){
-  const {data:audits} = await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
-  const {data:allSubs} = await sb.from('subsection_summary').select('*');
-  const allS = allSubs||[];
-  const overdueCount = allS.filter(s=>s.step!=='Done'&&s.due_date&&daysUntil(s.due_date)<0).length;
-  const atriskCount  = allS.filter(s=>s.step!=='Done'&&s.due_date&&daysUntil(s.due_date)<=7&&daysUntil(s.due_date)>=0&&AT_RISK_STEPS.includes(s.step)).length;
-  const totalFee     = (audits||[]).reduce((a,x)=>a+parseFloat(x.fee_value||0),0);
-  const totalBudget  = (audits||[]).reduce((a,x)=>a+parseFloat(x.budget_hours||0),0);
-  const totalActual  = (audits||[]).reduce((a,x)=>a+parseFloat(x.actual_hours||0),0);
+  const {data:audits}=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
+  const {data:allSubs}=await sb.from('subsection_summary').select('*');
+  const allS=allSubs||[];
+  const overdueCount=allS.filter(s=>s.step!=='Done'&&s.due_date&&daysUntil(s.due_date)<0).length;
+  const atriskCount=allS.filter(s=>s.step!=='Done'&&s.due_date&&daysUntil(s.due_date)<=7&&daysUntil(s.due_date)>=0&&AT_RISK_STEPS.includes(s.step)).length;
+  const totalFee=(audits||[]).reduce((a,x)=>a+parseFloat(x.fee_value||0),0);
+  const totalBudget=(audits||[]).reduce((a,x)=>a+parseFloat(x.budget_hours||0),0);
+  const totalActual=(audits||[]).reduce((a,x)=>a+parseFloat(x.actual_hours||0),0);
 
   let html=`<div class="stats">
     <div class="stat"><div class="stat-val">${(audits||[]).length}</div><div class="stat-lbl">📋 Total Audits</div></div>
@@ -502,7 +440,6 @@ async function renderDashboard(){
     <div class="stat" style="border-left-color:#d97706;"><div class="stat-val" style="color:#d97706;">${atriskCount}</div><div class="stat-lbl">🟡 At Risk</div></div>
     <div class="stat" style="border-left-color:#7c3aed;"><div class="stat-val" style="color:#7c3aed;">${fmt(totalFee)}</div><div class="stat-lbl">💰 Total Fee Value</div></div>
   </div>`;
-
   if(currentRole==='manager'){
     html+=`<div class="stats" style="grid-template-columns:repeat(3,1fr);">
       <div class="stat"><div class="stat-val">${fmtHrs(totalBudget)}h</div><div class="stat-lbl">⏱ Budget Hours</div></div>
@@ -512,8 +449,8 @@ async function renderDashboard(){
   }
 
   if(!(audits||[]).length){
-    html+=`<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:16px;margin-top:8px;color:var(--navy);">No audits yet</div>${currentRole==='manager'?`<button class="primary-btn" style="margin-top:14px;" onclick="showView('add')">Create First Audit</button>`:''}</div>`;
-    document.getElementById('mainContent').innerHTML=html; return;
+    html+=`<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No audits yet</div>${currentRole==='manager'?`<button class="primary-btn" style="margin-top:14px;" onclick="showView('add')">Create First Audit</button>`:''}</div>`;
+    document.getElementById('mainContent').innerHTML=html;return;
   }
 
   for(const a of audits){
@@ -528,19 +465,18 @@ async function renderDashboard(){
             <span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ ${fmtHrs(a.actual_hours)}h / ${fmtHrs(a.budget_hours)}h budget</span>
             ${currentRole!=='staff'?`<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 ${fmt(a.fee_value)}</span>`:''}
           </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-            ${miniBar(a.progress_pct||0)}<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">${a.progress_pct||0}%</span>
-          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">${miniBar(a.progress_pct||0)}<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">${a.progress_pct||0}%</span></div>
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           ${currentRole!=='staff'?`<button onclick="event.stopPropagation();showReport('${a.id}')" style="padding:6px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;font-weight:600;">📊 Report</button>`:''}
+          ${currentRole==='manager'?`<button onclick="event.stopPropagation();openEditAudit('${a.id}')" style="padding:6px 12px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;font-weight:600;">✏️ Edit</button>`:''}
           ${currentRole==='manager'?`<button onclick="event.stopPropagation();deleteAudit('${a.id}')" class="danger-btn">🗑</button>`:''}
           <span style="font-size:18px;color:#9ca3af;">${isOpen?'▲':'▼'}</span>
         </div>
       </div>`;
 
     if(isOpen){
-      const {data:sections} = await sb.from('section_summary').select('*').eq('audit_id',a.id).order('id');
+      const {data:sections}=await sb.from('section_summary').select('*').eq('audit_id',a.id).order('id');
       html+=`<div style="border-top:1px solid var(--border);">`;
       for(const sec of (sections||[])){
         const secOpen=expandedSec===sec.id;
@@ -555,20 +491,21 @@ async function renderDashboard(){
             <span style="font-size:14px;color:#9ca3af;">${secOpen?'▲':'▼'}</span>
           </div>`;
         if(secOpen){
-          const {data:subs} = await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
-          html+=`<div>`;
-          html+=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">
-            ${['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(h=>`<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:.3px;">${h}</span>`).join('')}
-          </div>`;
+          const {data:subs}=await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
+          html+=`<div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">${['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(h=>`<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;">${h}</span>`).join('')}</div>`;
           for(const sub of (subs||[])){
             const sc=STEP_COLORS[sub.step]; const st=subStatusFlag(sub.due_date,sub.step);
             const overBudget=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
-            html+=`<div class="sub-row" style="background:${overBudget?'#fff5f5':'#fafafa'};display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:9px 20px 9px 44px;">
+            html+=`<div style="background:${overBudget?'#fff5f5':'#fafafa'};display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:9px 20px 9px 44px;border-top:1px solid var(--border);">
               <span style="font-size:13px;color:var(--charcoal);font-weight:500;">${sub.name} ${st}</span>
               <span style="font-size:12px;color:#9ca3af;">${sub.assignee_email||'—'}</span>
               <span>${dueBadge(sub.due_date)||'—'}</span>
-              <span class="step-badge" style="color:${sc.color};background:${sc.bg};font-size:11px;">${sub.step}</span>
-              <span style="font-size:12px;font-weight:600;color:${overBudget?'#dc2626':'var(--charcoal)'};">${parseFloat(sub.actual_hours||0).toFixed(1)} / ${parseFloat(sub.budget_hours||0).toFixed(1)}h</span>
+              <span class="step-badge" style="color:${sc.color};background:${sc.bg};">${sub.step}</span>
+              <span style="font-size:12px;font-weight:600;color:${overBudget?'#dc2626':'var(--charcoal)'};">
+                ${currentRole==='manager'
+                  ?`<div style="display:flex;align-items:center;gap:4px;"><span>${fmtHrs(sub.actual_hours)}h /</span><input type="number" value="${parseFloat(sub.budget_hours||0)}" min="0" step="0.25" style="width:60px;padding:2px 5px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;" onchange="updateBudgetHours('${sub.id}',this.value)" title="Edit budget hours"/><span>h</span></div>`
+                  :`${fmtHrs(sub.actual_hours)} / ${fmtHrs(sub.budget_hours)}h`}
+              </span>
               ${currentRole!=='staff'?`<span style="font-size:12px;color:#16a34a;font-weight:600;">${fmt(sub.fee_value)}</span>`:'<span></span>'}
               <div style="display:flex;gap:4px;">
                 ${currentRole==='manager'?`<button onclick="openReassign('${sub.id}','${sub.assignee_email}')" style="padding:3px 8px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>`:''}
@@ -588,11 +525,19 @@ async function renderDashboard(){
 }
 
 // ── Add Audit ─────────────────────────────────────────────────────────────
-function initForm(){ formStep=1; formSel={}; formSecDet={}; formExtraSubs={}; fAuditName=''; fClientName=''; fDefDue=''; SECTION_TEMPLATES.forEach(t=>{ formSel[t.name]=t.def; formSecDet[t.name]={assignee:'',due:'',budget:'',subsections:{}}; t.subs.forEach(s=>{ formSecDet[t.name].subsections[s]={assignee:'',due:'',budget:''}; }); formExtraSubs[t.name]=[]; }); }
+function initForm(){
+  formStep=1;formSel={};formSecDet={};formExtraSubs={};fAuditName='';fClientName='';fDefDue='';
+  SECTION_TEMPLATES.forEach(t=>{
+    formSel[t.name]=t.def;
+    formSecDet[t.name]={assignee:'',due:'',sectionBudget:'',subsections:{}};
+    t.subs.forEach(s=>{formSecDet[t.name].subsections[s]={assignee:'',due:'',budget:''};});
+    formExtraSubs[t.name]=[];
+  });
+}
 
 function renderAdd(){
-  if(currentRole!=='manager'){ document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`; return; }
-  if(!formSel||Object.keys(formSel).length===0) initForm();
+  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
+  if(!formSel||Object.keys(formSel).length===0)initForm();
   let html=`<div class="form-box"><div class="tab-bar">
     <div class="tab-item ${formStep===1?'active':''}" onclick="setFormStep(1)">1. Audit Details</div>
     <div class="tab-item ${formStep===2?'active':''}">2. Sections & Assignees</div>
@@ -632,31 +577,27 @@ function renderAdd(){
               </select></div>
             <div style="flex:1;min-width:110px;"><label class="lbl">Section Due Date</label>
               <input type="date" class="inp" value="${formSecDet[t.name].due||fDefDue}" onchange="setSecDue('${t.name}',this.value)"/></div>
-            <div style="min-width:120px;"><label class="lbl">Total Section Budget (hrs)</label>
-              <input type="number" class="inp" min="0" step="0.5" placeholder="e.g. 10" value="${formSecDet[t.name].sectionBudget||''}"
-                onchange="distributeSectionBudget('${t.name}',this.value)" title="Set total hours for this section — splits evenly across subsections"/></div>
+            <div style="min-width:130px;"><label class="lbl">Total Section Budget (hrs)</label>
+              <input type="number" class="inp" min="0" step="0.25" placeholder="e.g. 10" value="${formSecDet[t.name].sectionBudget||''}"
+                onchange="distributeSectionBudget('${t.name}',this.value)"/></div>
           </div>
           <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:6px;padding:5px 10px;background:var(--navy);border-radius:6px;margin-bottom:4px;">
-            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Subsection</span>
-            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Assignee</span>
-            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Due Date</span>
-            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">⏱ Budget Hrs</span>
+            ${['Subsection','Assignee','Due Date','⏱ Budget Hrs'].map(h=>`<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">${h}</span>`).join('')}
           </div>`;
         const allSubs=[...t.subs,...(formExtraSubs[t.name]||[])];
         allSubs.forEach((sub,idx)=>{
           const isExtra=idx>=t.subs.length;
           const det=formSecDet[t.name].subsections[sub]||{assignee:'',due:'',budget:''};
-          html+=`<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr ${isExtra?'auto':''};gap:8px;align-items:end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;">
-            <div><label class="lbl">↳ ${sub}</label></div>
+          html+=`<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr ${isExtra?'auto':''};gap:8px;align-items:center;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;">
+            <div><label class="lbl" style="margin:0;">↳ ${sub}</label></div>
             <div><select class="inp" style="font-size:12px;padding:6px 8px;background:#fff;" onchange="setSubAssignee('${t.name}','${sub}',this.value)"><option value="">Inherit</option>${staffOptions(det.assignee)}</select></div>
             <div><input type="date" class="inp" style="font-size:12px;padding:6px 8px;" value="${det.due||''}" onchange="setSubDue('${t.name}','${sub}',this.value)"/></div>
-            <div><input type="number" class="inp" style="font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.5" value="${det.budget||''}" onchange="setSubBudget('${t.name}','${sub}',this.value)"/></div>
+            <div><input type="number" class="inp" style="font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25" value="${det.budget||''}" onchange="setSubBudget('${t.name}','${sub}',this.value)"/></div>
             ${isExtra?`<button onclick="removeExtraSub('${t.name}',${idx-t.subs.length})" class="danger-btn" style="padding:6px 8px;">✕</button>`:''}
           </div>`;
         });
         html+=`<div style="display:flex;gap:8px;margin-top:8px;">
-          <input id="extraSubInp_${t.name.replace(/\s+/g,'_')}" class="inp" style="font-size:12px;padding:7px 10px;" placeholder="Add custom subsection..."
-            onkeydown="if(event.key==='Enter')addExtraSub('${t.name}')"/>
+          <input id="extraSubInp_${t.name.replace(/\s+/g,'_')}" class="inp" style="font-size:12px;padding:7px 10px;" placeholder="Add custom subsection..." onkeydown="if(event.key==='Enter')addExtraSub('${t.name}')"/>
           <button onclick="addExtraSub('${t.name}')" style="padding:7px 12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;">+</button>
         </div></div>`;
       }
@@ -664,19 +605,118 @@ function renderAdd(){
     });
     html+=`</div><div style="display:flex;gap:10px;">
       <button onclick="setFormStep(1)" class="ghost-btn" style="flex:1;">← Back</button>
-      <button onclick="createAudit()" class="primary-btn" style="flex:2;">Create Audit</button>
+      <button onclick="createAudit()" class="primary-btn" style="flex:2;" id="createAuditBtn">Create Audit</button>
     </div>`;
   }
   html+=`</div>`;
   document.getElementById('mainContent').innerHTML=html;
 }
 
+// ── Edit Audit ─────────────────────────────────────────────────────────────
+function openEditAudit(auditId){ editingAuditId=auditId; showView('edit'); }
+
+async function renderEditAudit(){
+  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
+  const {data:audits}=await sb.from('audits').select('*').eq('archived',false).order('name');
+  if(!audits||!audits.length){document.getElementById('mainContent').innerHTML=`<div style="text-align:center;padding:60px;color:#9ca3af;">No audits found.</div>`;return;}
+  if(!editingAuditId)editingAuditId=audits[0].id;
+  const audit=audits.find(a=>a.id===editingAuditId)||audits[0];
+  editingAuditId=audit.id;
+  const {data:sections}=await sb.from('sections').select('*').eq('audit_id',audit.id).order('sort_order');
+  const {data:subsections}=await sb.from('subsections').select('*').in('section_id',(sections||[]).map(s=>s.id)).order('sort_order');
+  const subsBySec={};
+  (subsections||[]).forEach(sub=>{if(!subsBySec[sub.section_id])subsBySec[sub.section_id]=[];subsBySec[sub.section_id].push(sub);});
+
+  let html=`<div class="form-box" style="max-width:820px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">✏️ Edit Audit</span>
+      <select class="inp" style="width:280px;background:#fff;" onchange="editingAuditId=this.value;renderEditAudit();">
+        ${audits.map(a=>`<option value="${a.id}" ${a.id===audit.id?'selected':''}>${a.name}${a.client?' — '+a.client:''}</option>`).join('')}
+      </select>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid var(--border);">
+      <div class="form-section-title">Audit Details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;">
+        <div><label class="lbl">Audit Name</label><input class="inp" id="editAuditName" value="${audit.name}"/></div>
+        <div><label class="lbl">Client</label><input class="inp" id="editAuditClient" value="${audit.client||''}"/></div>
+        <div><label class="lbl">Due Date</label><input type="date" class="inp" id="editAuditDue" value="${audit.due_date||''}"/></div>
+      </div>
+      <button onclick="saveAuditDetails('${audit.id}')" class="primary-btn" style="margin-top:14px;">Save Audit Details</button>
+    </div>
+    <div class="form-section-title">Sections & Subsections</div>
+    <p style="font-size:12px;color:#6b7280;margin:8px 0 14px;">Changes save immediately on change.</p>`;
+
+  (sections||[]).forEach(sec=>{
+    const subs=subsBySec[sec.id]||[];
+    html+=`<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;">
+      <div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-family:'Trebuchet MS',sans-serif;font-weight:700;color:#fff;font-size:14px;flex:1;">${sec.name}</span>
+        <label style="font-size:11px;color:rgba(255,255,255,0.6);">Assignee</label>
+        <select class="inp" style="width:160px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updateSectionAssignee('${sec.id}',this.value)">
+          <option value="">Unassigned</option>${allUsers.map(u=>`<option value="${u.email}" ${u.email===sec.assignee_email?'selected':''}>${u.full_name}</option>`).join('')}
+        </select>
+        <label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label>
+        <input type="date" class="inp" value="${sec.due_date||''}" style="width:140px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updateSectionDue('${sec.id}',this.value)"/>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:7px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">
+        ${['Subsection','Assignee','Due Date','Budget Hrs',''].map(h=>`<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">${h}</span>`).join('')}
+      </div>`;
+    subs.forEach(sub=>{
+      html+=`<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;">
+        <span style="font-size:13px;font-weight:500;color:var(--charcoal);">↳ ${sub.name}</span>
+        <select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updateSubAssignee('${sub.id}',this.value)">
+          <option value="">Unassigned</option>${allUsers.map(u=>`<option value="${u.email}" ${u.email===sub.assignee_email?'selected':''}>${u.full_name}</option>`).join('')}
+        </select>
+        <input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="${sub.due_date||''}" onchange="updateSubDue('${sub.id}',this.value)"/>
+        <input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="${parseFloat(sub.budget_hours||0)}" min="0" step="0.25" onchange="updateSubBudgetEdit('${sub.id}',this.value)"/>
+        <button onclick="deleteSubEdit('${sub.id}')" class="danger-btn" style="padding:5px 8px;">🗑</button>
+      </div>`;
+    });
+    html+=`<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input id="newSubName_${sec.id}" class="inp" style="flex:2;min-width:140px;font-size:12px;padding:6px 10px;" placeholder="New subsection name..."/>
+      <select id="newSubAssignee_${sec.id}" class="inp" style="flex:1;min-width:130px;font-size:12px;padding:6px 8px;background:#fff;">
+        <option value="">Inherit assignee</option>${allUsers.map(u=>`<option value="${u.email}">${u.full_name}</option>`).join('')}
+      </select>
+      <input type="date" id="newSubDue_${sec.id}" class="inp" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;"/>
+      <input type="number" id="newSubBudget_${sec.id}" class="inp" style="width:80px;font-size:12px;padding:6px 8px;" placeholder="Hrs" min="0" step="0.25"/>
+      <button onclick="addSubToSection('${sec.id}','${sec.assignee_email||''}','${sec.due_date||''}')" style="padding:6px 14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">+ Add</button>
+    </div></div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('mainContent').innerHTML=html;
+}
+
+async function saveAuditDetails(id){
+  const name=document.getElementById('editAuditName').value.trim();
+  const client=document.getElementById('editAuditClient').value.trim();
+  const due=document.getElementById('editAuditDue').value;
+  if(!name){alert('Audit name cannot be empty.');return;}
+  const {error}=await sb.from('audits').update({name,client:client||null,due_date:due||null}).eq('id',id);
+  if(error){alert('Error: '+error.message);return;}
+  showToast('✅ Audit details saved.');
+}
+async function updateSectionAssignee(id,val){await sb.from('sections').update({assignee_email:val||null}).eq('id',id);showToast('Assignee updated.');}
+async function updateSectionDue(id,val){await sb.from('sections').update({due_date:val||null}).eq('id',id);showToast('Due date updated.');}
+async function updateSubAssignee(id,val){await sb.from('subsections').update({assignee_email:val||null}).eq('id',id);showToast('Assignee updated.');}
+async function updateSubDue(id,val){await sb.from('subsections').update({due_date:val||null}).eq('id',id);showToast('Due date updated.');}
+async function updateSubBudgetEdit(id,val){await sb.from('subsections').update({budget_hours:parseFloat(val)||0}).eq('id',id);showToast('Budget hours updated.');}
+async function deleteSubEdit(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderEditAudit();}
+async function addSubToSection(secId,inheritAssignee,inheritDue){
+  const name=document.getElementById(`newSubName_${secId}`).value.trim();
+  if(!name){alert('Please enter a subsection name.');return;}
+  const assignee=document.getElementById(`newSubAssignee_${secId}`).value||inheritAssignee||null;
+  const due=document.getElementById(`newSubDue_${secId}`).value||inheritDue||null;
+  const budget=parseFloat(document.getElementById(`newSubBudget_${secId}`).value)||0;
+  await sb.from('subsections').insert({section_id:secId,name,assignee_email:assignee,due_date:due,budget_hours:budget,step:'Not Started',sort_order:999});
+  showToast('✅ Subsection added.');renderEditAudit();
+}
+
 // ── Update View ───────────────────────────────────────────────────────────
 async function renderUpdate(){
-  const myEmail = currentUser.email;
-  const {data:subs} = await sb.from('subsection_summary').select('*').eq('assignee_email',myEmail);
-  const {data:sections} = await sb.from('sections').select('*');
-  const {data:audits} = await sb.from('audits').select('*');
+  const myEmail=currentUser.email;
+  const {data:subs}=await sb.from('subsection_summary').select('*').eq('assignee_email',myEmail);
+  const {data:sections}=await sb.from('sections').select('*');
+  const {data:audits}=await sb.from('audits').select('*');
   const secMap={},auditMap={};
   (sections||[]).forEach(s=>secMap[s.id]=s);
   (audits||[]).forEach(a=>auditMap[a.id]=a);
@@ -688,19 +728,14 @@ async function renderUpdate(){
 
   if(!(subs||[]).length){
     html+=`<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>`;
-    document.getElementById('mainContent').innerHTML=html; return;
+    document.getElementById('mainContent').innerHTML=html;return;
   }
 
   const byAudit={};
-  (subs||[]).forEach(sub=>{
-    const sec=secMap[sub.section_id]; if(!sec) return;
-    const aud=auditMap[sec.audit_id]; if(!aud) return;
-    if(!byAudit[aud.id]) byAudit[aud.id]={audit:aud,sec,items:[]};
-    byAudit[aud.id].items.push({sub,sec});
-  });
+  (subs||[]).forEach(sub=>{const sec=secMap[sub.section_id];if(!sec)return;const aud=auditMap[sec.audit_id];if(!aud)return;if(!byAudit[aud.id])byAudit[aud.id]={audit:aud,items:[]};byAudit[aud.id].items.push({sub,sec});});
 
   for(const [,group] of Object.entries(byAudit)){
-    html+=`<div style="margin-bottom:20px;"><div style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">📋 ${group.audit.name}${group.audit.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+group.audit.client+'</span>':''}</div><div style="display:flex;flex-direction:column;gap:10px;">`;
+    html+=`<div style="margin-bottom:20px;"><div style="font-family:'Trebuchet MS',sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">📋 ${group.audit.name}${group.audit.client?` <span style="font-weight:400;font-size:13px;color:#9ca3af;">— ${group.audit.client}</span>`:''}</div><div style="display:flex;flex-direction:column;gap:10px;">`;
     for(const {sub,sec} of group.items){
       const sc=STEP_COLORS[sub.step]; const stepIdx=STEPS.indexOf(sub.step); const isDone=sub.step==='Done';
       const overBudget=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
@@ -725,7 +760,7 @@ async function renderUpdate(){
             :`<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;border:1px solid #bbf7d0;">✅ Complete!</div>`
           }
         </div>
-        <button onclick="showTeams('${group.audit.name}','${sec.name}','${sub.name}','${sub.step}','${sub.due_date||''}','${parseFloat(sub.actual_hours||0).toFixed(1)}')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>
+        <button onclick="showTeams('${group.audit.name}','${sec.name}','${sub.name}','${sub.step}','${sub.due_date||''}','${fmtHrs(sub.actual_hours)}')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>
       </div>`;
     }
     html+=`</div></div>`;
@@ -737,17 +772,17 @@ async function renderUpdate(){
 async function renderTimesheet(){
   const isManager=currentRole==='manager'||currentRole==='director';
   if(isManager){
-    const {data:entries} = await sb.from('timesheet_variance_summary').select('*').limit(100);
+    const {data:entries}=await sb.from('timesheet_variance_summary').select('*').limit(100);
     const flagged=(entries||[]).filter(e=>Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending');
     let html=`<div style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px;">Weekly Timesheet Reconciliation</div>`;
-    if(flagged.length) html+=`<div class="alert alert-warning" style="margin-bottom:16px;">⚠️ ${flagged.length} unresolved variance${flagged.length>1?'s':''} require review.</div>`;
+    if(flagged.length)html+=`<div class="alert alert-warning" style="margin-bottom:16px;">⚠️ ${flagged.length} unresolved variance${flagged.length>1?'s':''} require review.</div>`;
     html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>`;
     (entries||[]).forEach(e=>{
-      const v=parseFloat(e.variance||0); const hasVar=Math.abs(v)>0;
+      const v=parseFloat(e.variance||0);const hasVar=Math.abs(v)>0;
       html+=`<tr style="background:${hasVar&&e.status==='pending'?'#fff7ed':'#fff'};">
         <td>${e.week_ending}</td><td>${e.submitted_by_email}</td><td>${e.audit_name}</td><td>${e.section_name}</td><td>${e.subsection_name}</td>
-        <td>${parseFloat(e.firm_system_hours||0).toFixed(1)}h</td><td>${parseFloat(e.app_hours||0).toFixed(1)}h</td>
-        <td style="color:${v>0?'#dc2626':'#16a34a'};font-weight:600;">${v>0?'+':''}${v.toFixed(1)}h</td>
+        <td>${fmtHrs(e.firm_system_hours)}h</td><td>${fmtHrs(e.app_hours)}h</td>
+        <td style="color:${v>0?'#dc2626':'#16a34a'};font-weight:600;">${v>0?'+':''}${fmtHrs(v)}h</td>
         <td style="max-width:200px;font-size:12px;">${e.explanation||'—'}</td>
         <td><span class="badge" style="color:${e.status==='pending'?'#d97706':'#16a34a'};background:${e.status==='pending'?'#fffbeb':'#f0fdf4'};">${e.status}</span></td>
       </tr>`;
@@ -755,22 +790,15 @@ async function renderTimesheet(){
     html+=`</tbody></table></div>`;
     document.getElementById('mainContent').innerHTML=html;
   } else {
-    const {data:entries} = await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',currentUser.id).order('submitted_at',{ascending:false}).limit(50);
+    const {data:entries}=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',currentUser.id).order('submitted_at',{ascending:false}).limit(50);
     let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">My Timesheets</span>
       <button onclick="openTimesheetModal()" class="orange-btn">📅 Submit Timesheet</button>
     </div>`;
-    if(!(entries||[]).length) html+=`<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>`;
+    if(!(entries||[]).length)html+=`<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>`;
     else{
       html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>`;
-      (entries||[]).forEach(e=>{
-        const v=parseFloat(e.variance||0);
-        html+=`<tr><td>${e.week_ending}</td><td>${e.subsections?.name||'—'}</td>      <td>${fmtHrs(e.firm_system_hours)}h</td><td>${fmtHrs(e.app_hours)}h</td>
-        <td style="color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};font-weight:600;">${v>0?'+':''}${fmtHrs(v)}h</td>
-          <td style="font-size:12px;">${e.explanation||'—'}</td>
-          <td><span class="badge" style="color:${e.status==='pending'?'#d97706':'#16a34a'};background:${e.status==='pending'?'#fffbeb':'#f0fdf4'};">${e.status}</span></td>
-        </tr>`;
-      });
+      (entries||[]).forEach(e=>{const v=parseFloat(e.variance||0); html+=`<tr><td>${e.week_ending}</td><td>${e.subsections?.name||'—'}</td><td>${fmtHrs(e.firm_system_hours)}h</td><td>${fmtHrs(e.app_hours)}h</td><td style="color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};font-weight:600;">${v>0?'+':''}${fmtHrs(v)}h</td><td style="font-size:12px;">${e.explanation||'—'}</td><td><span class="badge" style="color:${e.status==='pending'?'#d97706':'#16a34a'};background:${e.status==='pending'?'#fffbeb':'#f0fdf4'};">${e.status}</span></td></tr>`;});
       html+=`</tbody></table></div>`;
     }
     document.getElementById('mainContent').innerHTML=html;
@@ -780,12 +808,12 @@ async function renderTimesheet(){
 async function openTimesheetModal(){
   const {data:subs}=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',currentUser.email);
   const sel=document.getElementById('tsSubsection');
-  sel.innerHTML=(subs||[]).map(s=>`<option value="${s.id}" data-secid="${s.section_id}">${s.sections?.audits?.name||''} → ${s.sections?.name||''} → ${s.name}</option>`).join('');
+  sel.innerHTML=(subs||[]).map(s=>`<option value="${s.id}">${s.sections?.audits?.name||''} → ${s.sections?.name||''} → ${s.name}</option>`).join('');
   document.getElementById('tsFirmHours').value='';
   document.getElementById('tsAppHours').value='';
   document.getElementById('tsVarianceBox').style.display='none';
   document.getElementById('tsExplanation').value='';
-  const fri=new Date(); fri.setDate(fri.getDate()+(5-fri.getDay()+7)%7);
+  const fri=new Date();fri.setDate(fri.getDate()+(5-fri.getDay()+7)%7);
   document.getElementById('tsWeekEnding').value=fri.toISOString().slice(0,10);
   document.getElementById('timesheetModal').style.display='flex';
 }
@@ -794,14 +822,14 @@ async function calcVariance(){
   const subId=document.getElementById('tsSubsection').value;
   const weekEnd=document.getElementById('tsWeekEnding').value;
   const firmHrs=parseFloat(document.getElementById('tsFirmHours').value)||0;
-  if(!subId||!weekEnd) return;
+  if(!subId||!weekEnd)return;
   const {data:logs}=await sb.from('step_logs').select('hours,logged_at').eq('subsection_id',subId);
-  const weekStart=new Date(weekEnd); weekStart.setDate(weekStart.getDate()-6);
-  const appHrs=(logs||[]).filter(l=>{ const d=new Date(l.logged_at); return d>=weekStart&&d<=new Date(weekEnd); }).reduce((a,l)=>a+parseFloat(l.hours||0),0);
+  const weekStart=new Date(weekEnd);weekStart.setDate(weekStart.getDate()-6);
+  const appHrs=(logs||[]).filter(l=>{const d=new Date(l.logged_at);return d>=weekStart&&d<=new Date(weekEnd);}).reduce((a,l)=>a+parseFloat(l.hours||0),0);
   document.getElementById('tsAppHours').value=appHrs.toFixed(2);
   const v=firmHrs-appHrs;
   const vbox=document.getElementById('tsVarianceBox');
-  if(Math.abs(v)>0.01){ vbox.style.display='block'; document.getElementById('tsVarianceAmt').textContent=`Firm system: ${firmHrs.toFixed(1)}h | App: ${appHrs.toFixed(1)}h | Variance: ${v>0?'+':''}${v.toFixed(1)}h`; }
+  if(Math.abs(v)>0.01){vbox.style.display='block';document.getElementById('tsVarianceAmt').textContent=`Firm system: ${fmtHrs(firmHrs)}h | App: ${fmtHrs(appHrs)}h | Variance: ${v>0?'+':''}${fmtHrs(v)}h`;}
   else vbox.style.display='none';
 }
 
@@ -812,46 +840,28 @@ async function submitTimesheet(){
   const appHrs=parseFloat(document.getElementById('tsAppHours').value)||0;
   const variance=Math.abs(firmHrs-appHrs);
   const hasVariance=variance>0.01;
-
-  if(hasVariance){
-    const exp=document.getElementById('tsExplanation').value.trim();
-    if(!exp){ alert('Please provide an explanation for the variance before submitting.'); return; }
-  }
-
+  if(hasVariance){const exp=document.getElementById('tsExplanation').value.trim();if(!exp){alert('Please provide an explanation for the variance before submitting.');return;}}
   const exp=document.getElementById('tsExplanation').value.trim();
   const status=hasVariance?'pending':'reviewed';
-
-  await sb.from('timesheet_entries').insert({
-    subsection_id:subId,
-    week_ending:weekEnd,
-    firm_system_hours:firmHrs,
-    app_hours:appHrs,
-    explanation:exp||null,
-    submitted_by:currentUser.id,
-    submitted_by_email:currentUser.email,
-    status
-  });
-  closeModal('timesheetModal');
-  showView('timesheet');
+  await sb.from('timesheet_entries').insert({subsection_id:subId,week_ending:weekEnd,firm_system_hours:firmHrs,app_hours:appHrs,explanation:exp||null,submitted_by:currentUser.id,submitted_by_email:currentUser.email,status});
+  closeModal('timesheetModal');showView('timesheet');
 }
 
-// ── Users (manager only) ──────────────────────────────────────────────────
+// ── Users ─────────────────────────────────────────────────────────────────
 async function renderUsers(){
-  if(currentRole!=='manager'){ document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`; return; }
+  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
   const {data:users}=await sb.from('users').select('*').order('full_name');
   let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">User Management</span>
     <button onclick="document.getElementById('addUserModal').style.display='flex'" class="orange-btn">➕ Add User</button>
   </div>
   <div class="alert alert-warning" style="margin-bottom:16px;">
-    To add a user: click <b>Add User</b>, fill in their details and set a temporary password. 
-    Share the temporary password with them — they can change it using the <b>🔑 Change Password</b> button after logging in.
+    To add a user: first create them in <b>Supabase Auth → Users → Add user</b>, then click <b>Add User</b> here to set their name and role. Share their temporary password with them — they can change it via <b>🔑 Change Password</b> after login.
   </div>
   <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>`;
   (users||[]).forEach(u=>{
     html+=`<tr>
-      <td style="font-weight:600;">${u.full_name}</td>
-      <td>${u.email}</td>
+      <td style="font-weight:600;">${u.full_name}</td><td>${u.email}</td>
       <td><span class="badge role-badge role-${u.role}">${u.role}</span></td>
       <td><span style="color:${u.active?'#16a34a':'#dc2626'};font-weight:600;">${u.active?'✅ Active':'❌ Inactive'}</span></td>
       <td style="display:flex;gap:6px;align-items:center;">
@@ -867,71 +877,33 @@ async function renderUsers(){
   document.getElementById('mainContent').innerHTML=html;
 }
 
-function showChangePassword(){
-  document.getElementById('newPassword').value='';
-  document.getElementById('confirmPassword').value='';
-  document.getElementById('changePasswordStatus').style.display='none';
-  document.getElementById('changePasswordModal').style.display='flex';
-}
-
-async function doChangePassword(){
-  const pwd=document.getElementById('newPassword').value;
-  const confirm=document.getElementById('confirmPassword').value;
-  const status=document.getElementById('changePasswordStatus');
-  if(!pwd||pwd.length<6){ status.className='alert alert-error'; status.textContent='Password must be at least 6 characters.'; status.style.display='block'; return; }
-  if(pwd!==confirm){ status.className='alert alert-error'; status.textContent='Passwords do not match.'; status.style.display='block'; return; }
-  const {error}=await sb.auth.updateUser({password:pwd});
-  if(error){ status.className='alert alert-error'; status.textContent=error.message; }
-  else{ status.className='alert alert-success'; status.textContent='✅ Password updated successfully!'; setTimeout(()=>closeModal('changePasswordModal'),1500); }
-  status.style.display='block';
-}
-
 async function doAddUser(){
   const name=document.getElementById('newUserName').value.trim();
   const email=document.getElementById('newUserEmail').value.trim();
   const role=document.getElementById('newUserRole').value;
-  const password=document.getElementById('newUserPassword').value.trim();
   const status=document.getElementById('addUserStatus');
   status.style.display='none';
-  if(!name||!email||!password){ status.className='alert alert-error'; status.textContent='Please fill in all required fields.'; status.style.display='block'; return; }
-  if(!email.endsWith('@hvns.co.za')){ status.className='alert alert-warning'; status.textContent='Warning: email does not end in @hvns.co.za — are you sure?'; status.style.display='block'; }
-
-  // Create auth user via Supabase Admin API
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${(await sb.auth.getSession()).data.session.access_token}` },
-    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: name, role } })
-  });
-  const newUser = await res.json();
-  if(newUser.error||!newUser.id){ status.className='alert alert-error'; status.textContent=newUser.error||newUser.msg||'Error creating user. You may need the service role key for this.'; status.style.display='block'; return; }
-
-  // Insert into public.users
-  await sb.from('users').upsert({ id: newUser.id, email, full_name: name, role, active: true }, { onConflict: 'id' });
-  status.className='alert alert-success';
-  status.textContent=`✅ User ${name} created! Share their temporary password: ${password}`;
-  status.style.display='block';
-  allUsers=[...allUsers,{id:newUser.id,email,full_name:name,role,active:true}];
-  setTimeout(()=>{ closeModal('addUserModal'); renderUsers(); },2500);
+  if(!name||!email){status.className='alert alert-error';status.textContent='Please fill in name and email.';status.style.display='block';return;}
+  const {data:authUser}=await sb.from('users').select('id').eq('email',email).single().catch(()=>({data:null}));
+  if(authUser){status.className='alert alert-warning';status.textContent='A user with this email already exists.';status.style.display='block';return;}
+  const {error}=await sb.from('users').upsert({email,full_name:name,role,active:true},{onConflict:'email'});
+  if(error){status.className='alert alert-error';status.textContent='Error: '+error.message+'. Make sure the user was created in Supabase Auth first.';status.style.display='block';return;}
+  allUsers=[...allUsers,{email,full_name:name,role,active:true}];
+  status.className='alert alert-success';status.textContent=`✅ Profile saved for ${name}.`;status.style.display='block';
+  setTimeout(()=>{closeModal('addUserModal');renderUsers();},1500);
 }
 
+async function updateRole(userId,role){await sb.from('users').update({role}).eq('id',userId);showToast('Role updated.');}
+async function toggleActive(userId,current){await sb.from('users').update({active:!current}).eq('id',userId);renderUsers();}
 async function resetUserPassword(email){
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
-  if(error) alert('Error: '+error.message);
-  else alert(`✅ Password reset email sent to ${email}`);
+  if(error)alert('Error: '+error.message);
+  else showToast(`✅ Reset email sent to ${email}`);
 }
-
-async function updateBudgetHours(subId, value){
-  const hrs = parseFloat(value)||0;
-  const {error} = await sb.from('subsections').update({budget_hours:hrs}).eq('id',subId);
-  if(error) alert('Error updating budget hours: '+error.message);
-}
-
-async function updateRole(userId,role){ await sb.from('users').update({role}).eq('id',userId); }
-async function toggleActive(userId,current){ await sb.from('users').update({active:!current}).eq('id',userId); renderUsers(); }
 
 // ── Settings ──────────────────────────────────────────────────────────────
 async function renderSettings(){
-  if(currentRole!=='manager'){ document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`; return; }
+  if(currentRole!=='manager'){document.getElementById('mainContent').innerHTML=`<div class="alert alert-error">Access denied.</div>`;return;}
   const {data:s}=await sb.from('settings').select('*');
   const rate=(s||[]).find(x=>x.key==='firm_rate')?.value||'1000';
   const fname=(s||[]).find(x=>x.key==='firm_name')?.value||'HVNS & Company';
@@ -948,32 +920,26 @@ async function renderSettings(){
 async function saveSettings(){
   const rate=document.getElementById('settingRate')?.value;
   const name=document.getElementById('settingFirmName')?.value;
-  if(rate) await sb.from('settings').upsert({key:'firm_rate',value:rate},{onConflict:'key'});
-  if(name) await sb.from('settings').upsert({key:'firm_name',value:name},{onConflict:'key'});
+  if(rate)await sb.from('settings').upsert({key:'firm_rate',value:rate},{onConflict:'key'});
+  if(name)await sb.from('settings').upsert({key:'firm_name',value:name},{onConflict:'key'});
   firmRate=parseFloat(rate)||1000;
-  alert('Settings saved.');
+  showToast('✅ Settings saved.');
 }
 
 // ── Report ────────────────────────────────────────────────────────────────
 async function showReport(auditId){
-  if(currentRole==='staff') return;
+  if(currentRole==='staff')return;
   const {data:audit}=await sb.from('audits').select('*').eq('id',auditId).single();
   const {data:subs}=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id)').eq('sections.audit_id',auditId);
-  const rows=(subs||[]).map(s=>({
-    section:s.sections?.name||'',subsection:s.name,assignee:s.assignee_email||'',
-    due:s.due_date||'',step:s.step,progress:s.progress_pct||0,
-    budget:parseFloat(s.budget_hours||0).toFixed(1),actual:parseFloat(s.actual_hours||0).toFixed(1),
-    variance:(parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0)).toFixed(1),
-    fee:parseFloat(s.fee_value||0).toFixed(2),budgetFee:parseFloat(s.budget_fee||0).toFixed(2)
-  }));
+  const rows=(subs||[]).map(s=>({section:s.sections?.name||'',subsection:s.name,assignee:s.assignee_email||'',due:s.due_date||'',step:s.step,progress:s.progress_pct||0,budget:parseFloat(s.budget_hours||0),actual:parseFloat(s.actual_hours||0),variance:(parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0)),fee:parseFloat(s.fee_value||0)}));
   document.getElementById('reportTitle').textContent=`📊 ${audit?.name} — Detailed Report`;
-  const totalBudgetR=rows.reduce((a,r)=>a+parseFloat(r.budget),0);
-  const totalActualR=rows.reduce((a,r)=>a+parseFloat(r.actual),0);
-  const totalFeeR=rows.reduce((a,r)=>a+parseFloat(r.fee),0);
-  document.getElementById('reportSubtitle').textContent=`${rows.length} items · Budget: ${fmtHrs(totalBudgetR)}h · Actual: ${fmtHrs(totalActualR)}h · Fee: ${fmt(totalFeeR)}`;
+  const totalBudget=rows.reduce((a,r)=>a+r.budget,0);
+  const totalActual=rows.reduce((a,r)=>a+r.actual,0);
+  const totalFee=rows.reduce((a,r)=>a+r.fee,0);
+  document.getElementById('reportSubtitle').textContent=`${rows.length} items · Budget: ${fmtHrs(totalBudget)}h · Actual: ${fmtHrs(totalActual)}h · Fee: ${fmt(totalFee)}`;
   document.getElementById('reportHead').innerHTML=`<tr>${['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance','Fee Value'].map(h=>`<th>${h}</th>`).join('')}</tr>`;
   document.getElementById('reportBody').innerHTML=rows.map((r,i)=>{
-    const sc=STEP_COLORS[r.step]; const over=parseFloat(r.variance)<0;
+    const sc=STEP_COLORS[r.step];const over=r.variance<0;
     return `<tr style="background:${over?'#fff5f5':i%2===0?'#fff':'#f8fafc'};">
       <td style="font-weight:600;color:var(--navy);">${r.section}</td><td>${r.subsection}</td>
       <td style="color:#6b7280;font-size:12px;">${r.assignee}</td><td style="font-size:12px;">${r.due||'—'}</td>
@@ -981,63 +947,61 @@ async function showReport(auditId){
       <td><div style="display:flex;align-items:center;gap:6px;">${miniBar(r.progress,6)}<b>${r.progress}%</b></div></td>
       <td style="font-weight:600;">${fmtHrs(r.budget)}h</td>
       <td style="font-weight:600;">${fmtHrs(r.actual)}h</td>
-      <td style="font-weight:700;color:${over?'#dc2626':'#16a34a'};">${parseFloat(r.variance)>0?'+':''}${fmtHrs(r.variance)}h</td>
+      <td style="font-weight:700;color:${over?'#dc2626':'#16a34a'};">${r.variance>0?'+':''}${fmtHrs(r.variance)}h</td>
       <td style="font-weight:600;color:#16a34a;">${fmt(r.fee)}</td>
     </tr>`;
   }).join('');
   const headers=['Section','Subsection','Assignee','Due Date','Step','Progress %','Budget Hours','Actual Hours','Variance Hours','Fee Value (R)'];
-  const csvRows=[headers,...rows.map(r=>[r.section,r.subsection,r.assignee,r.due,r.step,r.progress,r.budget,r.actual,r.variance,r.fee])];
+  const csvRows=[headers,...rows.map(r=>[r.section,r.subsection,r.assignee,r.due,r.step,r.progress,fmtHrs(r.budget),fmtHrs(r.actual),fmtHrs(r.variance),r.fee.toFixed(2)])];
   document.getElementById('csvText').value=csvRows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   document.getElementById('reportModal').style.display='flex';
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────
-function toggleAudit(id){ expandedAudit=expandedAudit===id?null:id; expandedSec=null; renderView(); }
-function toggleSec(id){ expandedSec=expandedSec===id?null:id; renderView(); }
-function setFormStep(s){ formStep=s; renderAdd(); }
+function toggleAudit(id){expandedAudit=expandedAudit===id?null:id;expandedSec=null;renderView();}
+function toggleSec(id){expandedSec=expandedSec===id?null:id;renderView();}
+function setFormStep(s){formStep=s;renderAdd();}
+
 function goToStep2(){
   fAuditName=document.getElementById('fAuditName').value.trim();
   fClientName=document.getElementById('fClientName').value.trim();
   fDefDue=document.getElementById('fDefDue').value;
-  if(!fAuditName||!fDefDue){ alert('Please fill in Audit Name and Due Date.'); return; }
-  formStep=2; renderAdd();
+  if(!fAuditName||!fDefDue){alert('Please fill in Audit Name and Due Date.');return;}
+  formStep=2;renderAdd();
 }
-function toggleSection(name){ formSel[name]=!formSel[name]; renderAdd(); }
-function setSecAssignee(sec,val){ formSecDet[sec].assignee=val; }
-function setSecDue(sec,val){ formSecDet[sec].due=val; }
-function distributeSectionBudget(secName, totalHrs){
-  const hrs = parseFloat(totalHrs)||0;
-  formSecDet[secName].sectionBudget = hrs;
-  const t = SECTION_TEMPLATES.find(x=>x.name===secName);
-  const allSubs = [...(t?.subs||[]), ...(formExtraSubs[secName]||[])];
-  if(!allSubs.length) return;
-  const perSub = (hrs / allSubs.length).toFixed(2);
-  allSubs.forEach(sub=>{
-    if(!formSecDet[secName].subsections[sub]) formSecDet[secName].subsections[sub]={assignee:'',due:'',budget:''};
-    formSecDet[secName].subsections[sub].budget = perSub;
-  });
+function toggleSection(name){formSel[name]=!formSel[name];renderAdd();}
+function setSecAssignee(sec,val){formSecDet[sec].assignee=val;}
+function setSecDue(sec,val){formSecDet[sec].due=val;}
+function setSubAssignee(sec,sub,val){if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={};formSecDet[sec].subsections[sub].assignee=val;}
+function setSubDue(sec,sub,val){if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={};formSecDet[sec].subsections[sub].due=val;}
+function setSubBudget(sec,sub,val){if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={};formSecDet[sec].subsections[sub].budget=val;}
+function distributeSectionBudget(secName,totalHrs){
+  const hrs=parseFloat(totalHrs)||0;
+  formSecDet[secName].sectionBudget=hrs;
+  const t=SECTION_TEMPLATES.find(x=>x.name===secName);
+  const allSubs=[...(t?.subs||[]),...(formExtraSubs[secName]||[])];
+  if(!allSubs.length)return;
+  const perSub=(hrs/allSubs.length).toFixed(2);
+  allSubs.forEach(sub=>{if(!formSecDet[secName].subsections[sub])formSecDet[secName].subsections[sub]={assignee:'',due:'',budget:''};formSecDet[secName].subsections[sub].budget=perSub;});
   renderAdd();
 }
-function setSubAssignee(sec,sub,val){ if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={}; formSecDet[sec].subsections[sub].assignee=val; }
-function setSubDue(sec,sub,val){ if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={}; formSecDet[sec].subsections[sub].due=val; }
-function setSubBudget(sec,sub,val){ if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={}; formSecDet[sec].subsections[sub].budget=val; }
 function addExtraSub(secName){
   const key=secName.replace(/\s+/g,'_');
   const inp=document.getElementById('extraSubInp_'+key);
-  if(!inp||!inp.value.trim()) return;
+  if(!inp||!inp.value.trim())return;
   formExtraSubs[secName].push(inp.value.trim());
   formSecDet[secName].subsections[inp.value.trim()]={assignee:'',due:'',budget:''};
   renderAdd();
 }
-function removeExtraSub(secName,idx){ formExtraSubs[secName].splice(idx,1); renderAdd(); }
+function removeExtraSub(secName,idx){formExtraSubs[secName].splice(idx,1);renderAdd();}
 
 async function createAudit(){
-  const btn = document.querySelector('button[onclick="createAudit()"]');
-  if(btn){ btn.disabled=true; btn.textContent='Creating...'; btn.style.opacity='0.6'; }
+  const btn=document.getElementById('createAuditBtn');
+  if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
   const sections=SECTION_TEMPLATES.filter(t=>formSel[t.name]);
-  if(!sections.length){ alert('Please select at least one section.'); if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';} return; }
+  if(!sections.length){alert('Please select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
   const {data:audit,error:ae}=await sb.from('audits').insert({name:fAuditName,client:fClientName||null,due_date:fDefDue||null,firm_rate:firmRate,created_by:currentUser.id}).select().single();
-  if(ae){ alert('Error creating audit: '+ae.message); if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';} return; }
+  if(ae){alert('Error creating audit: '+ae.message);if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';}return;}
   let sortOrder=0;
   for(const t of sections){
     const d=formSecDet[t.name];
@@ -1049,19 +1013,18 @@ async function createAudit(){
       await sb.from('subsections').insert({section_id:sec.id,name:sub,assignee_email:sd.assignee||d.assignee||null,due_date:sd.due||d.due||fDefDue||null,budget_hours:parseFloat(sd.budget)||0,sort_order:subSort++});
     }
   }
-  initForm(); showView('dashboard');
+  initForm();showView('dashboard');
 }
 
-async function deleteAudit(id){ if(!confirm('Delete this audit and all its data?')) return; await sb.from('audits').delete().eq('id',id); renderView(); }
+async function deleteAudit(id){if(!confirm('Delete this audit and all its data?'))return;await sb.from('audits').delete().eq('id',id);renderView();}
 
 function requestAdvance(subId,secId,subName,nextStep,budget,actual){
   pendingAdvance={subId,secId,nextStep};
   const remaining=parseFloat(budget)-parseFloat(actual);
-  document.getElementById('hoursModalText').innerHTML=`Moving <b>${subName}</b> to <b>${nextStep}</b>.<br/>How many hours did you spend on this step?${parseFloat(budget)>0?`<br/><span style="color:#6b7280;font-size:11px;">Budget remaining: ${remaining.toFixed(1)}h</span>`:''}`;
+  document.getElementById('hoursModalText').innerHTML=`Moving <b>${subName}</b> to <b>${nextStep}</b>.<br/>How many hours did you spend on this step?${parseFloat(budget)>0?`<br/><span style="color:#6b7280;font-size:11px;">Budget remaining: ${fmtHrs(remaining)}h</span>`:''}`;
   document.getElementById('hoursInput').value='';
   document.getElementById('hoursNote').value='';
-  const warn=document.getElementById('budgetWarning');
-  warn.style.display='none';
+  document.getElementById('budgetWarning').style.display='none';
   document.getElementById('hoursModal').style.display='flex';
 }
 
@@ -1070,15 +1033,14 @@ async function confirmAdvance(skip){
   const note=document.getElementById('hoursNote')?.value||'';
   const {subId,secId,nextStep}=pendingAdvance;
   await sb.from('subsections').update({step:nextStep}).eq('id',subId);
-  if(hrs>0) await sb.from('step_logs').insert({subsection_id:subId,step:nextStep,hours:hrs,logged_by:currentUser.id,logged_by_email:currentUser.email,note:note||null});
-  closeModal('hoursModal');
-  renderView();
+  if(hrs>0)await sb.from('step_logs').insert({subsection_id:subId,step:nextStep,hours:hrs,logged_by:currentUser.id,logged_by_email:currentUser.email,note:note||null});
+  closeModal('hoursModal');renderView();
 }
 
-async function regressStep(subId,secId){
+async function regressStep(subId){
   const {data:sub}=await sb.from('subsections').select('step').eq('id',subId).single();
   const idx=STEPS.indexOf(sub.step);
-  if(idx<=0) return;
+  if(idx<=0)return;
   await sb.from('subsections').update({step:STEPS[idx-1]}).eq('id',subId);
   renderView();
 }
@@ -1090,9 +1052,9 @@ function openReassign(subId,current){
   document.getElementById('reassignModal').style.display='flex';
 }
 async function doReassign(){
-  const val=document.getElementById('reassignSelect').value; if(!val) return;
+  const val=document.getElementById('reassignSelect').value;if(!val)return;
   await sb.from('subsections').update({assignee_email:val}).eq('id',pendingReassign.subId);
-  closeModal('reassignModal'); renderView();
+  closeModal('reassignModal');renderView();
 }
 
 function openAddSub(auditId,secId){
@@ -1100,20 +1062,19 @@ function openAddSub(auditId,secId){
   document.getElementById('addSubName').value='';
   document.getElementById('addSubDue').value='';
   document.getElementById('addSubBudget').value='';
-  const sel=document.getElementById('addSubAssignee');
-  sel.innerHTML=`<option value="">Inherit from section</option>`+allUsers.map(u=>`<option value="${u.email}">${u.full_name}</option>`).join('');
+  document.getElementById('addSubAssignee').innerHTML=`<option value="">Inherit from section</option>`+allUsers.map(u=>`<option value="${u.email}">${u.full_name}</option>`).join('');
   document.getElementById('addSubModal').style.display='flex';
 }
 async function confirmAddSub(){
-  const name=document.getElementById('addSubName').value.trim(); if(!name) return;
+  const name=document.getElementById('addSubName').value.trim();if(!name)return;
   const assignee=document.getElementById('addSubAssignee').value;
   const due=document.getElementById('addSubDue').value;
   const budget=parseFloat(document.getElementById('addSubBudget').value)||0;
   const {data:sec}=await sb.from('sections').select('assignee_email,due_date').eq('id',pendingAddSub.secId).single();
   await sb.from('subsections').insert({section_id:pendingAddSub.secId,name,assignee_email:assignee||sec?.assignee_email||null,due_date:due||sec?.due_date||null,budget_hours:budget});
-  closeModal('addSubModal'); renderView();
+  closeModal('addSubModal');renderView();
 }
-async function deleteSub(subId){ if(!confirm('Remove this subsection?')) return; await sb.from('subsections').delete().eq('id',subId); renderView(); }
+async function deleteSub(subId){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',subId);renderView();}
 
 function showTeams(auditName,secName,subName,step,due,hours){
   const msg=`📋 Audit Update — HVNS & Company\nAudit: ${auditName}\nSection: ${secName} — ${subName}\nCurrent Step: ${step}${due?'\nDue: '+due:''}\nHours Logged: ${hours}h\n\nPlease update your progress in the Audit Tracker.`;
@@ -1121,31 +1082,65 @@ function showTeams(auditName,secName,subName,step,due,hours){
   document.getElementById('teamsModal').style.display='flex';
 }
 
-// ── CSV Import / Export ───────────────────────────────────────────────────
+async function updateBudgetHours(subId,value){
+  const hrs=parseFloat(value)||0;
+  await sb.from('subsections').update({budget_hours:hrs}).eq('id',subId);
+  showToast('Budget hours updated.');
+}
+
+function showChangePassword(){
+  document.getElementById('newPassword').value='';
+  document.getElementById('confirmPassword').value='';
+  document.getElementById('changePasswordStatus').style.display='none';
+  document.getElementById('changePasswordModal').style.display='flex';
+}
+async function doChangePassword(){
+  const pwd=document.getElementById('newPassword').value;
+  const confirm=document.getElementById('confirmPassword').value;
+  const status=document.getElementById('changePasswordStatus');
+  if(!pwd||pwd.length<6){status.className='alert alert-error';status.textContent='Password must be at least 6 characters.';status.style.display='block';return;}
+  if(pwd!==confirm){status.className='alert alert-error';status.textContent='Passwords do not match.';status.style.display='block';return;}
+  const {error}=await sb.auth.updateUser({password:pwd});
+  if(error){status.className='alert alert-error';status.textContent=error.message;}
+  else{status.className='alert alert-success';status.textContent='✅ Password updated successfully!';setTimeout(()=>closeModal('changePasswordModal'),1500);}
+  status.style.display='block';
+}
+
+function showForgotPassword(){
+  document.getElementById('forgotEmail').value='';
+  document.getElementById('forgotStatus').style.display='none';
+  document.getElementById('forgotModal').style.display='flex';
+}
+async function doForgotPassword(){
+  const email=document.getElementById('forgotEmail').value.trim();
+  const status=document.getElementById('forgotStatus');
+  if(!email){status.className='alert alert-error';status.textContent='Please enter your email address.';status.style.display='block';return;}
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
+  if(error){status.className='alert alert-error';status.textContent=error.message;}
+  else{status.className='alert alert-success';status.textContent='✅ Reset link sent! Check your inbox.';}
+  status.style.display='block';
+}
+
 function downloadCSVTemplate(){
   const csv=`Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3`;
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='audit_plan_template.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
 function handleCSVImport(e){
-  const file=e.target.files[0]; if(!file) return;
+  const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(ev){
     const lines=ev.target.result.split('\n').filter(l=>l.trim());
     const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
-    const rows=lines.slice(1).map(l=>{ const vals=l.split(','); return Object.fromEntries(headers.map((h,i)=>[h,vals[i]?.trim()||''])); });
+    const rows=lines.slice(1).map(l=>{const vals=l.split(',');return Object.fromEntries(headers.map((h,i)=>[h,vals[i]?.trim()||'']));});
     rows.forEach(r=>{
-      const secName=r['section']||r['section_name']; const subName=r['subsection']||r['subsection_name'];
-      const assignee=r['assignee_email']||r['assignee']||''; const budget=parseFloat(r['budget_hours']||r['budget'])||0;
-      if(!secName||!subName) return;
+      const secName=r['section']||r['section_name'];const subName=r['subsection']||r['subsection_name'];
+      const assignee=r['assignee_email']||r['assignee']||'';const budget=parseFloat(r['budget_hours']||r['budget'])||0;
+      if(!secName||!subName)return;
       const t=SECTION_TEMPLATES.find(x=>x.name.toLowerCase()===secName.toLowerCase());
-      if(t){ formSel[t.name]=true; if(!formSecDet[t.name].subsections[subName]) formSecDet[t.name].subsections[subName]={assignee:'',due:'',budget:''}; formSecDet[t.name].subsections[subName].assignee=assignee; formSecDet[t.name].subsections[subName].budget=budget; if(assignee) formSecDet[t.name].assignee=assignee; }
-      else{ const customSec=SECTION_TEMPLATES.find(x=>x.name.toLowerCase().includes(secName.toLowerCase())); if(customSec){ if(!formExtraSubs[customSec.name]) formExtraSubs[customSec.name]=[]; if(!formExtraSubs[customSec.name].includes(subName)) formExtraSubs[customSec.name].push(subName); formSecDet[customSec.name].subsections[subName]={assignee,due:'',budget}; } }
+      if(t){formSel[t.name]=true;if(!formSecDet[t.name].subsections[subName])formSecDet[t.name].subsections[subName]={assignee:'',due:'',budget:''};formSecDet[t.name].subsections[subName].assignee=assignee;formSecDet[t.name].subsections[subName].budget=budget;if(assignee)formSecDet[t.name].assignee=assignee;}
     });
-    document.getElementById('csvImportStatus').textContent=`✅ ${rows.length} rows imported. Review sections below then click Next.`;
+    document.getElementById('csvImportStatus').textContent=`✅ ${rows.length} rows imported. Review sections below.`;
     e.target.value='';
   };
   reader.readAsText(file);
@@ -1153,15 +1148,10 @@ function handleCSVImport(e){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (async()=>{
-  // Clear any stale magic link sessions
-  const hash = window.location.hash;
-  if(hash && hash.includes('access_token')){
-    await sb.auth.signOut();
-    window.location.hash = '';
-    return;
-  }
+  const hash=window.location.hash;
+  if(hash&&hash.includes('access_token')){await sb.auth.signOut();window.location.hash='';return;}
   const {data:{session}}=await sb.auth.getSession();
-  if(session) await initApp(session.user);
+  if(session)await initApp(session.user);
 })();
 </script>
 </body>
