@@ -869,18 +869,40 @@ function importCSV(e){
         if(!defSub&&!fExtra[t.n].includes(sub))fExtra[t.n].push(sub);
         fDet[t.n].subs[key]={a:ass,due:'',b:bud.toString()};cnt++;
       });
-      // Validate unregistered
-      const reg=new Set(AU.map(u=>u.email.toLowerCase()));const unreg=new Set();
-      STPLS.forEach(t=>{if(!fSel[t.n])return;Object.values(fDet[t.n].subs).forEach(s=>{if(s.a&&!reg.has(s.a.toLowerCase()))unreg.add(s.a);});if(fDet[t.n].a&&!reg.has(fDet[t.n].a.toLowerCase()))unreg.add(fDet[t.n].a);});
+      // Validate unregistered — check ALL subsection assignees individually
+      const reg=new Set(AU.map(u=>u.email.toLowerCase()));
+      const unreg=new Set();
+      STPLS.forEach(t=>{
+        if(!fSel[t.n])return;
+        // Check section-level assignee
+        if(fDet[t.n].a&&!reg.has(fDet[t.n].a.toLowerCase()))unreg.add(fDet[t.n].a);
+        // Check every subsection assignee individually
+        Object.values(fDet[t.n].subs).forEach(s=>{
+          if(s.a&&s.a.trim()&&!reg.has(s.a.toLowerCase()))unreg.add(s.a);
+        });
+        // Also check extra subs
+        (fExtra[t.n]||[]).forEach(sub=>{
+          const sd=fDet[t.n].subs[sub];
+          if(sd&&sd.a&&!reg.has(sd.a.toLowerCase()))unreg.add(sd.a);
+        });
+      });
       let msg='✅ '+cnt+' rows imported.';
       if(unreg.size>0)msg+=' ⚠️ <b>'+unreg.size+' unregistered assignee'+(unreg.size>1?'s':'')+': '+[...unreg].join(', ')+'</b> — will link automatically when their accounts are created.';
       else msg+=' All assignees are registered ✅';
       document.getElementById('csvStatus').innerHTML=msg;
       e.target.value='';
-      fName=document.getElementById('faN')?.value.trim()||fName;
-      fClient=document.getElementById('faCl')?.value.trim()||fClient;
-      fDue=document.getElementById('faDue')?.value||fDue;
+      // Read current form values for name/date
+      const nameEl=document.getElementById('faN');
+      const dueEl=document.getElementById('faDue');
+      const clientEl=document.getElementById('faCl');
+      if(nameEl&&nameEl.value.trim())fName=nameEl.value.trim();
+      if(clientEl&&clientEl.value.trim())fClient=clientEl.value.trim();
+      if(dueEl&&dueEl.value)fDue=dueEl.value;
       if(fName&&fDue){fStep=2;vAdd();}
+      else{
+        // Stay on step 1 but show clear message
+        document.getElementById('csvStatus').innerHTML=msg+'<br/><span style="color:#d97706;font-weight:600;">👆 Fill in Audit Name and Due Date above, then click Next.</span>';
+      }
     }catch(err){alert('Error reading CSV: '+err.message);console.error(err);}
   };
   reader.readAsText(file);
