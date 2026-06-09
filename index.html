@@ -197,6 +197,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
     <div class="header-right">
       <span class="user-pill" id="userPill"></span>
       <span class="role-badge" id="roleBadge"></span>
+      <button class="logout-btn" onclick="showChangePassword()" style="border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8);">🔑 Change Password</button>
       <button class="logout-btn" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
@@ -626,8 +627,16 @@ function renderAdd(){
               </select></div>
             <div style="flex:1;min-width:110px;"><label class="lbl">Section Due Date</label>
               <input type="date" class="inp" value="${formSecDet[t.name].due||fDefDue}" onchange="setSecDue('${t.name}',this.value)"/></div>
+            <div style="min-width:120px;"><label class="lbl">Total Section Budget (hrs)</label>
+              <input type="number" class="inp" min="0" step="0.5" placeholder="e.g. 10" value="${formSecDet[t.name].sectionBudget||''}"
+                onchange="distributeSectionBudget('${t.name}',this.value)" title="Set total hours for this section — splits evenly across subsections"/></div>
           </div>
-          <div class="form-section-title" style="font-size:10px;">SUBSECTIONS</div>`;
+          <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:6px;padding:5px 10px;background:var(--navy);border-radius:6px;margin-bottom:4px;">
+            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Subsection</span>
+            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Assignee</span>
+            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">Due Date</span>
+            <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;">⏱ Budget Hrs</span>
+          </div>`;
         const allSubs=[...t.subs,...(formExtraSubs[t.name]||[])];
         allSubs.forEach((sub,idx)=>{
           const isExtra=idx>=t.subs.length;
@@ -813,32 +822,83 @@ async function renderUsers(){
   const {data:users}=await sb.from('users').select('*').order('full_name');
   let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">User Management</span>
-    <button onclick="inviteUser()" class="orange-btn">+ Invite User</button>
+    <button onclick="document.getElementById('addUserModal').style.display='flex'" class="orange-btn">➕ Add User</button>
   </div>
-  <div class="alert alert-warning" style="margin-bottom:16px;">To invite a new user: click <b>Invite User</b>, enter their @hvns.co.za email and set their role. They will receive a login link.</div>
+  <div class="alert alert-warning" style="margin-bottom:16px;">
+    To add a user: click <b>Add User</b>, fill in their details and set a temporary password. 
+    Share the temporary password with them — they can change it using the <b>🔑 Change Password</b> button after logging in.
+  </div>
   <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>`;
   (users||[]).forEach(u=>{
-    html+=`<tr><td style="font-weight:600;">${u.full_name}</td><td>${u.email}</td>
+    html+=`<tr>
+      <td style="font-weight:600;">${u.full_name}</td>
+      <td>${u.email}</td>
       <td><span class="badge role-badge role-${u.role}">${u.role}</span></td>
-      <td><span style="color:${u.active?'#16a34a':'#dc2626'};font-weight:600;">${u.active?'Active':'Inactive'}</span></td>
-      <td style="display:flex;gap:6px;">
+      <td><span style="color:${u.active?'#16a34a':'#dc2626'};font-weight:600;">${u.active?'✅ Active':'❌ Inactive'}</span></td>
+      <td style="display:flex;gap:6px;align-items:center;">
         <select class="inp" style="width:110px;font-size:12px;padding:5px 8px;background:#fff;" onchange="updateRole('${u.id}',this.value)">
           ${['staff','manager','director'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
         </select>
-        <button onclick="toggleActive('${u.id}',${u.active})" class="${u.active?'danger-btn':'ghost-btn'}" style="font-size:12px;">${u.active?'Deactivate':'Activate'}</button>
-      </td></tr>`;
+        <button onclick="toggleActive('${u.id}',${u.active})" class="${u.active?'danger-btn':'ghost-btn'}" style="font-size:12px;white-space:nowrap;">${u.active?'Deactivate':'Activate'}</button>
+        ${u.id!==currentUser.id?`<button onclick="resetUserPassword('${u.email}')" style="padding:5px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Reset Pwd</button>`:''}
+      </td>
+    </tr>`;
   });
   html+=`</tbody></table>`;
   document.getElementById('mainContent').innerHTML=html;
 }
 
-async function inviteUser(){
-  const email=prompt('Enter the user\'s email address:'); if(!email) return;
-  const name=prompt('Enter their full name:'); if(!name) return;
-  const role=prompt('Enter role (staff / manager / director):','staff'); if(!role) return;
-  const {error}=await sb.auth.admin.inviteUserByEmail(email,{data:{full_name:name,role}});
+function showChangePassword(){
+  document.getElementById('newPassword').value='';
+  document.getElementById('confirmPassword').value='';
+  document.getElementById('changePasswordStatus').style.display='none';
+  document.getElementById('changePasswordModal').style.display='flex';
+}
+
+async function doChangePassword(){
+  const pwd=document.getElementById('newPassword').value;
+  const confirm=document.getElementById('confirmPassword').value;
+  const status=document.getElementById('changePasswordStatus');
+  if(!pwd||pwd.length<6){ status.className='alert alert-error'; status.textContent='Password must be at least 6 characters.'; status.style.display='block'; return; }
+  if(pwd!==confirm){ status.className='alert alert-error'; status.textContent='Passwords do not match.'; status.style.display='block'; return; }
+  const {error}=await sb.auth.updateUser({password:pwd});
+  if(error){ status.className='alert alert-error'; status.textContent=error.message; }
+  else{ status.className='alert alert-success'; status.textContent='✅ Password updated successfully!'; setTimeout(()=>closeModal('changePasswordModal'),1500); }
+  status.style.display='block';
+}
+
+async function doAddUser(){
+  const name=document.getElementById('newUserName').value.trim();
+  const email=document.getElementById('newUserEmail').value.trim();
+  const role=document.getElementById('newUserRole').value;
+  const password=document.getElementById('newUserPassword').value.trim();
+  const status=document.getElementById('addUserStatus');
+  status.style.display='none';
+  if(!name||!email||!password){ status.className='alert alert-error'; status.textContent='Please fill in all required fields.'; status.style.display='block'; return; }
+  if(!email.endsWith('@hvns.co.za')){ status.className='alert alert-warning'; status.textContent='Warning: email does not end in @hvns.co.za — are you sure?'; status.style.display='block'; }
+
+  // Create auth user via Supabase Admin API
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${(await sb.auth.getSession()).data.session.access_token}` },
+    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: name, role } })
+  });
+  const newUser = await res.json();
+  if(newUser.error||!newUser.id){ status.className='alert alert-error'; status.textContent=newUser.error||newUser.msg||'Error creating user. You may need the service role key for this.'; status.style.display='block'; return; }
+
+  // Insert into public.users
+  await sb.from('users').upsert({ id: newUser.id, email, full_name: name, role, active: true }, { onConflict: 'id' });
+  status.className='alert alert-success';
+  status.textContent=`✅ User ${name} created! Share their temporary password: ${password}`;
+  status.style.display='block';
+  allUsers=[...allUsers,{id:newUser.id,email,full_name:name,role,active:true}];
+  setTimeout(()=>{ closeModal('addUserModal'); renderUsers(); },2500);
+}
+
+async function resetUserPassword(email){
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});
   if(error) alert('Error: '+error.message);
-  else{ alert(`Invitation sent to ${email}`); renderUsers(); }
+  else alert(`✅ Password reset email sent to ${email}`);
 }
 
 async function updateRole(userId,role){ await sb.from('users').update({role}).eq('id',userId); }
@@ -920,6 +980,19 @@ function goToStep2(){
 function toggleSection(name){ formSel[name]=!formSel[name]; renderAdd(); }
 function setSecAssignee(sec,val){ formSecDet[sec].assignee=val; }
 function setSecDue(sec,val){ formSecDet[sec].due=val; }
+function distributeSectionBudget(secName, totalHrs){
+  const hrs = parseFloat(totalHrs)||0;
+  formSecDet[secName].sectionBudget = hrs;
+  const t = SECTION_TEMPLATES.find(x=>x.name===secName);
+  const allSubs = [...(t?.subs||[]), ...(formExtraSubs[secName]||[])];
+  if(!allSubs.length) return;
+  const perSub = (hrs / allSubs.length).toFixed(2);
+  allSubs.forEach(sub=>{
+    if(!formSecDet[secName].subsections[sub]) formSecDet[secName].subsections[sub]={assignee:'',due:'',budget:''};
+    formSecDet[secName].subsections[sub].budget = perSub;
+  });
+  renderAdd();
+}
 function setSubAssignee(sec,sub,val){ if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={}; formSecDet[sec].subsections[sub].assignee=val; }
 function setSubDue(sec,sub,val){ if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={}; formSecDet[sec].subsections[sub].due=val; }
 function setSubBudget(sec,sub,val){ if(!formSecDet[sec].subsections[sub])formSecDet[sec].subsections[sub]={}; formSecDet[sec].subsections[sub].budget=val; }
@@ -934,10 +1007,12 @@ function addExtraSub(secName){
 function removeExtraSub(secName,idx){ formExtraSubs[secName].splice(idx,1); renderAdd(); }
 
 async function createAudit(){
+  const btn = document.querySelector('button[onclick="createAudit()"]');
+  if(btn){ btn.disabled=true; btn.textContent='Creating...'; btn.style.opacity='0.6'; }
   const sections=SECTION_TEMPLATES.filter(t=>formSel[t.name]);
-  if(!sections.length){ alert('Please select at least one section.'); return; }
+  if(!sections.length){ alert('Please select at least one section.'); if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';} return; }
   const {data:audit,error:ae}=await sb.from('audits').insert({name:fAuditName,client:fClientName||null,due_date:fDefDue||null,firm_rate:firmRate,created_by:currentUser.id}).select().single();
-  if(ae){ alert('Error creating audit: '+ae.message); return; }
+  if(ae){ alert('Error creating audit: '+ae.message); if(btn){btn.disabled=false;btn.textContent='Create Audit';btn.style.opacity='1';} return; }
   let sortOrder=0;
   for(const t of sections){
     const d=formSecDet[t.name];
