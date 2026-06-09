@@ -411,7 +411,7 @@ async function vDash(){
           +(CR==='manager'?'<button onclick="event.stopPropagation();openAsn(\''+a.id+'\',\''+sec.id+'\')" style="padding:4px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+ Sub</button>':'')
           +'<span style="font-size:14px;color:#9ca3af;">'+(sO?'▲':'▼')+'</span></div>';
         if(sO){
-          var ss=await sb.from('subsection_summary').select('*').eq('section_id',sec.id).order('sort_order');
+          var ss=await sb.from('subsection_summary').select('*').eq('section_id',sec.id);
           h+='<div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;background:var(--navy);padding:6px 20px 6px 44px;gap:8px;">'
             +['Subsection','Assignee','Due','Step','Actual/Budget','Fee',''].map(function(x){return '<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;">'+x+'</span>';}).join('')+'</div>';
           for(var ssi=0;ssi<(ss.data||[]).length;ssi++){
@@ -848,8 +848,9 @@ async function saveSettings(){
 async function showRpt(id){
   if(CR==='staff')return;
   var a=await sb.from('audits').select('*').eq('id',id).single();
-  var ss=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id)').eq('sections.audit_id',id);
-  var rows=(ss.data||[]).map(function(s){return {sec:s.sections?s.sections.name:'',sub:s.name,ass:s.assignee_email||'',due:s.due_date||'',step:s.step,prog:s.progress_pct||0,bud:parseFloat(s.budget_hours||0),act:parseFloat(s.actual_hours||0),vr:parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0),fee:parseFloat(s.fee_value||0)};});
+  var ss=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id,sort_order)').eq('sections.audit_id',id);
+  var rows=(ss.data||[]).map(function(s){return {sec:s.sections?s.sections.name:'',secOrder:s.sections?s.sections.sort_order:0,sub:s.name,ass:s.assignee_email||'',due:s.due_date||'',step:s.step,prog:s.progress_pct||0,bud:parseFloat(s.budget_hours||0),act:parseFloat(s.actual_hours||0),vr:parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0),fee:parseFloat(s.fee_value||0)};});
+  rows.sort(function(a,b){return a.secOrder-b.secOrder||a.sec.localeCompare(b.sec)||a.sub.localeCompare(b.sub);});
   document.getElementById('rptTitle').textContent='📊 '+(a.data?a.data.name:'')+' — Report';
   var tb=rows.reduce(function(a,r){return a+r.bud;},0);var ta=rows.reduce(function(a,r){return a+r.act;},0);var tf=rows.reduce(function(a,r){return a+r.fee;},0);
   document.getElementById('rptSub').textContent=rows.length+' items · Budget: '+H(tb)+'h · Actual: '+H(ta)+'h · Fee: '+R(tf);
