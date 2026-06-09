@@ -167,26 +167,39 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 </div>
 
 <div id="timesheetModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width:480px;">
+  <div class="modal" style="width:500px;">
     <div class="modal-header"><h3>📅 Weekly Time Reconciliation</h3><button class="modal-close" onclick="closeModal('timesheetModal')">✕</button></div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="alert alert-warning">Submit hours you logged in the <b>firm time tracking system</b> for this week. Any variance against app hours requires an explanation.</div>
-      <div><label class="lbl">Week Ending (Friday)</label><input type="date" id="tsWeekEnding" class="inp"/></div>
-      <div><label class="lbl">Subsection</label><select id="tsSubsection" class="inp" style="background:#fff;"></select></div>
+      <div class="alert alert-warning">Submit the hours you logged in the <b>firm time tracking system</b>. Select the correct week carefully before submitting.</div>
+      <div>
+        <label class="lbl">Week Ending (Friday)</label>
+        <select id="tsWeekEnding" class="inp" style="background:#fff;" onchange="onWeekOrSubChange()">
+        </select>
+        <div id="tsWeekLabel" style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px;"></div>
+      </div>
+      <div>
+        <label class="lbl">Subsection</label>
+        <select id="tsSubsection" class="inp" style="background:#fff;" onchange="onWeekOrSubChange()"></select>
+        <div id="tsAlreadySubmitted" style="display:none;" class="alert alert-warning" style="margin-top:6px;">⚠️ Already submitted for this week. Please select a different week or subsection.</div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="lbl">Firm System Hours</label><input type="number" id="tsFirmHours" class="inp" min="0" step="0.25" oninput="calcVariance()"/></div>
-        <div><label class="lbl">App Hours (auto)</label><input type="number" id="tsAppHours" class="inp" readonly style="background:#f8fafc;"/></div>
+        <div>
+          <label class="lbl">App Hours (auto-calculated)</label>
+          <input type="number" id="tsAppHours" class="inp" readonly style="background:#f8fafc;"/>
+          <div id="tsAppHoursLabel" style="font-size:11px;color:#6b7280;margin-top:3px;"></div>
+        </div>
       </div>
       <div id="tsVarianceBox" style="display:none;" class="variance-flag">
-        <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Variance detected — explanation required</div>
+        <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px;">⚠️ Variance detected — explanation required before saving</div>
         <div id="tsVarianceAmt" style="font-size:13px;color:#92400e;margin-bottom:8px;"></div>
         <label class="lbl">Explanation *</label>
-        <textarea id="tsExplanation" class="inp" rows="3" placeholder="Explain the difference..."></textarea>
+        <textarea id="tsExplanation" class="inp" rows="3" placeholder="Explain the difference between firm system hours and app hours..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="ghost-btn" onclick="closeModal('timesheetModal')">Cancel</button>
-      <button class="primary-btn" onclick="submitTimesheet()">Submit</button>
+      <button class="primary-btn" id="tsSubmitBtn" onclick="submitTimesheet()">Submit</button>
     </div>
   </div>
 </div>
@@ -721,9 +734,18 @@ async function renderUpdate(){
   (sections||[]).forEach(s=>secMap[s.id]=s);
   (audits||[]).forEach(a=>auditMap[a.id]=a);
 
+  // Timesheet button — show countdown if not Monday
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun,1=Mon...6=Sat
+  const isMonday = dayOfWeek === 1;
+  const daysUntilMonday = isMonday ? 0 : (8 - dayOfWeek) % 7 || 7;
+  const timesheetBtn = isMonday
+    ? `<button onclick="openTimesheetModal()" class="orange-btn" style="font-size:13px;padding:8px 16px;">📅 Submit Weekly Timesheet</button>`
+    : `<button disabled style="font-size:13px;padding:8px 16px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;" title="Timesheets can only be submitted on Mondays">📅 Submit Timesheet<br/><span style="font-size:10px;">Opens in ${daysUntilMonday} day${daysUntilMonday!==1?'s':''} (Monday)</span></button>`;
+
   let html=`<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <div><span style="font-family:'Trebuchet MS',sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">${myEmail}</span></div>
-    <button onclick="openTimesheetModal()" class="orange-btn" style="font-size:13px;padding:8px 16px;">📅 Submit Weekly Timesheet</button>
+    ${timesheetBtn}
   </div>`;
 
   if(!(subs||[]).length){
@@ -772,65 +794,264 @@ async function renderUpdate(){
 async function renderTimesheet(){
   const isManager=currentRole==='manager'||currentRole==='director';
   if(isManager){
-    const {data:entries}=await sb.from('timesheet_variance_summary').select('*').limit(100);
-    const flagged=(entries||[]).filter(e=>Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending');
-    let html=`<div style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px;">Weekly Timesheet Reconciliation</div>`;
-    if(flagged.length)html+=`<div class="alert alert-warning" style="margin-bottom:16px;">⚠️ ${flagged.length} unresolved variance${flagged.length>1?'s':''} require review.</div>`;
-    html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>`;
-    (entries||[]).forEach(e=>{
-      const v=parseFloat(e.variance||0);const hasVar=Math.abs(v)>0;
-      html+=`<tr style="background:${hasVar&&e.status==='pending'?'#fff7ed':'#fff'};">
-        <td>${e.week_ending}</td><td>${e.submitted_by_email}</td><td>${e.audit_name}</td><td>${e.section_name}</td><td>${e.subsection_name}</td>
-        <td>${fmtHrs(e.firm_system_hours)}h</td><td>${fmtHrs(e.app_hours)}h</td>
-        <td style="color:${v>0?'#dc2626':'#16a34a'};font-weight:600;">${v>0?'+':''}${fmtHrs(v)}h</td>
-        <td style="max-width:200px;font-size:12px;">${e.explanation||'—'}</td>
-        <td><span class="badge" style="color:${e.status==='pending'?'#d97706':'#16a34a'};background:${e.status==='pending'?'#fffbeb':'#f0fdf4'};">${e.status}</span></td>
-      </tr>`;
-    });
-    html+=`</tbody></table></div>`;
+    const {data:entries}=await sb.from('timesheet_variance_summary').select('*').order('week_ending',{ascending:false}).limit(200);
+    const allE=entries||[];
+    const flagged=allE.filter(e=>Math.abs(parseFloat(e.variance||0))>0&&e.status==='pending');
+
+    // Build report CSV
+    function buildTimesheetCSV(){
+      const headers=['Week Ending','Staff Email','Audit','Section','Subsection','Firm System Hrs','App Hrs','Variance','Explanation','Status','Submitted At'];
+      const rows=allE.map(e=>[
+        e.week_ending,e.submitted_by_email,e.audit_name,e.section_name,e.subsection_name,
+        fmtHrs(e.firm_system_hours),fmtHrs(e.app_hours),
+        (parseFloat(e.variance||0)>0?'+':'')+fmtHrs(e.variance||0),
+        e.explanation||'',e.status,
+        e.submitted_at?new Date(e.submitted_at).toLocaleString('en-ZA'):''
+      ]);
+      return [headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    }
+
+    // Filter state
+    const weekOptions=[...new Set(allE.map(e=>e.week_ending))].sort().reverse();
+    const staffOptions2=[...new Set(allE.map(e=>e.submitted_by_email))].sort();
+
+    let html=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+      <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">Timesheet Reconciliation Report</span>
+      <button onclick="showTimesheetReport()" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">📊 Export Full Report</button>
+    </div>`;
+
+    if(flagged.length) html+=`<div class="alert alert-warning" style="margin-bottom:16px;">⚠️ <b>${flagged.length}</b> variance${flagged.length>1?'s':''} pending review — highlighted below.</div>`;
+
+    // Summary stats
+    const totalFirmHrs=allE.reduce((a,e)=>a+parseFloat(e.firm_system_hours||0),0);
+    const totalAppHrs=allE.reduce((a,e)=>a+parseFloat(e.app_hours||0),0);
+    const totalVariance=totalFirmHrs-totalAppHrs;
+    html+=`<div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+      <div class="stat"><div class="stat-val">${allE.length}</div><div class="stat-lbl">Total Submissions</div></div>
+      <div class="stat"><div class="stat-val">${fmtHrs(totalFirmHrs)}h</div><div class="stat-lbl">Total Firm System Hrs</div></div>
+      <div class="stat"><div class="stat-val">${fmtHrs(totalAppHrs)}h</div><div class="stat-lbl">Total App Hrs</div></div>
+      <div class="stat" style="border-left-color:${Math.abs(totalVariance)>0?'#dc2626':'#16a34a'};"><div class="stat-val" style="color:${Math.abs(totalVariance)>0?'#dc2626':'#16a34a'};">${totalVariance>0?'+':''}${fmtHrs(totalVariance)}h</div><div class="stat-lbl">Total Variance</div></div>
+    </div>`;
+
+    // Filters
+    html+=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+      <select id="tsFilterWeek" class="inp" style="width:200px;background:#fff;" onchange="applyTimesheetFilter()">
+        <option value="">All weeks</option>
+        ${weekOptions.map(w=>`<option value="${w}">${w}</option>`).join('')}
+      </select>
+      <select id="tsFilterStaff" class="inp" style="width:200px;background:#fff;" onchange="applyTimesheetFilter()">
+        <option value="">All staff</option>
+        ${staffOptions2.map(s=>`<option value="${s}">${s}</option>`).join('')}
+      </select>
+      <select id="tsFilterStatus" class="inp" style="width:160px;background:#fff;" onchange="applyTimesheetFilter()">
+        <option value="">All statuses</option>
+        <option value="reviewed">✅ Reviewed</option>
+        <option value="pending">⏳ Pending</option>
+        <option value="flagged">🚩 Flagged</option>
+      </select>
+      <button onclick="applyTimesheetFilter()" class="ghost-btn" style="font-size:12px;">🔄 Refresh</button>
+    </div>`;
+
+    html+=`<div style="overflow-x:auto;" id="tsTableWrap">`;
+    html+=buildTimesheetTable(allE);
+    html+=`</div>`;
+
+    // Store data globally for filtering
+    window._tsAllEntries=allE;
+    window._tsCSV=buildTimesheetCSV;
+
     document.getElementById('mainContent').innerHTML=html;
   } else {
-    const {data:entries}=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',currentUser.id).order('submitted_at',{ascending:false}).limit(50);
+    // Staff view
+    const {data:entries}=await sb.from('timesheet_entries').select('*,subsections(name,sections(name,audits(name)))').eq('submitted_by',currentUser.id).order('week_ending',{ascending:false}).limit(50);
     let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <span style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">My Timesheets</span>
       <button onclick="openTimesheetModal()" class="orange-btn">📅 Submit Timesheet</button>
     </div>`;
-    if(!(entries||[]).length)html+=`<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>`;
+    if(!(entries||[]).length) html+=`<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheets submitted yet.</div>`;
     else{
-      html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Week Ending</th><th>Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th></tr></thead><tbody>`;
-      (entries||[]).forEach(e=>{const v=parseFloat(e.variance||0); html+=`<tr><td>${e.week_ending}</td><td>${e.subsections?.name||'—'}</td><td>${fmtHrs(e.firm_system_hours)}h</td><td>${fmtHrs(e.app_hours)}h</td><td style="color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};font-weight:600;">${v>0?'+':''}${fmtHrs(v)}h</td><td style="font-size:12px;">${e.explanation||'—'}</td><td><span class="badge" style="color:${e.status==='pending'?'#d97706':'#16a34a'};background:${e.status==='pending'?'#fffbeb':'#f0fdf4'};">${e.status}</span></td></tr>`;});
+      html+=`<div style="overflow-x:auto;"><table class="data-table"><thead><tr>
+        <th>Week Ending</th><th>Audit → Section → Subsection</th><th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th>
+      </tr></thead><tbody>`;
+      (entries||[]).forEach(e=>{
+        const v=parseFloat(e.variance||0);
+        html+=`<tr>
+          <td style="white-space:nowrap;">${e.week_ending}</td>
+          <td style="font-size:12px;">${e.subsections?.sections?.audits?.name||''} → ${e.subsections?.sections?.name||''} → ${e.subsections?.name||'—'}</td>
+          <td style="font-weight:600;">${fmtHrs(e.firm_system_hours)}h</td>
+          <td style="font-weight:600;">${fmtHrs(e.app_hours)}h</td>
+          <td style="font-weight:700;color:${v>0?'#dc2626':v<0?'#16a34a':'#6b7280'};">${v>0?'+':''}${fmtHrs(v)}h</td>
+          <td style="font-size:12px;max-width:180px;">${e.explanation||'—'}</td>
+          <td><span class="badge" style="color:${e.status==='reviewed'?'#16a34a':'#d97706'};background:${e.status==='reviewed'?'#f0fdf4':'#fffbeb'};">${e.status==='reviewed'?'✅ Matched':'⏳ Under Review'}</span></td>
+          <td style="font-size:11px;color:#9ca3af;">${e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):''}</td>
+        </tr>`;
+      });
       html+=`</tbody></table></div>`;
     }
     document.getElementById('mainContent').innerHTML=html;
   }
 }
 
+function buildTimesheetTable(entries){
+  if(!entries.length) return `<div style="text-align:center;padding:40px;color:#9ca3af;">No timesheet entries found.</div>`;
+  let t=`<table class="data-table"><thead><tr>
+    <th>Week Ending</th><th>Staff</th><th>Audit</th><th>Section</th><th>Subsection</th>
+    <th>Firm Hrs</th><th>App Hrs</th><th>Variance</th><th>Explanation</th><th>Status</th><th>Submitted</th>
+  </tr></thead><tbody>`;
+  entries.forEach(e=>{
+    const v=parseFloat(e.variance||0); const hasVar=Math.abs(v)>0.01;
+    const rowBg=hasVar&&e.status==='pending'?'#fff7ed':e.status==='flagged'?'#fef2f2':'#fff';
+    t+=`<tr style="background:${rowBg};">
+      <td style="white-space:nowrap;font-weight:600;">${e.week_ending}</td>
+      <td style="font-size:12px;">${e.submitted_by_email}</td>
+      <td style="font-size:12px;">${e.audit_name||'—'}</td>
+      <td style="font-size:12px;">${e.section_name||'—'}</td>
+      <td style="font-size:12px;">${e.subsection_name||'—'}</td>
+      <td style="font-weight:600;">${fmtHrs(e.firm_system_hours)}h</td>
+      <td style="font-weight:600;">${fmtHrs(e.app_hours)}h</td>
+      <td style="font-weight:700;color:${v>0?'#dc2626':v<0?'#16a34a':'#16a34a'};">${v===0?'✅ Match':(v>0?'▲ +':'▼ ')+fmtHrs(Math.abs(v))+'h'}</td>
+      <td style="font-size:12px;max-width:200px;color:${hasVar?'#92400e':'#6b7280'};">${e.explanation||'—'}</td>
+      <td>
+        <span class="badge" style="color:${e.status==='reviewed'?'#16a34a':e.status==='flagged'?'#dc2626':'#d97706'};background:${e.status==='reviewed'?'#f0fdf4':e.status==='flagged'?'#fef2f2':'#fffbeb'};">
+          ${e.status==='reviewed'?'✅ Reviewed':e.status==='flagged'?'🚩 Flagged':'⏳ Pending'}
+        </span>
+        ${e.status==='pending'&&hasVar?`<button onclick="flagEntry('${e.id}')" style="margin-left:4px;padding:2px 7px;background:#fef2f2;color:#dc2626;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">🚩 Flag</button>`:''}
+        ${e.status==='pending'?`<button onclick="approveEntry('${e.id}')" style="margin-left:2px;padding:2px 7px;background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;">✅ Approve</button>`:''}
+      </td>
+      <td style="font-size:11px;color:#9ca3af;white-space:nowrap;">${e.submitted_at?new Date(e.submitted_at).toLocaleDateString('en-ZA'):''}</td>
+    </tr>`;
+  });
+  t+=`</tbody></table>`;
+  return t;
+}
+
+function applyTimesheetFilter(){
+  const week=document.getElementById('tsFilterWeek')?.value||'';
+  const staff=document.getElementById('tsFilterStaff')?.value||'';
+  const status=document.getElementById('tsFilterStatus')?.value||'';
+  let filtered=(window._tsAllEntries||[]);
+  if(week) filtered=filtered.filter(e=>e.week_ending===week);
+  if(staff) filtered=filtered.filter(e=>e.submitted_by_email===staff);
+  if(status) filtered=filtered.filter(e=>e.status===status);
+  document.getElementById('tsTableWrap').innerHTML=buildTimesheetTable(filtered);
+}
+
+function showTimesheetReport(){
+  if(!window._tsCSV){alert('No data loaded.');return;}
+  const csv=window._tsCSV();
+  document.getElementById('reportTitle').textContent='📊 Timesheet Reconciliation Report';
+  document.getElementById('reportSubtitle').textContent=`${(window._tsAllEntries||[]).length} submissions · Full export for comparison with firm system`;
+  document.getElementById('reportHead').innerHTML='';
+  document.getElementById('reportBody').innerHTML=`<tr><td colspan="10" style="padding:20px;color:#6b7280;font-size:13px;">Use the CSV below to compare against your firm time tracking system. Copy and open in Excel.</td></tr>`;
+  document.getElementById('csvText').value=csv;
+  document.getElementById('reportModal').style.display='flex';
+}
+
+async function flagEntry(id){
+  await sb.from('timesheet_entries').update({status:'flagged',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id);
+  showToast('🚩 Entry flagged for follow-up.');
+  renderTimesheet();
+}
+
+async function approveEntry(id){
+  await sb.from('timesheet_entries').update({status:'reviewed',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id);
+  showToast('✅ Entry approved.');
+  renderTimesheet();
+}
+
+function getPastFridays(count=4){
+  const fridays=[];
+  const today=new Date(); today.setHours(0,0,0,0);
+  // Find most recent Friday
+  let d=new Date(today);
+  const dow=d.getDay();
+  const daysBack=dow===0?1:dow===6?0:(dow+1)%7+1; // days to last Friday
+  d.setDate(d.getDate()-(dow===6?0:dow===0?1:dow+1));
+  for(let i=0;i<count;i++){
+    fridays.push(new Date(d));
+    d.setDate(d.getDate()-7);
+  }
+  return fridays;
+}
+
+function formatFridayOption(date,idx){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.round((now-date)/86400000);
+  const weeks=Math.round(diff/7);
+  const label=date.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+  const ago=weeks===0?'this past Friday':weeks===1?'last week':`${weeks} weeks ago`;
+  return `<option value="${date.toISOString().slice(0,10)}">${label} — ${ago}</option>`;
+}
+
 async function openTimesheetModal(){
   const {data:subs}=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',currentUser.email);
   const sel=document.getElementById('tsSubsection');
   sel.innerHTML=(subs||[]).map(s=>`<option value="${s.id}">${s.sections?.audits?.name||''} → ${s.sections?.name||''} → ${s.name}</option>`).join('');
+
+  // Populate week dropdown
+  const fridays=getPastFridays(4);
+  const weekSel=document.getElementById('tsWeekEnding');
+  weekSel.innerHTML=fridays.map((f,i)=>formatFridayOption(f,i)).join('');
+
   document.getElementById('tsFirmHours').value='';
   document.getElementById('tsAppHours').value='';
   document.getElementById('tsVarianceBox').style.display='none';
-  document.getElementById('tsExplanation').value='';
-  const fri=new Date();fri.setDate(fri.getDate()+(5-fri.getDay()+7)%7);
-  document.getElementById('tsWeekEnding').value=fri.toISOString().slice(0,10);
+  document.getElementById('tsExplanation') && (document.getElementById('tsExplanation').value='');
+  document.getElementById('tsAlreadySubmitted').style.display='none';
+  document.getElementById('tsWeekLabel').textContent='';
+  document.getElementById('tsAppHoursLabel').textContent='';
+
+  await onWeekOrSubChange();
   document.getElementById('timesheetModal').style.display='flex';
 }
 
-async function calcVariance(){
+async function onWeekOrSubChange(){
   const subId=document.getElementById('tsSubsection').value;
   const weekEnd=document.getElementById('tsWeekEnding').value;
+  if(!subId||!weekEnd) return;
+
+  // Show week label
+  const weekDate=new Date(weekEnd);
+  const weekStart=new Date(weekDate); weekStart.setDate(weekStart.getDate()-6);
+  const fmt2=(d)=>d.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',yyyy:'numeric'});
+  document.getElementById('tsWeekLabel').textContent=`📅 Covers ${fmt2(weekStart)} — ${fmt2(weekDate)}`;
+
+  // Check if already submitted
+  const {data:existing}=await sb.from('timesheet_entries')
+    .select('id').eq('subsection_id',subId).eq('week_ending',weekEnd).eq('submitted_by',currentUser.id).maybeSingle();
+
+  const alreadyDone=!!existing;
+  document.getElementById('tsAlreadySubmitted').style.display=alreadyDone?'block':'none';
+  document.getElementById('tsSubmitBtn').disabled=alreadyDone;
+  document.getElementById('tsSubmitBtn').style.opacity=alreadyDone?'0.5':'1';
+  document.getElementById('tsFirmHours').disabled=alreadyDone;
+
+  if(!alreadyDone){
+    // Auto-calculate app hours for this week
+    const {data:logs}=await sb.from('step_logs').select('hours,logged_at').eq('subsection_id',subId);
+    const appHrs=(logs||[]).filter(l=>{
+      const d=new Date(l.logged_at); d.setHours(0,0,0,0);
+      return d>=weekStart&&d<=weekDate;
+    }).reduce((a,l)=>a+parseFloat(l.hours||0),0);
+    document.getElementById('tsAppHours').value=appHrs.toFixed(2);
+    document.getElementById('tsAppHoursLabel').textContent=`Hours logged in app for ${fmt2(weekStart)} – ${fmt2(weekDate)}`;
+    document.getElementById('tsVarianceBox').style.display='none';
+    document.getElementById('tsFirmHours').value='';
+  }
+}
+
+async function calcVariance(){
   const firmHrs=parseFloat(document.getElementById('tsFirmHours').value)||0;
-  if(!subId||!weekEnd)return;
-  const {data:logs}=await sb.from('step_logs').select('hours,logged_at').eq('subsection_id',subId);
-  const weekStart=new Date(weekEnd);weekStart.setDate(weekStart.getDate()-6);
-  const appHrs=(logs||[]).filter(l=>{const d=new Date(l.logged_at);return d>=weekStart&&d<=new Date(weekEnd);}).reduce((a,l)=>a+parseFloat(l.hours||0),0);
-  document.getElementById('tsAppHours').value=appHrs.toFixed(2);
+  const appHrs=parseFloat(document.getElementById('tsAppHours').value)||0;
   const v=firmHrs-appHrs;
   const vbox=document.getElementById('tsVarianceBox');
-  if(Math.abs(v)>0.01){vbox.style.display='block';document.getElementById('tsVarianceAmt').textContent=`Firm system: ${fmtHrs(firmHrs)}h | App: ${fmtHrs(appHrs)}h | Variance: ${v>0?'+':''}${fmtHrs(v)}h`;}
-  else vbox.style.display='none';
+  if(Math.abs(v)>0.01){
+    vbox.style.display='block';
+    document.getElementById('tsVarianceAmt').textContent=`Firm system: ${fmtHrs(firmHrs)}h | App: ${fmtHrs(appHrs)}h | Variance: ${v>0?'+':''}${fmtHrs(v)}h`;
+  } else {
+    vbox.style.display='none';
+  }
 }
 
 async function submitTimesheet(){
@@ -840,11 +1061,23 @@ async function submitTimesheet(){
   const appHrs=parseFloat(document.getElementById('tsAppHours').value)||0;
   const variance=Math.abs(firmHrs-appHrs);
   const hasVariance=variance>0.01;
-  if(hasVariance){const exp=document.getElementById('tsExplanation').value.trim();if(!exp){alert('Please provide an explanation for the variance before submitting.');return;}}
-  const exp=document.getElementById('tsExplanation').value.trim();
+  if(hasVariance){
+    const exp=document.getElementById('tsExplanation').value.trim();
+    if(!exp){alert('Please provide an explanation for the variance before submitting.');return;}
+  }
+  const exp=document.getElementById('tsExplanation')?.value.trim()||'';
   const status=hasVariance?'pending':'reviewed';
-  await sb.from('timesheet_entries').insert({subsection_id:subId,week_ending:weekEnd,firm_system_hours:firmHrs,app_hours:appHrs,explanation:exp||null,submitted_by:currentUser.id,submitted_by_email:currentUser.email,status});
-  closeModal('timesheetModal');showView('timesheet');
+  const {error}=await sb.from('timesheet_entries').insert({
+    subsection_id:subId,week_ending:weekEnd,
+    firm_system_hours:firmHrs,app_hours:appHrs,
+    explanation:exp||null,
+    submitted_by:currentUser.id,submitted_by_email:currentUser.email,
+    status
+  });
+  if(error){alert('Error submitting: '+error.message);return;}
+  closeModal('timesheetModal');
+  showToast(hasVariance?'⏳ Timesheet submitted — variance flagged for manager review.':'✅ Timesheet submitted and matched.');
+  showView('timesheet');
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────
