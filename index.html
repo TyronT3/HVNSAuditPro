@@ -154,6 +154,11 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
     <div class="hright">
       <span class="upill" id="uPill"></span>
       <span class="rbadge" id="rBadge"></span>
+      <select id="viewSwitch" onchange="switchView(this.value)" style="display:none;background:rgba(245,166,35,0.15);border:1px solid rgba(245,166,35,0.5);color:var(--orange);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;outline:none;">
+        <option value="manager" style="color:#1A2B3C;">👑 Admin / Manager</option>
+        <option value="director" style="color:#1A2B3C;">👁 Director View</option>
+        <option value="staff" style="color:#1A2B3C;">👁 Staff View</option>
+      </select>
       <button class="hbtn" onclick="openChangePwd()" style="border-color:rgba(245,166,35,0.4);color:rgba(245,166,35,0.8);">🔑 Pwd</button>
       <button class="hbtn" onclick="doLogout()">Sign Out</button>
     </div>
