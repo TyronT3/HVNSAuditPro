@@ -337,6 +337,7 @@ var STPLS=[
 ];
 
 var CU=null,CR=null,CV='dashboard',FR=1000,AU=[],CDept='both';
+var SUPER_EMAIL='tyron@hvns.co.za',IS_SUPER=false,REAL_R=null;
 var EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
 var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit';
 var csvSecs=null,usingCsv=false;
@@ -378,10 +379,13 @@ async function initApp(user){
   if(pr.error||!pr.data){var e=document.getElementById('liErr');e.textContent='Profile not found. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
   if(!pr.data.active){var e2=document.getElementById('liErr');e2.textContent='Your account is not active. Contact your manager.';e2.style.display='block';await sb.auth.signOut();return;}
   CU=pr.data;CR=pr.data.role;CDept=pr.data.department||'both';
+  REAL_R=CR;IS_SUPER=(CU.email||'').trim().toLowerCase()===SUPER_EMAIL;
+  console.log('LOGIN DEBUG → email read as:',JSON.stringify(CU.email),'| IS_SUPER:',IS_SUPER);
+  if(IS_SUPER){CR='manager';CDept='both';var vs=document.getElementById('viewSwitch');vs.style.display='inline-block';vs.value='manager';}
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='flex';
-  document.getElementById('uPill').textContent=CU.full_name||CU.email;
-  var rb=document.getElementById('rBadge');rb.textContent=CR;rb.className='rbadge r'+CR.charAt(0);
+  document.getElementById('uPill').textContent=(CU.full_name||CU.email)+'  ['+(CU.email||'')+' · super='+IS_SUPER+']';
+  var rb=document.getElementById('rBadge');rb.textContent=IS_SUPER?'admin · viewing '+CR:CR;rb.className='rbadge r'+CR.charAt(0);
   var st=await sb.from('settings').select('*');
   if(st.data)st.data.forEach(function(r){if(r.key==='firm_rate')FR=parseFloat(r.value)||1000;});
   var us=await sb.from('users').select('*').eq('active',true);
@@ -402,6 +406,12 @@ function buildNav(){
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
 }
 function goView(v){CV=v;buildNav();renderView();}
+function switchView(role){
+  if(!IS_SUPER)return;
+  CR=role;CV='dashboard';
+  var rb=document.getElementById('rBadge');rb.textContent='admin · viewing '+role;rb.className='rbadge r'+role.charAt(0);
+  buildNav();renderView();
+}
 async function renderView(){
   setMain('<div class="load">Loading...</div>');
   if(CV==='dashboard')await vDash();
