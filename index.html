@@ -350,9 +350,9 @@ function openM(id){document.getElementById(id).style.display='flex';}
 function closeM(id){document.getElementById(id).style.display='none';}
 function setMain(h){document.getElementById('main').innerHTML=h;}
 function toast(msg){var t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;border-left:3px solid var(--orange);transition:opacity .3s;';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},2500);}
+function deptMatch(audType){if(CDept==='both')return true;return CDept===(audType||'audit');}
 function audLabel(type){return type==='accounting'?'Accounting Project':'Audit';}
 function audIcon(type){return type==='accounting'?'📁':'📋';}
-function deptMatch(audType){if(CDept==='both')return true;return CDept===(audType||'audit');}
 function toggleNav(){var n=document.getElementById('navBar');n.classList.toggle('open');}
 
 // ── auth ──────────────────────────────────────────────────────────────────
