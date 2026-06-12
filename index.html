@@ -538,7 +538,7 @@ function vAdd(){
       +'<div><label class="lbl">Client Name</label><input id="faCl" class="inp" value="'+fClient+'" placeholder="e.g. ABC Ltd"/></div>'
       +'<div><label class="lbl">Overall Due Date *</label><input type="date" id="faDue" class="inp" value="'+fDue+'"/></div>'
       +'<div style="border-top:1px solid var(--border);padding-top:14px;"><div class="stitle">Or Import from CSV</div>'
-      +'<p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: Section, Subsection, Assignee Email, Budget Hours</p>'
+      +'<p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: Section, Subsection, Assignee Email, Due Date, Budget Hours</p>'
       +'<div style="display:flex;gap:8px;"><button onclick="dlTpl()" class="gbtn" style="font-size:12px;">Download Template</button>'
       +'<label style="cursor:pointer;"><input type="file" id="csvInp" accept=".csv" style="display:none;" onchange="importCSV(event)"/><span class="gbtn" style="font-size:12px;display:inline-block;">Import CSV</span></label></div>'
       +'<div id="csvSt" style="margin-top:8px;font-size:12px;"></div></div>'
@@ -553,15 +553,17 @@ function vAdd(){
         +'<div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:10px;">'
         +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;color:#fff;font-size:13px;flex:1;">'+sn+'</span>'
         +'<span style="font-size:11px;color:rgba(255,255,255,0.6);">'+sd.subs.length+' subsections</span></div>'
-        +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:6px;padding:5px 12px;background:#e8eef4;">'
+        +'<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr;gap:6px;padding:5px 12px;background:#e8eef4;">'
         +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Subsection</span>'
         +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Assignee</span>'
+        +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Due</span>'
         +'<span style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;">Hrs</span></div>';
       for(var subi=0;subi<sd.subs.length;subi++){
         var sub=sd.subs[subi];var rgd=false;for(var ui=0;ui<AU.length;ui++){if(AU[ui].email.toLowerCase()===sub.assignee.toLowerCase()){rgd=true;break;}}
-        h+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:8px;padding:7px 12px;border-top:1px solid var(--border);background:#fff;align-items:center;">'
+        h+='<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr;gap:8px;padding:7px 12px;border-top:1px solid var(--border);background:#fff;align-items:center;">'
           +'<span style="font-size:12px;">'+sub.name+'</span>'
           +'<span style="font-size:12px;color:'+(rgd?'#16a34a':'#d97706')+';">'+sub.assignee+(rgd?'':' ⚠️')+'</span>'
+          +'<span style="font-size:12px;color:#6b7280;">'+(sub.due||sd.due||fDue||'--')+'</span>'
           +'<span style="font-size:12px;font-weight:600;">'+sub.budget+'h</span></div>';
       }
       h+='</div>';
@@ -970,7 +972,7 @@ async function createAudit(){
   var aud=res.data;
   if(usingCsv&&csvSecs){
     var keys=Object.keys(csvSecs);
-    for(var ki=0;ki<keys.length;ki++){var sn=keys[ki];var sd=csvSecs[sn];var sr=await sb.from('sections').insert({audit_id:aud.id,name:sn,assignee_email:sd.assignee||null,due_date:fDue||null,sort_order:ki}).select().single();if(sr.data){for(var subi=0;subi<sd.subs.length;subi++){var subx=sd.subs[subi];await sb.from('subsections').insert({section_id:sr.data.id,name:subx.name,assignee_email:subx.assignee||sd.assignee||null,due_date:fDue||null,budget_hours:subx.budget||0,step:'Not Started',sort_order:subi});}}}
+    for(var ki=0;ki<keys.length;ki++){var sn=keys[ki];var sd=csvSecs[sn];var sr=await sb.from('sections').insert({audit_id:aud.id,name:sn,assignee_email:sd.assignee||null,due_date:sd.due||fDue||null,sort_order:ki}).select().single();if(sr.data){for(var subi=0;subi<sd.subs.length;subi++){var subx=sd.subs[subi];await sb.from('subsections').insert({section_id:sr.data.id,name:subx.name,assignee_email:subx.assignee||sd.assignee||null,due_date:subx.due||sd.due||fDue||null,budget_hours:subx.budget||0,step:'Not Started',sort_order:subi});}}}
     csvSecs=null;usingCsv=false;
   } else {
     var secs2=STPLS.filter(function(t){return fSel[t.n];});
@@ -1027,7 +1029,13 @@ async function doChangePwd(){var p1=document.getElementById('pwd1').value;var p2
 async function doForgot(){var e=document.getElementById('fgtEmail').value.trim();var st=document.getElementById('fgtSt');if(!e){st.className='al al-e';st.textContent='Enter your email.';st.style.display='block';return;}var res=await sb.auth.resetPasswordForEmail(e,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});st.className=res.error?'al al-e':'al al-s';st.textContent=res.error?res.error.message:'✅ Reset link sent!';st.style.display='block';}
 
 // ── csv ───────────────────────────────────────────────────────────────────
-function dlTpl(){var csv='Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3';var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function dlTpl(){var csv='Section,Subsection,Assignee Email,Due Date,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2026-06-30,2\nPlanning,Audit Plan,staff@hvns.co.za,2026-06-30,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,2026-07-07,3';var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function csvDate(v){
+  v=(v||'').trim().replace(/^"|"$/g,'');if(!v)return '';
+  var m=v.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+  m=v.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+  var d=new Date(v);return isNaN(d.getTime())?'':d.toISOString().slice(0,10);
+}
 function importCSV(e){
   var file=e.target.files[0];if(!file)return;
   var reader=new FileReader();
@@ -1040,11 +1048,12 @@ function importCSV(e){
       var si=headers.findIndex(function(h){return h.indexOf('section')>=0&&h.indexOf('sub')<0;});
       var sbi=headers.findIndex(function(h){return h.indexOf('subsection')>=0;});
       var ai=headers.findIndex(function(h){return h.indexOf('assignee')>=0||h.indexOf('email')>=0;});
+      var di=headers.findIndex(function(h){return h.indexOf('due')>=0||h.indexOf('deadline')>=0;});
       var bi=headers.findIndex(function(h){return h.indexOf('budget')>=0||h.indexOf('hour')>=0;});
       if(si<0||sbi<0){alert('CSV must have Section and Subsection columns.');return;}
       var rows=lines.slice(1).map(function(l){if(delim==='\t')return l.split('\t').map(function(v){return v.trim().replace(/^"|"$/g,'');});var v=[];var cur='';var inQ=false;for(var i=0;i<l.length;i++){if(l[i]==='"')inQ=!inQ;else if(l[i]===','&&!inQ){v.push(cur.trim());cur='';}else cur+=l[i];}v.push(cur.trim());return v;});
       var newSecs={};var cnt=0;
-      rows.forEach(function(v){var sn=(v[si]||'').trim().replace(/^"|"$/g,'');var sub=(v[sbi]||'').trim().replace(/^"|"$/g,'');var ass=ai>=0?(v[ai]||'').trim().replace(/^"|"$/g,''):'';var bud=bi>=0?parseFloat((v[bi]||'').replace(/^"|"$/g,''))||0:0;if(!sn||!sub)return;if(!newSecs[sn])newSecs[sn]={assignee:ass,subs:[]};newSecs[sn].subs.push({name:sub,assignee:ass,budget:bud});if(ass&&!newSecs[sn].assignee)newSecs[sn].assignee=ass;cnt++;});
+      rows.forEach(function(v){var sn=(v[si]||'').trim().replace(/^"|"$/g,'');var sub=(v[sbi]||'').trim().replace(/^"|"$/g,'');var ass=ai>=0?(v[ai]||'').trim().replace(/^"|"$/g,''):'';var due=di>=0?csvDate(v[di]||''):'';var bud=bi>=0?parseFloat((v[bi]||'').replace(/^"|"$/g,''))||0:0;if(!sn||!sub)return;if(!newSecs[sn])newSecs[sn]={assignee:ass,due:due,subs:[]};newSecs[sn].subs.push({name:sub,assignee:ass,due:due,budget:bud});if(ass&&!newSecs[sn].assignee)newSecs[sn].assignee=ass;if(due&&!newSecs[sn].due)newSecs[sn].due=due;cnt++;});
       csvSecs=newSecs;usingCsv=true;
       var reg=new Set(AU.map(function(u){return u.email.toLowerCase();}));var unreg=new Set();
       Object.values(newSecs).forEach(function(sd){if(sd.assignee&&!reg.has(sd.assignee.toLowerCase()))unreg.add(sd.assignee);sd.subs.forEach(function(s){if(s.assignee&&!reg.has(s.assignee.toLowerCase()))unreg.add(s.assignee);});});
