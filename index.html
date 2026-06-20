@@ -302,6 +302,19 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
+<div id="rvModal" class="mo" style="display:none;">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3>🔄 Rollover to Next Year</h3><button class="mx" onclick="closeM('rvModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
+      <p id="rvDesc" style="font-size:13px;color:#6b7280;line-height:1.5;"></p>
+      <div><label class="lbl">New Year-End / Due Date</label><input type="date" id="rvDate" class="inp"/></div>
+      <div class="al al-w" style="font-size:12px;">All sections and subsections are copied with steps reset to <b>Not Started</b> and hours cleared. Dates shift forward by one year. GS activity mappings carry over.</div>
+      <div id="rvSt" style="display:none;"></div>
+    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('rvModal')">Cancel</button><button id="rvBtn" class="pbtn" onclick="doRollover()">Create Rolled-Over Audit</button></div>
+  </div>
+</div>
+
 <script>
 var SURL='https://lbwqkfppvrdbydtlkjtz.supabase.co';
 var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
@@ -342,6 +355,7 @@ var SUPER_EMAIL='tyron@hvns.co.za',IS_SUPER=false,REAL_R=null;
 var EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
 var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit';
 var csvSecs=null,usingCsv=false;
+var rollAID=null;
 var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 
@@ -650,7 +664,11 @@ async function vEdit(){
     +'<div><label class="lbl">Name</label><input class="inp" id="eaN" value="'+aud.name+'"/></div>'
     +'<div><label class="lbl">Client</label><input class="inp" id="eaCl" value="'+(aud.client||'')+'"/></div>'
     +'<div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div>'
-    +'</div><button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn" style="margin-top:14px;">Save Details</button></div>'
+    +'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'
+    +'<button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn">Save Details</button>'
+    +'<button onclick="rolloverAudit(\''+aud.id+'\')" class="gbtn">🔄 Rollover to Next Year</button>'
+    +'<button onclick="archiveAudit(\''+aud.id+'\')" class="dbtn" style="padding:10px 18px;font-size:13px;">📦 Archive</button>'
+    +'</div></div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
     +'<div><div class="stitle">Sections &amp; Subsections</div><p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Changes save immediately.</p></div>'
     +'<button onclick="doAutoMatchGS(\''+aud.id+'\')" class="gbtn" style="font-size:12px;">🔗 Auto-match GS Activities</button>'
@@ -1028,6 +1046,64 @@ async function confirmAsn(){var n=document.getElementById('asnName').value.trim(
 async function delSub(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderView();}
 async function updBud(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
 async function saveAudDet(id){var n=document.getElementById('eaN').value.trim();var cl=document.getElementById('eaCl').value.trim();var d=document.getElementById('eaDue').value;if(!n){alert('Name cannot be empty.');return;}await sb.from('audits').update({name:n,client:cl||null,due_date:d||null}).eq('id',id);toast('✅ Saved.');}
+
+async function archiveAudit(id){
+  if(!confirm('Archive this audit? It will be hidden from all views. You can restore it directly in the database if needed.'))return;
+  var r=await sb.from('audits').update({archived:true}).eq('id',id);
+  if(r&&r.error){toast('Error: '+r.error.message);return;}
+  editAID=null;toast('📦 Audit archived.');vEdit();
+}
+
+async function rolloverAudit(id){
+  rollAID=id;
+  var srcQ=await sb.from('audits').select('name,client,due_date').eq('id',id).single();
+  var src=srcQ.data||{};
+  document.getElementById('rvDesc').textContent='Copy of "'+src.name+(src.client?' — '+src.client:'')+'" — new audit for the next period.';
+  var newDue='';
+  if(src.due_date){var dd=new Date(src.due_date);dd.setFullYear(dd.getFullYear()+1);newDue=dd.toISOString().slice(0,10);}
+  document.getElementById('rvDate').value=newDue;
+  document.getElementById('rvSt').style.display='none';
+  var btn2=document.getElementById('rvBtn');btn2.disabled=false;btn2.textContent='Create Rolled-Over Audit';
+  openM('rvModal');
+}
+
+async function doRollover(){
+  var newDue=document.getElementById('rvDate').value;
+  if(!newDue){alert('Enter a due date for the new audit.');return;}
+  var btn2=document.getElementById('rvBtn');var st2=document.getElementById('rvSt');
+  btn2.disabled=true;btn2.textContent='Creating...';
+  function shiftYr(d){if(!d)return null;var dt=new Date(d);dt.setFullYear(dt.getFullYear()+1);return dt.toISOString().slice(0,10);}
+  try{
+    var srcQ=await sb.from('audits').select('*').eq('id',rollAID).single();
+    if(srcQ.error)throw new Error(srcQ.error.message);
+    var src=srcQ.data;
+    var newAudR=await sb.from('audits').insert({name:src.name,client:src.client,type:src.type||'audit',due_date:newDue,firm_rate:src.firm_rate||FR,created_by:CU.id,archived:false}).select().single();
+    if(newAudR.error)throw new Error(newAudR.error.message);
+    var newAudId=newAudR.data.id;
+    var secsQ=await sb.from('sections').select('*').eq('audit_id',rollAID).order('sort_order');
+    for(var si=0;si<(secsQ.data||[]).length;si++){
+      var sec=secsQ.data[si];
+      var newSecR=await sb.from('sections').insert({audit_id:newAudId,name:sec.name,assignee_email:sec.assignee_email,due_date:shiftYr(sec.due_date),sort_order:sec.sort_order}).select().single();
+      if(newSecR.error)continue;
+      var newSecId=newSecR.data.id;
+      var subsQ=await sb.from('subsections').select('*').eq('section_id',sec.id).order('sort_order');
+      for(var sbi=0;sbi<(subsQ.data||[]).length;sbi++){
+        var sub=subsQ.data[sbi];
+        var newSubR=await sb.from('subsections').insert({section_id:newSecId,name:sub.name,assignee_email:sub.assignee_email,due_date:shiftYr(sub.due_date),budget_hours:sub.budget_hours||0,step:'Not Started',sort_order:sub.sort_order}).select().single();
+        if(newSubR.error)continue;
+        var gsR=await sb.from('gs_subsection_activity_map').select('gs_activity_code_id').eq('subsection_id',sub.id);
+        if(!gsR.error&&gsR.data&&gsR.data.length){await sb.from('gs_subsection_activity_map').insert({subsection_id:newSubR.data.id,gs_activity_code_id:gsR.data[0].gs_activity_code_id});}
+      }
+    }
+    try{await autoMatchGSForAudit(newAudId);}catch(e){}
+    closeM('rvModal');editAID=newAudId;
+    toast('✅ Rolled over. Update dates and assignees as needed.');vEdit();
+  }catch(err){
+    st2.className='al al-e';st2.textContent='Error: '+err.message;st2.style.display='block';
+    btn2.disabled=false;btn2.textContent='Create Rolled-Over Audit';
+  }
+}
+
 async function updSecA(id,v){await sb.from('sections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
@@ -1047,9 +1123,11 @@ async function autoMatchGSForAudit(audId){
   var mapped=new Set((existQ.data||[]).map(function(m){return m.subsection_id;}));
   var unmapped=allSubs.filter(function(s){return !mapped.has(s.id);});
   if(!unmapped.length)return 0;
+  var n2a={};
   var nmQ=await sb.from('gs_subsection_activity_map').select('gs_activity_code_id,subsections(name)');
-  if(nmQ.error)return 0;
-  var n2a={};(nmQ.data||[]).forEach(function(m){if(m.subsections&&m.subsections.name){var k=m.subsections.name.toLowerCase().trim();if(!n2a[k])n2a[k]=m.gs_activity_code_id;}});
+  if(!nmQ.error)(nmQ.data||[]).forEach(function(m){if(m.subsections&&m.subsections.name){var k=m.subsections.name.toLowerCase().trim();if(!n2a[k])n2a[k]=m.gs_activity_code_id;}});
+  var acQ=await sb.from('gs_activity_codes').select('id,name,code');
+  if(!acQ.error)(acQ.data||[]).forEach(function(a){var kn=(a.name||'').toLowerCase().trim();if(kn&&!n2a[kn])n2a[kn]=a.id;var kc=(a.code||'').toLowerCase().trim();if(kc&&!n2a[kc])n2a[kc]=a.id;});
   var ins=[];unmapped.forEach(function(s){var k=s.name.toLowerCase().trim();if(n2a[k])ins.push({subsection_id:s.id,gs_activity_code_id:n2a[k]});});
   if(!ins.length)return 0;
   var r=await sb.from('gs_subsection_activity_map').upsert(ins,{onConflict:'subsection_id'});
@@ -1088,6 +1166,7 @@ async function vTaxTB(){
     // Upload panel
     +'<div style="background:#f8fafc;border-radius:10px;padding:20px;border:1px solid var(--border);margin-bottom:20px;">'
     +'<div class="stitle" style="margin-bottom:12px;">Import CaseWare TB</div>'
+    +(tbAudits.length===0?'<div class="al al-w" style="margin-bottom:12px;">No active audits found. Create an audit first before importing a TB.</div>':'')
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">'
     +'<div><label class="lbl">Client / Audit</label>'
     +'<select id="tbAud" class="inp" style="background:#fff;">'
@@ -1146,17 +1225,25 @@ async function importTB(e){
   var rtype=document.getElementById('tbRtype').value;
   var st=document.getElementById('tbUpSt');
   if(typeof XLSX==='undefined'){st.className='al al-e';st.textContent='Excel parser not loaded yet — wait a moment and try again, or refresh the page.';st.style.display='block';return;}
-  if(!audId||!yearEnd){st.className='al al-e';st.textContent='Select an audit and tax year end first.';st.style.display='block';return;}
+  if(!audId){st.className='al al-e';st.textContent='Please select an audit/client from the dropdown.';st.style.display='block';return;}
+  if(!yearEnd){st.className='al al-e';st.textContent='Please enter a tax year end date.';st.style.display='block';return;}
   st.className='';st.textContent='Reading file...';st.style.display='block';
   var reader=new FileReader();
   reader.onload=async function(ev){
     try{
       var data=new Uint8Array(ev.target.result);
-      var wb=XLSX.read(data,{type:'array'});
+      var wb=XLSX.read(data,{type:'array',cellDates:true});
       var ws=wb.Sheets[wb.SheetNames[0]];
       var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      var lines=parseCWTB(rows);
+      var parsed=parseCWTB(rows);
+      var lines=parsed.lines;
       if(!lines.length){st.className='al al-e';st.textContent='No CaseWare map lines found. Make sure this is a "Trial Balance by Map Number" export.';return;}
+      // Date cross-check
+      var dateNote='';
+      if(parsed.detectedDate){
+        if(parsed.detectedDate===yearEnd){dateNote=' ✔ TB date confirmed: '+yearEnd+'.';}
+        else{dateNote='<br/>⚠️ <b>Date mismatch</b> — TB file shows <b>'+parsed.detectedDate+'</b> but year end is set to <b>'+yearEnd+'</b>. Correct the date field and re-upload if wrong.';}
+      }
       st.textContent='Saving '+lines.length+' lines...';
       // Upsert import header
       var impR=await sb.from('tax_tb_imports').upsert({audit_id:audId,tax_year_end:yearEnd,return_type:rtype,lines_total:lines.length,lines_mapped:0,status:'draft',created_by:CU.id},{onConflict:'audit_id,tax_year_end'}).select().single();
@@ -1172,7 +1259,9 @@ async function importTB(e){
       // Update header counts
       var mappedCount=await sb.from('tax_tb_lines').select('id',{count:'exact'}).eq('import_id',impId).not('gs_tax_code_id','is',null);
       await sb.from('tax_tb_imports').update({lines_total:lines.length,lines_mapped:mappedCount.count||0,updated_at:new Date().toISOString()}).eq('id',impId);
-      st.className='al al-s';st.textContent='✅ '+lines.length+' lines imported'+(matched>0?', '+matched+' auto-matched.':'.');
+      var hasWarn=dateNote.indexOf('mismatch')>=0;
+      st.className=hasWarn?'al al-w':'al al-s';
+      st.innerHTML='✅ '+lines.length+' lines imported'+(matched>0?', '+matched+' auto-matched.':'.') +dateNote;
       tbImportId=impId;
       loadTBImport(impId);
       e.target.value='';
@@ -1231,20 +1320,42 @@ function formatRand(n){var abs=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\
 
 function parseCWTB(rows){
   var lines=[];var mapRx=/^(\d+(?:\.\d+){4,})\s{2,}(.+)/;
-  var seen={};
+  var seen={};var detectedDate=null;
+  var months={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12,
+    jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  function fmtDate(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+  // Scan first 25 rows for a year-end date in the header area
+  for(var hi=0;hi<Math.min(25,rows.length)&&!detectedDate;hi++){
+    var hrow=rows[hi];
+    for(var hj=0;hj<hrow.length&&!detectedDate;hj++){
+      var cell=hrow[hj];if(!cell)continue;
+      if(cell instanceof Date&&!isNaN(cell)){
+        var y=cell.getFullYear();if(y>=2015&&y<=2035)detectedDate=fmtDate(y,cell.getMonth()+1,cell.getDate());
+      } else if(typeof cell==='string'){
+        var s=cell.trim();
+        // "28 February 2025" or "28 Feb 2025"
+        var m1=s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+        if(m1){var mn=months[m1[2].toLowerCase()];if(mn&&parseInt(m1[3])>=2015)detectedDate=fmtDate(parseInt(m1[3]),mn,parseInt(m1[1]));}
+        // "28/02/2025" or "28-02-2025"
+        if(!detectedDate){var m2=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);if(m2&&parseInt(m2[3])>=2015)detectedDate=fmtDate(parseInt(m2[3]),parseInt(m2[2]),parseInt(m2[1]));}
+        // "2025/02/28" or "2025-02-28"
+        if(!detectedDate){var m3=s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);if(m3&&parseInt(m3[1])>=2015)detectedDate=m3[1]+'-'+m3[2]+'-'+m3[3];}
+      }
+    }
+  }
   for(var i=0;i<rows.length;i++){
     var row=rows[i];var col0=String(row[0]||'').trim();
     var m=col0.match(mapRx);
     if(!m)continue;
     var mapNum=m[1].trim();var desc=m[2].trim();
-    // Cons amount is column index 4; SheetJS may give a number or formatted string
     var raw=row[4];var amt=0;
-    if(typeof raw==='number')amt=raw;
+    if(raw instanceof Date){amt=0;}
+    else if(typeof raw==='number')amt=raw;
     else if(raw){amt=parseFloat(String(raw).replace(/[,\s]/g,''))||0;}
-    if(seen[mapNum]){seen[mapNum].cons_amount+=amt;}  // sum if duplicate map number
+    if(seen[mapNum]){seen[mapNum].cons_amount+=amt;}
     else{seen[mapNum]={cw_map_number:mapNum,cw_description:desc,cons_amount:amt};lines.push(seen[mapNum]);}
   }
-  return lines;
+  return {lines:lines,detectedDate:detectedDate};
 }
 
 async function autoMatchTBLines(impId){
