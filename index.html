@@ -362,6 +362,7 @@ var calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 // ── helpers ──────────────────────────────────────────────────────────────
 function R(n){return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function H(n){var v=parseFloat(n||0);return v%1===0?v.toFixed(0):v.toFixed(2).replace(/\.?0+$/,'');}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function days(d){if(!d)return 9999;var t=new Date();t.setHours(0,0,0,0);var x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000);}
 function dueB(d){if(!d)return '';var n=days(d);var l=n<0?Math.abs(n)+'d overdue':n===0?'Due today':n+'d left';var c=n<0?'#dc2626':n<=7?'#d97706':'#16a34a';return '<span class="badge" style="color:'+c+';background:'+c+'18;">'+l+'</span>';}
 function stFlag(due,step){if(step==='Signed Off'||!due)return '';var n=days(due);if(n<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>';if(n<=7&&AT.indexOf(step)>=0)return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>';return '';}
@@ -687,13 +688,16 @@ async function vEdit(){
     for(var ssi2=0;ssi2<ss2.length;ssi2++){
       var sub3=ss2[ssi2];var un3=sub3.assignee_email&&!reg2.has(sub3.assignee_email.toLowerCase());
       var curGsId=gsMap[sub3.id]||'';
-      h+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 0.8fr 2fr auto;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;">'
+      h+='<div style="border-bottom:1px solid var(--border);background:#fff;">'
+        +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr 0.8fr 2fr auto;gap:8px;padding:8px 16px;align-items:center;">'
         +'<span style="font-size:13px;font-weight:500;">'+sub3.name+(un3?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
         +'<select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updSubA(\''+sub3.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sub3.assignee_email?' selected':'')+'>'+u.full_name+'</option>';}).join('')+'</select>'
         +'<input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub3.due_date||'')+'" onchange="updSubD(\''+sub3.id+'\',this.value)"/>'
         +'<input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub3.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub3.id+'\',this.value)"/>'
         +'<select class="inp" style="font-size:11px;padding:4px 6px;background:'+(curGsId?'#f0fdf4':'#fff')+';border-color:'+(curGsId?'#86efac':'var(--border)')+';" onchange="updSubGS(\''+sub3.id+'\',this.value)">'+gsOptsHtml.replace('value="'+curGsId+'"','value="'+curGsId+'" selected')+'</select>'
-        +'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div>';
+        +'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div>'
+        +'<div style="padding:0 16px 6px;"><input class="inp" style="width:100%;box-sizing:border-box;font-size:11px;padding:4px 8px;background:#fffef5;" placeholder="Manager note..." value="'+esc(sub3.comment)+'" onblur="updSubCmt(\''+sub3.id+'\',this.value)"/></div>'
+        +'</div>';
     }
     h+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
       +'<input id="ns_'+sec2.id+'" class="inp" style="flex:2;min-width:120px;font-size:12px;padding:6px 10px;" placeholder="New subsection name..."/>'
@@ -710,11 +714,13 @@ async function vEdit(){
 // ── update view ───────────────────────────────────────────────────────────
 async function vUpdate(){
   var me=CU.email;
-  var ssQ=await sb.from('subsection_summary').select('*').eq('assignee_email',me);
+  var ssQ=await sb.from('subsections').select('*').eq('assignee_email',me);
   var secsQ2=await sb.from('sections').select('*');
   var audQ2=await sb.from('audits').select('*');
   var sm={};(secsQ2.data||[]).forEach(function(s){sm[s.id]=s;});
   var am={};(audQ2.data||[]).forEach(function(a){am[a.id]=a;});
+  var subs2=ssQ.data||[];
+  if(subs2.length){var ids2=subs2.map(function(s){return s.id;});var lQ2=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids2);var hm2={};(lQ2.data||[]).forEach(function(l){hm2[l.subsection_id]=(hm2[l.subsection_id]||0)+(parseFloat(l.hours)||0);});subs2.forEach(function(s){s.actual_hours=hm2[s.id]||0;});}
   var tod=new Date();var dow=tod.getDay();var isMon=dow===1;var dtm=isMon?0:(8-dow)%7||7;
   var tsBtn=isMon?'<button onclick="openTs()" class="obtn" style="font-size:13px;padding:8px 16px;">📅 Submit Timesheet</button>':'<button disabled style="font-size:13px;padding:8px 14px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;line-height:1.4;">📅 Timesheets<br/><span style="font-size:10px;">Opens Mon ('+dtm+'d)</span></button>';
   var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'+tsBtn+'</div>';
@@ -752,6 +758,7 @@ async function vUpdate(){
           :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
         +'</div>'
         +'<button onclick="showTeams(\''+g.a.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
+        +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
         +'</div>';
     }
     h+='</div></div>';
@@ -876,8 +883,17 @@ function calNav(dir){if(dir===0){calYear=new Date().getFullYear();calMonth=new D
 // ── workload ──────────────────────────────────────────────────────────────
 async function vWorkload(){
   var isMgr=CR==='manager'||CR==='director';
-  var q=isMgr?await sb.from('subsection_summary').select('*,sections(name,audits(name,type))'):await sb.from('subsection_summary').select('*,sections(name,audits(name,type))').eq('assignee_email',CU.email);
-  var all=q.data||[];
+  var subQ=isMgr
+    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))')
+    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))').eq('assignee_email',CU.email);
+  if(subQ.error){setMain('<div class="al al-e">Error loading workload: '+subQ.error.message+'</div>');return;}
+  var all=subQ.data||[];
+  if(all.length){
+    var ids=all.map(function(s){return s.id;});
+    var logsQ=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids);
+    var hrMap={};(logsQ.data||[]).forEach(function(l){hrMap[l.subsection_id]=(hrMap[l.subsection_id]||0)+(parseFloat(l.hours)||0);});
+    all.forEach(function(s){s.actual_hours=hrMap[s.id]||0;});
+  }
   var byStaff={};
   all.forEach(function(s){var email=s.assignee_email||'Unassigned';if(!isMgr&&email!==CU.email)return;if(!byStaff[email])byStaff[email]={email:email,name:'',items:[]};byStaff[email].items.push(s);});
   Object.keys(byStaff).forEach(function(email){var u=AU.find(function(u){return u.email===email;});byStaff[email].name=u?u.full_name:email;});
@@ -920,7 +936,7 @@ async function vUsers(){
     +'<div class="al al-w" style="margin-bottom:16px;">Create user in <b>Supabase Auth → Users → Add user</b> first, then add profile here.</div>'
     +'<div style="overflow-x:auto;"><table class="dtbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Active</th><th>Actions</th></tr></thead><tbody>';
   (usQ.data||[]).forEach(function(u){
-    h+='<tr><td style="font-weight:600;">'+u.full_name+'</td><td style="font-size:12px;">'+u.email+'</td>'
+    h+='<tr><td><input style="font-size:13px;font-weight:600;border:1px solid var(--border);padding:3px 6px;border-radius:4px;background:#fff;width:140px;" value="'+(u.full_name||'').replace(/"/g,'&quot;')+'" onchange="updName(\''+u.id+'\',this.value)"/></td><td style="font-size:12px;">'+u.email+'</td>'
       +'<td><span class="badge rbadge r'+u.role.charAt(0)+'">'+u.role+'</span></td>'
       +'<td><span class="badge" style="color:'+(u.department==='audit'?'#7c3aed':u.department==='accounting'?'#0891b2':'#16a34a')+';background:'+(u.department==='audit'?'#f5f3ff':u.department==='accounting'?'#ecfeff':'#f0fdf4')+'">'+(u.department||'both')+'</span></td>'
       +'<td><span style="color:'+(u.active?'#16a34a':'#dc2626')+';font-weight:600;">'+(u.active?'✅':'❌')+'</span></td>'
@@ -934,16 +950,20 @@ async function vUsers(){
   h+='</tbody></table></div>';setMain(h);
 }
 async function doAddUser(){
-  var n=document.getElementById('nuName').value.trim();var e=document.getElementById('nuEmail').value.trim();
+  var n=document.getElementById('nuName').value.trim();var e=document.getElementById('nuEmail').value.trim().toLowerCase();
   var r=document.getElementById('nuRole').value;var dept=document.getElementById('nuDept').value;
   var st=document.getElementById('auSt');st.style.display='none';
   if(!n||!e){st.className='al al-e';st.textContent='Fill in name and email.';st.style.display='block';return;}
-  var res=await sb.from('users').upsert({email:e,full_name:n,role:r,department:dept,active:true},{onConflict:'email'});
-  if(res.error){st.className='al al-e';st.textContent='Error: '+res.error.message+'. Make sure user exists in Supabase Auth first.';st.style.display='block';return;}
-  AU.push({email:e,full_name:n,role:r,department:dept,active:true});
-  st.className='al al-s';st.textContent='✅ Profile saved for '+n+'.';st.style.display='block';
+  var ex=await sb.from('users').select('id').eq('email',e).maybeSingle();
+  if(ex.error){st.className='al al-e';st.textContent='Error: '+ex.error.message;st.style.display='block';return;}
+  if(!ex.data){st.className='al al-e';st.textContent='No profile found for '+e+'. Create the user in Supabase Auth first — the profile auto-creates, then fill in details here.';st.style.display='block';return;}
+  var res=await sb.from('users').update({full_name:n,role:r,department:dept,active:true}).eq('id',ex.data.id);
+  if(res.error){st.className='al al-e';st.textContent='Error: '+res.error.message;st.style.display='block';return;}
+  AU.push({id:ex.data.id,email:e,full_name:n,role:r,department:dept,active:true});
+  st.className='al al-s';st.textContent='✅ Profile set for '+n+'.';st.style.display='block';
   setTimeout(function(){closeM('auModal');vUsers();},1500);
 }
+async function updName(id,v){if(!v.trim())return;await sb.from('users').update({full_name:v.trim()}).eq('id',id);toast('Name updated.');}
 async function updRole(id,role){await sb.from('users').update({role:role}).eq('id',id);toast('Role updated.');}
 async function updDept(id,dept){await sb.from('users').update({department:dept}).eq('id',id);toast('Department updated.');}
 async function togActive(id,cur){await sb.from('users').update({active:!cur}).eq('id',id);vUsers();}
@@ -1109,6 +1129,7 @@ async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}
 async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function updSubCmt(id,v){await sb.from('subsections').update({comment:v||null}).eq('id',id);toast('Note saved.');}
 async function updSubGS(id,v){var r;if(!v){r=await sb.from('gs_subsection_activity_map').delete().eq('subsection_id',id);}else{r=await sb.from('gs_subsection_activity_map').upsert({subsection_id:id,gs_activity_code_id:v},{onConflict:'subsection_id'});}if(r&&r.error){toast('⚠️ Could not save GS activity: migration not yet applied to Supabase.');}else{toast('GS activity saved.');}}
 
 async function autoMatchGSForAudit(audId){
