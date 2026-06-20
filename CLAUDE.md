@@ -71,6 +71,8 @@ Audit logging: `security_audit_log`
 - `public.is_director()` — true for director role
 - `public.can_view_reports()` — true for manager/director/tyron
 - `public.handle_new_auth_user()` — SECURITY DEFINER trigger function; auto-inserts `public.users` row (id=auth.uid, role=staff, active=false) on Supabase Auth user creation
+- `public.section_has_assignee_subsection(section_id, email)` — SECURITY DEFINER; used in `sections_select_visible` to check if any subsection of the section is assigned to the user, without triggering RLS on `subsections` (breaks mutual recursion)
+- `public.subsection_parent_section_assignee(section_id, email)` — SECURITY DEFINER; used in `subsections_select_visible` to check if the parent section is assigned to the user, without triggering RLS on `sections` (breaks mutual recursion)
 
 **Migration strategy:** Always additive — new nullable columns or new tables only. Never drop or rename columns without explicit sign-off.
 
@@ -79,6 +81,7 @@ Audit logging: `security_audit_log`
 2. `20260620000001_tax_tb_tables.sql` — Tax TB tables; required for Tax TB import feature
 3. `20260620000003_auth_user_trigger.sql` — Auth user trigger + email unique index; required for in-app Add User to work
 4. `20260620000004_subsection_comment.sql` — Adds `comment text` column to `subsections`; required for notes feature
+5. `20260620000005_fix_rls_recursion.sql` — Fixes infinite recursion in sections/subsections RLS policies; **apply immediately** if workload screen shows recursion error
 
 To apply: Supabase Dashboard → SQL Editor → paste and run each file in order.
 
