@@ -1,0 +1,13 @@
+# Sensitive data files — never commit these
+*.xlsx
+*.xls
+*.csv
+
+# Environment / secrets
+.env
+.env.*
+*.secret
+
+# OS
+.DS_Store
+Thumbs.db

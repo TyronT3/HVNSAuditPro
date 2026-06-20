@@ -8,6 +8,7 @@
 <meta http-equiv="Expires" content="0"/>
 <title>HVNS &amp; Company — Audit Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{--navy:#1A2B3C;--navy2:#2E4057;--orange:#F5A623;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -341,6 +342,7 @@ var SUPER_EMAIL='tyron@hvns.co.za',IS_SUPER=false,REAL_R=null;
 var EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
 var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit';
 var csvSecs=null,usingCsv=false;
+var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -402,6 +404,7 @@ function buildNav(){
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['timesheet','📅 Timesheets'],['calendar','📆 Calendar'],['workload','👥 Workload']);
+  if(CR==='manager'||CR==='director')tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
 }
@@ -421,6 +424,7 @@ async function renderView(){
   else if(CV==='timesheet')await vTs();
   else if(CV==='calendar')await vCalendar();
   else if(CV==='workload')await vWorkload();
+  else if(CV==='taxTB')await vTaxTB();
   else if(CV==='users')await vUsers();
   else if(CV==='settings')await vSettings();
 }
@@ -647,8 +651,10 @@ async function vEdit(){
     +'<div><label class="lbl">Client</label><input class="inp" id="eaCl" value="'+(aud.client||'')+'"/></div>'
     +'<div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div>'
     +'</div><button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn" style="margin-top:14px;">Save Details</button></div>'
-    +'<div class="stitle">Sections &amp; Subsections</div>'
-    +'<p style="font-size:12px;color:#6b7280;margin:8px 0 14px;">Changes save immediately.</p>';
+    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
+    +'<div><div class="stitle">Sections &amp; Subsections</div><p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Changes save immediately.</p></div>'
+    +'<button onclick="doAutoMatchGS(\''+aud.id+'\')" class="gbtn" style="font-size:12px;">🔗 Auto-match GS Activities</button>'
+    +'</div>';
   for(var si2=0;si2<(secsQ.data||[]).length;si2++){
     var sec2=secsQ.data[si2];var ss2=sbySec[sec2.id]||[];
     h+='<div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;">'
@@ -981,6 +987,7 @@ async function createAudit(){
     var keys=Object.keys(csvSecs);
     for(var ki=0;ki<keys.length;ki++){var sn=keys[ki];var sd=csvSecs[sn];var sr=await sb.from('sections').insert({audit_id:aud.id,name:sn,assignee_email:sd.assignee||null,due_date:fDue||null,sort_order:ki}).select().single();if(sr.data){for(var subi=0;subi<sd.subs.length;subi++){var subx=sd.subs[subi];await sb.from('subsections').insert({section_id:sr.data.id,name:subx.name,assignee_email:subx.assignee||sd.assignee||null,due_date:subx.dueDate||fDue||null,budget_hours:subx.budget||0,step:'Not Started',sort_order:subi});}}}
     csvSecs=null;usingCsv=false;
+    try{await autoMatchGSForAudit(aud.id);}catch(e){}
   } else {
     var secs2=STPLS.filter(function(t){return fSel[t.n];});
     if(!secs2.length){alert('Select at least one section.');if(btn){btn.disabled=false;btn.textContent='Create '+audLabel(fType);btn.style.opacity='1';}await sb.from('audits').delete().eq('id',aud.id);return;}
@@ -1026,10 +1033,255 @@ async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}
 async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
-async function updSubGS(id,v){if(!v){await sb.from('gs_subsection_activity_map').delete().eq('subsection_id',id);}else{await sb.from('gs_subsection_activity_map').upsert({subsection_id:id,gs_activity_code_id:v},{onConflict:'subsection_id'});}toast('GS activity saved.');}
+async function updSubGS(id,v){var r;if(!v){r=await sb.from('gs_subsection_activity_map').delete().eq('subsection_id',id);}else{r=await sb.from('gs_subsection_activity_map').upsert({subsection_id:id,gs_activity_code_id:v},{onConflict:'subsection_id'});}if(r&&r.error){toast('⚠️ Could not save GS activity: migration not yet applied to Supabase.');}else{toast('GS activity saved.');}}
+
+async function autoMatchGSForAudit(audId){
+  var secQ=await sb.from('sections').select('id').eq('audit_id',audId);
+  var secIds=(secQ.data||[]).map(function(s){return s.id;});
+  if(!secIds.length)return 0;
+  var subQ=await sb.from('subsections').select('id,name').in('section_id',secIds);
+  var allSubs=subQ.data||[];if(!allSubs.length)return 0;
+  var subIds=allSubs.map(function(s){return s.id;});
+  var existQ=await sb.from('gs_subsection_activity_map').select('subsection_id').in('subsection_id',subIds);
+  if(existQ.error)return 0;
+  var mapped=new Set((existQ.data||[]).map(function(m){return m.subsection_id;}));
+  var unmapped=allSubs.filter(function(s){return !mapped.has(s.id);});
+  if(!unmapped.length)return 0;
+  var nmQ=await sb.from('gs_subsection_activity_map').select('gs_activity_code_id,subsections(name)');
+  if(nmQ.error)return 0;
+  var n2a={};(nmQ.data||[]).forEach(function(m){if(m.subsections&&m.subsections.name){var k=m.subsections.name.toLowerCase().trim();if(!n2a[k])n2a[k]=m.gs_activity_code_id;}});
+  var ins=[];unmapped.forEach(function(s){var k=s.name.toLowerCase().trim();if(n2a[k])ins.push({subsection_id:s.id,gs_activity_code_id:n2a[k]});});
+  if(!ins.length)return 0;
+  var r=await sb.from('gs_subsection_activity_map').upsert(ins,{onConflict:'subsection_id'});
+  return r.error?0:ins.length;
+}
+async function doAutoMatchGS(audId){var n=await autoMatchGSForAudit(audId);if(n>0){toast('✅ Auto-matched '+n+' subsection'+(n>1?'s':'')+'.');vEdit();}else toast('No new matches found.');}
 async function delSubE(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);vEdit();}
 async function addSubE(sid,inA,inD){var n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a name.');return;}var a=document.getElementById('na_'+sid).value||inA||null;var d=document.getElementById('nd_'+sid).value||inD||null;var b=parseFloat(document.getElementById('nb_'+sid).value)||0;await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999});toast('✅ Added.');vEdit();}
 function showTeams(an,sn,sub,step,due,hrs){document.getElementById('teamsTxt').value='📋 Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nStep: '+step+(due?'\nDue: '+due:'')+'\nHours: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';openM('teamsModal');}
+
+// ── tax tb ────────────────────────────────────────────────────────────────
+var tbImportId=null;var tbLines=[];var tbGsTaxCodes=[];var tbGsMap={};var tbAudits=[];
+
+async function vTaxTB(){
+  if(CR!=='manager'&&CR!=='director'){setMain('<div class="al al-e">Access denied.</div>');return;}
+  var audQ=await sb.from('audits').select('id,name,client,type').eq('archived',false).order('name');
+  tbAudits=audQ.data||[];
+  // Load GS tax codes
+  try{var codeQ=await sb.from('gs_tax_codes').select('*').order('sort_order').order('gs_code');tbGsTaxCodes=codeQ.error?[]:codeQ.data||[];}catch(e){tbGsTaxCodes=[];}
+  // Load existing imports for this user's audits
+  var audIds=tbAudits.map(function(a){return a.id;});
+  var impQ=audIds.length?await sb.from('tax_tb_imports').select('*,audits(name,client)').in('audit_id',audIds).order('created_at',{ascending:false}):{data:[]};
+  var imports=impQ.data||[];
+
+  // Build GS tax code options HTML (reused per line)
+  tbGsOpts='<option value="">— Not mapped —</option>';
+  var bySection={};tbGsTaxCodes.forEach(function(c){var s=c.section||'Other';if(!bySection[s])bySection[s]=[];bySection[s].push(c);});
+  Object.keys(bySection).sort().forEach(function(s){
+    tbGsOpts+='<optgroup label="'+s+'">';
+    bySection[s].forEach(function(c){tbGsOpts+='<option value="'+c.id+'">'+c.gs_code+' — '+c.name+'</option>';});
+    tbGsOpts+='</optgroup>';
+  });
+
+  var h='<div class="fbox" style="max-width:960px;">'
+    +'<div style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;">🧾 Tax Trial Balance</div>'
+    // Upload panel
+    +'<div style="background:#f8fafc;border-radius:10px;padding:20px;border:1px solid var(--border);margin-bottom:20px;">'
+    +'<div class="stitle" style="margin-bottom:12px;">Import CaseWare TB</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">'
+    +'<div><label class="lbl">Client / Audit</label>'
+    +'<select id="tbAud" class="inp" style="background:#fff;">'
+    +'<option value="">Select audit...</option>'
+    +tbAudits.map(function(a){return '<option value="'+a.id+'">'+a.name+(a.client?' — '+a.client:'')+'</option>';}).join('')
+    +'</select></div>'
+    +'<div><label class="lbl">Tax Year End</label><input type="date" id="tbYear" class="inp"/></div>'
+    +'<div><label class="lbl">Return Type</label>'
+    +'<select id="tbRtype" class="inp" style="background:#fff;">'
+    +'<option value="ITR14">ITR14 (Full)</option>'
+    +'<option value="MicroBusiness">Micro Business</option>'
+    +'</select></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+    +'<label style="cursor:pointer;"><input type="file" id="tbFile" accept=".xlsx,.xls" style="display:none;" onchange="importTB(event)"/>'
+    +'<span class="pbtn" style="font-size:13px;display:inline-block;">📂 Upload CaseWare TB (.xlsx)</span></label>'
+    +'<span style="font-size:12px;color:#6b7280;">Exports from CaseWare: File → Export → Trial Balance by Map Number</span>'
+    +'</div>'
+    +'<div id="tbUpSt" style="margin-top:10px;font-size:13px;"></div>'
+    +'</div>';
+
+  // Previous imports list
+  if(imports.length){
+    h+='<div class="stitle" style="margin-bottom:10px;">Previous Imports</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">';
+    imports.forEach(function(imp){
+      var aud=imp.audits||{};var pct=imp.lines_total>0?Math.round(imp.lines_mapped/imp.lines_total*100):0;
+      var statusCol=imp.status==='pushed'?'#166534':imp.status==='mapped'?'#92400e':'#1e40af';
+      var statusBg=imp.status==='pushed'?'#f0fdf4':imp.status==='mapped'?'#fffbeb':'#eff6ff';
+      h+='<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">'
+        +'<div style="flex:1;min-width:180px;">'
+        +'<div style="font-weight:600;font-size:13px;">'+aud.name+(aud.client?' — '+aud.client:'')+'</div>'
+        +'<div style="font-size:11px;color:#6b7280;">Year end: '+imp.tax_year_end+' · '+imp.return_type+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+        +'<div style="width:80px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">'
+        +'<div style="height:100%;width:'+pct+'%;background:var(--orange);border-radius:3px;"></div></div>'
+        +'<span style="font-size:11px;color:#6b7280;">'+imp.lines_mapped+'/'+imp.lines_total+' mapped</span>'
+        +'</div>'
+        +'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;color:'+statusCol+';background:'+statusBg+';">'+imp.status+'</span>'
+        +'<button onclick="loadTBImport(\''+imp.id+'\')" class="gbtn" style="font-size:12px;">Open →</button>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+
+  h+='<div id="tbWorkspace"></div></div>';
+  setMain(h);
+  if(tbImportId)loadTBImport(tbImportId);
+}
+
+async function importTB(e){
+  var file=e.target.files[0];if(!file)return;
+  var audId=document.getElementById('tbAud').value;
+  var yearEnd=document.getElementById('tbYear').value;
+  var rtype=document.getElementById('tbRtype').value;
+  var st=document.getElementById('tbUpSt');
+  if(typeof XLSX==='undefined'){st.className='al al-e';st.textContent='Excel parser not loaded yet — wait a moment and try again, or refresh the page.';st.style.display='block';return;}
+  if(!audId||!yearEnd){st.className='al al-e';st.textContent='Select an audit and tax year end first.';st.style.display='block';return;}
+  st.className='';st.textContent='Reading file...';st.style.display='block';
+  var reader=new FileReader();
+  reader.onload=async function(ev){
+    try{
+      var data=new Uint8Array(ev.target.result);
+      var wb=XLSX.read(data,{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      var lines=parseCWTB(rows);
+      if(!lines.length){st.className='al al-e';st.textContent='No CaseWare map lines found. Make sure this is a "Trial Balance by Map Number" export.';return;}
+      st.textContent='Saving '+lines.length+' lines...';
+      // Upsert import header
+      var impR=await sb.from('tax_tb_imports').upsert({audit_id:audId,tax_year_end:yearEnd,return_type:rtype,lines_total:lines.length,lines_mapped:0,status:'draft',created_by:CU.id},{onConflict:'audit_id,tax_year_end'}).select().single();
+      if(impR.error){st.className='al al-e';st.textContent='Error: '+impR.error.message;return;}
+      var impId=impR.data.id;
+      // Delete old lines and insert fresh
+      await sb.from('tax_tb_lines').delete().eq('import_id',impId);
+      var inserts=lines.map(function(l){return{import_id:impId,cw_map_number:l.cw_map_number,cw_description:l.cw_description,cons_amount:l.cons_amount};});
+      // Insert in batches of 50
+      for(var i=0;i<inserts.length;i+=50){await sb.from('tax_tb_lines').insert(inserts.slice(i,i+50));}
+      // Auto-match from global mapping table
+      var matched=await autoMatchTBLines(impId);
+      // Update header counts
+      var mappedCount=await sb.from('tax_tb_lines').select('id',{count:'exact'}).eq('import_id',impId).not('gs_tax_code_id','is',null);
+      await sb.from('tax_tb_imports').update({lines_total:lines.length,lines_mapped:mappedCount.count||0,updated_at:new Date().toISOString()}).eq('id',impId);
+      st.className='al al-s';st.textContent='✅ '+lines.length+' lines imported'+(matched>0?', '+matched+' auto-matched.':'.');
+      tbImportId=impId;
+      loadTBImport(impId);
+      e.target.value='';
+    }catch(err){st.className='al al-e';st.textContent='Parse error: '+err.message;console.error(err);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function loadTBImport(impId){
+  tbImportId=impId;
+  var ws=document.getElementById('tbWorkspace');if(!ws)return;
+  ws.innerHTML='<div style="padding:20px;color:#9ca3af;">Loading...</div>';
+  var linesQ=await sb.from('tax_tb_lines').select('*,gs_tax_codes(gs_code,name)').eq('import_id',impId).order('cw_map_number');
+  var lines=linesQ.data||[];
+  if(!lines.length){ws.innerHTML='<div style="padding:20px;color:#9ca3af;">No lines found.</div>';return;}
+  var mapped=lines.filter(function(l){return l.gs_tax_code_id;}).length;
+  var pct=Math.round(mapped/lines.length*100);
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">'
+    +'<div>'
+    +'<div class="stitle">TB Lines — '+lines.length+' rows</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">'
+    +'<div style="width:120px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--orange);border-radius:4px;"></div></div>'
+    +'<span style="font-size:12px;color:#6b7280;">'+mapped+' / '+lines.length+' mapped ('+pct+'%)</span>'
+    +'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    +'<button onclick="doAutoMatchTB(\''+impId+'\')" class="gbtn" style="font-size:12px;">🔗 Auto-match</button>'
+    +'<button class="gbtn" style="font-size:12px;opacity:0.5;cursor:not-allowed;" title="Awaiting TBImportDTO from GreatSoft" disabled>🚀 Push to GreatSoft</button>'
+    +'</div>'
+    +'</div>'
+    +'<div style="overflow-x:auto;">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    +'<thead><tr style="background:#f1f5f9;">'
+    +['CW Map Number','Description','Cons Amount (R)','GS Tax Code'].map(function(h){return '<th style="padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;white-space:nowrap;">'+h+'</th>';}).join('')
+    +'</tr></thead><tbody>';
+  lines.forEach(function(line){
+    var isMapped=!!line.gs_tax_code_id;
+    var rowBg=isMapped?'#f0fdf4':'#fff';
+    var curId=line.gs_tax_code_id||'';
+    h+='<tr style="background:'+rowBg+';border-bottom:1px solid var(--border);">'
+      +'<td style="padding:7px 10px;font-family:monospace;font-size:11px;color:#374151;white-space:nowrap;">'+line.cw_map_number+'</td>'
+      +'<td style="padding:7px 10px;color:#374151;">'+line.cw_description+'</td>'
+      +'<td style="padding:7px 10px;text-align:right;font-weight:600;color:'+(line.cons_amount<0?'#dc2626':'#166534')+';">'+formatRand(line.cons_amount)+'</td>'
+      +'<td style="padding:7px 10px;min-width:260px;">'
+      +'<select style="width:100%;font-size:11px;padding:4px 6px;border:1px solid '+(isMapped?'#86efac':'var(--border)')+';border-radius:6px;background:'+(isMapped?'#f0fdf4':'#fff')+';color:#374151;" onchange="saveTBLine(\''+line.id+'\',\''+impId+'\',this.value)">'
+      +tbGsOpts.replace('value="'+curId+'"','value="'+curId+'" selected')
+      +'</select></td>'
+      +'</tr>';
+  });
+  h+='</tbody></table></div>'
+    +'<p style="font-size:11px;color:#9ca3af;margin-top:10px;">Once all lines are mapped, the Push button will become active when the GreatSoft TBImportDTO is confirmed.</p>';
+  ws.innerHTML=h;
+}
+
+function formatRand(n){var abs=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');return (n<0?'('+abs+')':abs);}
+
+function parseCWTB(rows){
+  var lines=[];var mapRx=/^(\d+(?:\.\d+){4,})\s{2,}(.+)/;
+  var seen={};
+  for(var i=0;i<rows.length;i++){
+    var row=rows[i];var col0=String(row[0]||'').trim();
+    var m=col0.match(mapRx);
+    if(!m)continue;
+    var mapNum=m[1].trim();var desc=m[2].trim();
+    // Cons amount is column index 4; SheetJS may give a number or formatted string
+    var raw=row[4];var amt=0;
+    if(typeof raw==='number')amt=raw;
+    else if(raw){amt=parseFloat(String(raw).replace(/[,\s]/g,''))||0;}
+    if(seen[mapNum]){seen[mapNum].cons_amount+=amt;}  // sum if duplicate map number
+    else{seen[mapNum]={cw_map_number:mapNum,cw_description:desc,cons_amount:amt};lines.push(seen[mapNum]);}
+  }
+  return lines;
+}
+
+async function autoMatchTBLines(impId){
+  // Get all existing gs_tb_mapping entries
+  var mapQ=await sb.from('gs_tb_mapping').select('cw_map_number,gs_tax_code_id').not('gs_tax_code_id','is',null);
+  if(mapQ.error||!mapQ.data||!mapQ.data.length)return 0;
+  var lookup={};(mapQ.data||[]).forEach(function(m){lookup[m.cw_map_number]=m.gs_tax_code_id;});
+  // Get unmapped lines for this import
+  var linesQ=await sb.from('tax_tb_lines').select('id,cw_map_number').eq('import_id',impId).is('gs_tax_code_id',null);
+  if(linesQ.error||!linesQ.data||!linesQ.data.length)return 0;
+  var updates=linesQ.data.filter(function(l){return lookup[l.cw_map_number];});
+  for(var i=0;i<updates.length;i++){
+    await sb.from('tax_tb_lines').update({gs_tax_code_id:lookup[updates[i].cw_map_number]}).eq('id',updates[i].id);
+  }
+  return updates.length;
+}
+
+async function doAutoMatchTB(impId){
+  var n=await autoMatchTBLines(impId);
+  if(n>0){toast('✅ Auto-matched '+n+' line'+(n>1?'s':'')+'.');loadTBImport(impId);}
+  else toast('No new matches found.');
+}
+
+async function saveTBLine(lineId,impId,gsCodeId){
+  // Update this line
+  var r=await sb.from('tax_tb_lines').update({gs_tax_code_id:gsCodeId||null}).eq('id',lineId);
+  if(r.error){toast('⚠️ Could not save: migration not yet applied.');return;}
+  // Also upsert into the global mapping table so future imports auto-match
+  var lineQ=await sb.from('tax_tb_lines').select('cw_map_number,cw_description').eq('id',lineId).single();
+  if(!lineQ.error&&lineQ.data){
+    await sb.from('gs_tb_mapping').upsert({cw_map_number:lineQ.data.cw_map_number,cw_description:lineQ.data.cw_description,gs_tax_code_id:gsCodeId||null,updated_at:new Date().toISOString()},{onConflict:'cw_map_number'});
+  }
+  // Update mapped count on the import header
+  var cnt=await sb.from('tax_tb_lines').select('id',{count:'exact'}).eq('import_id',impId).not('gs_tax_code_id','is',null);
+  await sb.from('tax_tb_imports').update({lines_mapped:cnt.count||0,status:(cnt.count||0)>0?'mapped':'draft',updated_at:new Date().toISOString()}).eq('id',impId);
+  toast('Saved.');
+}
 
 // ── password ──────────────────────────────────────────────────────────────
 function openChangePwd(){document.getElementById('pwd1').value='';document.getElementById('pwd2').value='';document.getElementById('cpwdSt').style.display='none';openM('cpwdModal');}
