@@ -193,9 +193,11 @@ No automated test suite. Manual testing checklist lives in `docs/security-harden
 
 ## Security Notes
 
-- RLS is **not yet enabled** on main app tables in production (it's ready in `rls_hardening_staging.sql` — apply after staging validation). Tax TB tables have RLS on by default.
-- All role checks rely on `public.current_user_email()` and `public.current_user_role()` in RLS policies.
+- RLS is **live in production** on all tables as of 2026-06-20. Migration: `20260620000002_rls_main_tables.sql`.
+- The staging script `supabase/security/rls_hardening_staging.sql` is now superseded — use the migration file as the source of truth.
+- All role checks rely on `public.current_user_email()` and `public.current_user_role()` in RLS policies (SECURITY DEFINER, bypass RLS safely).
 - The `security_audit_log` table exists but is not yet written to from the frontend.
-- Do not introduce `SECURITY DEFINER` functions or bypass RLS without explicit review.
+- Do not introduce additional `SECURITY DEFINER` functions or bypass RLS without explicit review.
 - Do not store PII beyond what's already in `users` (email, display name, role).
 - `.gitignore` excludes `*.xlsx`, `*.xls`, `*.csv` — company-sensitive data must never be committed.
+- Supabase client uses `storageKey: 'hvns-audit-pro'` to namespace session storage and avoid stale lock conflicts in development.

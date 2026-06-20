@@ -18,7 +18,7 @@
 | 7 | **Undo Delete** | ❌ Not built | |
 | 8 | **Manager Summary Email** | ❌ Not built | |
 | 9 | **Dark Mode** | ❌ Not built | |
-| 10 | **Proper RLS Security** | 🟡 Partial | `rls_hardening_staging.sql` is ready; Tax TB tables have RLS on by default. Main app tables (audits, sections, etc.) do NOT have RLS in production yet. Apply after staging validation. |
+| 10 | **Proper RLS Security** | ✅ Done | All tables have RLS live in production as of 2026-06-20. Migration: `20260620000002_rls_main_tables.sql`. Tested against all roles. |
 | 11 | **Refined Status/Step Options** | 🟡 Partial | 7 steps in use: Not Started / Client Requested / Client Received / Processing / Finalising / Review / Signed Off. Detail spec below is still blank. |
 | 12 | **Accounting Project Type** | 🟡 Partial | Accounting type selector, icons, and department-based filtering exist. Detail spec below is still blank. |
 

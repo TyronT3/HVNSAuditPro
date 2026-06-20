@@ -318,7 +318,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 <script>
 var SURL='https://lbwqkfppvrdbydtlkjtz.supabase.co';
 var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxid3FrZnBwdnJkYnlkdGxranR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDU2MTgsImV4cCI6MjA5NjUyMTYxOH0.Uw0HtjI_Rk6EoIy3hA3ZfdCrixlJ8eLpoQ90fvkv1v4';
-var sb=supabase.createClient(SURL,SKEY,{auth:{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'}});
+var sb=supabase.createClient(SURL,SKEY,{auth:{redirectTo:'https://tyront3.github.io/HVNSAuditPro/',storageKey:'hvns-audit-pro'}});
 
 var STEPS=['Not Started','Client Requested','Client Received','Processing','Finalising','Review','Signed Off'];
 var SC={
@@ -1244,6 +1244,20 @@ async function importTB(e){
         if(parsed.detectedDate===yearEnd){dateNote=' ✔ TB date confirmed: '+yearEnd+'.';}
         else{dateNote='<br/>⚠️ <b>Date mismatch</b> — TB file shows <b>'+parsed.detectedDate+'</b> but year end is set to <b>'+yearEnd+'</b>. Correct the date field and re-upload if wrong.';}
       }
+      var compNote='';var coWarn=false;
+      if(parsed.detectedCompany){
+        var audName=(document.getElementById('tbAud').selectedOptions[0]||{}).text||'';
+        function normCo(s){return(s||'').toLowerCase().replace(/\(pty\)\s*ltd\.?|\bpty\.?\s*ltd\.?|\(pty\)\s*limited|\(rf\)|\bnpc\b|\bcc\.?|\blimited\b|\bincorporated\b/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();}
+        var nc=normCo(parsed.detectedCompany),na=normCo(audName);
+        if(nc&&na&&(nc===na||nc.indexOf(na)>=0||na.indexOf(nc)>=0)){
+          compNote='<br/><span style="color:#16a34a;font-weight:600;">✔ Company match</span> — TB: <b>'+parsed.detectedCompany+'</b> / Audit: <b>'+audName+'</b>.';
+        } else if(nc&&na){
+          coWarn=true;
+          compNote='<br/><span id="coMisEl" data-tb="'+parsed.detectedCompany.replace(/"/g,'&quot;')+'">⚠️ <b>Company names differ</b> — TB: <b>'+parsed.detectedCompany+'</b> / Audit: <b>'+audName+'</b>. <button class="gbtn" style="font-size:11px;padding:3px 10px;margin-left:6px;" onclick="acceptCoMismatch()">✓ Accept anyway</button></span>';
+        } else if(parsed.detectedCompany){
+          compNote='<br/>TB company detected: <b>'+parsed.detectedCompany+'</b>.';
+        }
+      }
       st.textContent='Saving '+lines.length+' lines...';
       // Upsert import header
       var impR=await sb.from('tax_tb_imports').upsert({audit_id:audId,tax_year_end:yearEnd,return_type:rtype,lines_total:lines.length,lines_mapped:0,status:'draft',created_by:CU.id},{onConflict:'audit_id,tax_year_end'}).select().single();
@@ -1259,9 +1273,9 @@ async function importTB(e){
       // Update header counts
       var mappedCount=await sb.from('tax_tb_lines').select('id',{count:'exact'}).eq('import_id',impId).not('gs_tax_code_id','is',null);
       await sb.from('tax_tb_imports').update({lines_total:lines.length,lines_mapped:mappedCount.count||0,updated_at:new Date().toISOString()}).eq('id',impId);
-      var hasWarn=dateNote.indexOf('mismatch')>=0;
+      var hasWarn=dateNote.indexOf('mismatch')>=0||coWarn;
       st.className=hasWarn?'al al-w':'al al-s';
-      st.innerHTML='✅ '+lines.length+' lines imported'+(matched>0?', '+matched+' auto-matched.':'.') +dateNote;
+      st.innerHTML='✅ '+lines.length+' lines imported'+(matched>0?', '+matched+' auto-matched.':'.')+dateNote+compNote;
       tbImportId=impId;
       loadTBImport(impId);
       e.target.value='';
@@ -1320,28 +1334,31 @@ function formatRand(n){var abs=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\
 
 function parseCWTB(rows){
   var lines=[];var mapRx=/^(\d+(?:\.\d+){4,})\s{2,}(.+)/;
-  var seen={};var detectedDate=null;
+  var seen={};var detectedDate=null;var detectedCompany=null;
   var months={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12,
     jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
   function fmtDate(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
-  // Scan first 25 rows for a year-end date in the header area
-  for(var hi=0;hi<Math.min(25,rows.length)&&!detectedDate;hi++){
+  var coSkip=['trial balance','consolidated','balance sheet','income statement','profit and loss',
+    'period','report','generated','caseware','map number','description','amount','debit','credit','overhead','page','working papers'];
+  function isCoSkip(s){var l=s.toLowerCase();return /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/.test(s)||/\d{4}[\/\-]\d{2}[\/\-]\d{2}/.test(s)||/\d{1,2}\s+[A-Za-z]+\s+\d{4}/.test(s)||coSkip.some(function(w){return l.indexOf(w)>=0;})||/^\d/.test(s)||s.length<4;}
+  for(var hi=0;hi<Math.min(25,rows.length);hi++){
     var hrow=rows[hi];
-    for(var hj=0;hj<hrow.length&&!detectedDate;hj++){
+    for(var hj=0;hj<hrow.length;hj++){
       var cell=hrow[hj];if(!cell)continue;
-      if(cell instanceof Date&&!isNaN(cell)){
-        var y=cell.getFullYear();if(y>=2015&&y<=2035)detectedDate=fmtDate(y,cell.getMonth()+1,cell.getDate());
-      } else if(typeof cell==='string'){
-        var s=cell.trim();
-        // "28 February 2025" or "28 Feb 2025"
-        var m1=s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
-        if(m1){var mn=months[m1[2].toLowerCase()];if(mn&&parseInt(m1[3])>=2015)detectedDate=fmtDate(parseInt(m1[3]),mn,parseInt(m1[1]));}
-        // "28/02/2025" or "28-02-2025"
-        if(!detectedDate){var m2=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);if(m2&&parseInt(m2[3])>=2015)detectedDate=fmtDate(parseInt(m2[3]),parseInt(m2[2]),parseInt(m2[1]));}
-        // "2025/02/28" or "2025-02-28"
-        if(!detectedDate){var m3=s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);if(m3&&parseInt(m3[1])>=2015)detectedDate=m3[1]+'-'+m3[2]+'-'+m3[3];}
+      if(!detectedDate){
+        if(cell instanceof Date&&!isNaN(cell)){
+          var y=cell.getFullYear();if(y>=2015&&y<=2035)detectedDate=fmtDate(y,cell.getMonth()+1,cell.getDate());
+        } else if(typeof cell==='string'){
+          var s=cell.trim();
+          var m1=s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+          if(m1){var mn=months[m1[2].toLowerCase()];if(mn&&parseInt(m1[3])>=2015)detectedDate=fmtDate(parseInt(m1[3]),mn,parseInt(m1[1]));}
+          if(!detectedDate){var m2=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);if(m2&&parseInt(m2[3])>=2015)detectedDate=fmtDate(parseInt(m2[3]),parseInt(m2[2]),parseInt(m2[1]));}
+          if(!detectedDate){var m3=s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);if(m3&&parseInt(m3[1])>=2015)detectedDate=m3[1]+'-'+m3[2]+'-'+m3[3];}
+        }
       }
+      if(!detectedCompany&&typeof cell==='string'){var cs=cell.trim();if(!isCoSkip(cs))detectedCompany=cs;}
     }
+    if(detectedDate&&detectedCompany)break;
   }
   for(var i=0;i<rows.length;i++){
     var row=rows[i];var col0=String(row[0]||'').trim();
@@ -1355,7 +1372,7 @@ function parseCWTB(rows){
     if(seen[mapNum]){seen[mapNum].cons_amount+=amt;}
     else{seen[mapNum]={cw_map_number:mapNum,cw_description:desc,cons_amount:amt};lines.push(seen[mapNum]);}
   }
-  return {lines:lines,detectedDate:detectedDate};
+  return {lines:lines,detectedDate:detectedDate,detectedCompany:detectedCompany};
 }
 
 async function autoMatchTBLines(impId){
@@ -1377,6 +1394,14 @@ async function doAutoMatchTB(impId){
   var n=await autoMatchTBLines(impId);
   if(n>0){toast('✅ Auto-matched '+n+' line'+(n>1?'s':'')+'.');loadTBImport(impId);}
   else toast('No new matches found.');
+}
+function acceptCoMismatch(){
+  var el=document.getElementById('coMisEl');
+  if(!el)return;
+  var tb=el.getAttribute('data-tb')||'company';
+  el.outerHTML='<span style="color:#16a34a;font-weight:600;">✔ Accepted</span> — <b>'+tb+'</b> confirmed as correct company.';
+  var st=document.getElementById('tbUpSt');
+  if(st&&st.innerHTML.indexOf('⚠️')<0){st.className='al al-s';}
 }
 
 async function saveTBLine(lineId,impId,gsCodeId){
