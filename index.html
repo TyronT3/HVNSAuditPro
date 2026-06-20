@@ -538,7 +538,7 @@ function vAdd(){
       +'<div><label class="lbl">Client Name</label><input id="faCl" class="inp" value="'+fClient+'" placeholder="e.g. ABC Ltd"/></div>'
       +'<div><label class="lbl">Overall Due Date *</label><input type="date" id="faDue" class="inp" value="'+fDue+'"/></div>'
       +'<div style="border-top:1px solid var(--border);padding-top:14px;"><div class="stitle">Or Import from CSV</div>'
-      +'<p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: Section, Subsection, Assignee Email, Budget Hours</p>'
+      +'<p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: Section, Subsection, Assignee Email, Budget Hours, Due Date — <b>Due Date must be in YYYY-MM-DD format</b> (e.g. 2025-03-31). Leave blank to inherit the audit due date.</p>'
       +'<div style="display:flex;gap:8px;"><button onclick="dlTpl()" class="gbtn" style="font-size:12px;">Download Template</button>'
       +'<label style="cursor:pointer;"><input type="file" id="csvInp" accept=".csv" style="display:none;" onchange="importCSV(event)"/><span class="gbtn" style="font-size:12px;display:inline-block;">Import CSV</span></label></div>'
       +'<div id="csvSt" style="margin-top:8px;font-size:12px;"></div></div>'
@@ -626,6 +626,13 @@ async function vEdit(){
   var sbySec={};(subsQ2.data||[]).forEach(function(s){if(!sbySec[s.section_id])sbySec[s.section_id]=[];sbySec[s.section_id].push(s);});
   var reg2=new Set(AU.map(function(u){return u.email.toLowerCase();}));
   var unreg2=new Set();(subsQ2.data||[]).forEach(function(s){if(s.assignee_email&&!reg2.has(s.assignee_email.toLowerCase()))unreg2.add(s.assignee_email);});
+  var gsActCodes=[];var gsMap={};
+  try{var gsActQ=await sb.from('gs_activity_codes').select('id,code,name,activity_type').order('activity_type').order('code');if(!gsActQ.error){gsActCodes=gsActQ.data||[];var subIds2=(subsQ2.data||[]).map(function(s){return s.id;});if(subIds2.length){var gsMapQ=await sb.from('gs_subsection_activity_map').select('subsection_id,gs_activity_code_id').in('subsection_id',subIds2);if(!gsMapQ.error)(gsMapQ.data||[]).forEach(function(m){gsMap[m.subsection_id]=m.gs_activity_code_id;})}}}catch(e){}
+  var gsTypeOrder=['Audit','Accounting','Compilation','Taxation','Consulting','CoSec','Admin'];
+  var gsOptsByType={};gsActCodes.forEach(function(a){var t=a.activity_type||'Other';if(!gsOptsByType[t])gsOptsByType[t]=[];gsOptsByType[t].push(a);});
+  var gsOptsHtml='<option value="">— Not mapped —</option>';
+  gsTypeOrder.forEach(function(t){if(!gsOptsByType[t]||!gsOptsByType[t].length)return;gsOptsHtml+='<optgroup label="'+t+'">';gsOptsByType[t].forEach(function(a){gsOptsHtml+='<option value="'+a.id+'">'+a.code+' — '+a.name+'</option>';});gsOptsHtml+='</optgroup>';});
+  Object.keys(gsOptsByType).forEach(function(t){if(gsTypeOrder.indexOf(t)>=0)return;gsOptsHtml+='<optgroup label="'+t+'">';gsOptsByType[t].forEach(function(a){gsOptsHtml+='<option value="'+a.id+'">'+a.code+' — '+a.name+'</option>';});gsOptsHtml+='</optgroup>';});
   var h='<div class="fbox" style="max-width:820px;">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">'
     +'<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">✏️ Edit '+audLabel(aud.type||'audit')+'</span>'
@@ -651,15 +658,17 @@ async function vEdit(){
       +'<select class="inp" style="width:150px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecA(\''+sec2.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sec2.assignee_email?' selected':'')+'>'+u.full_name+'</option>';}).join('')+'</select>'
       +'<label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label>'
       +'<input type="date" class="inp" value="'+(sec2.due_date||'')+'" style="width:130px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecD(\''+sec2.id+'\',this.value)"/></div>'
-      +'<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:6px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">'
-      +['Subsection','Assignee','Due Date','Budget Hrs',''].map(function(x){return '<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">'+x+'</span>';}).join('')+'</div>';
+      +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr 0.8fr 2fr auto;gap:8px;padding:6px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">'
+      +['Subsection','Assignee','Due Date','Hrs','GS Activity',''].map(function(x){return '<span style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;">'+x+'</span>';}).join('')+'</div>';
     for(var ssi2=0;ssi2<ss2.length;ssi2++){
       var sub3=ss2[ssi2];var un3=sub3.assignee_email&&!reg2.has(sub3.assignee_email.toLowerCase());
-      h+='<div style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1fr auto;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;">'
+      var curGsId=gsMap[sub3.id]||'';
+      h+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 0.8fr 2fr auto;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);align-items:center;background:#fff;">'
         +'<span style="font-size:13px;font-weight:500;">'+sub3.name+(un3?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
         +'<select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updSubA(\''+sub3.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sub3.assignee_email?' selected':'')+'>'+u.full_name+'</option>';}).join('')+'</select>'
         +'<input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub3.due_date||'')+'" onchange="updSubD(\''+sub3.id+'\',this.value)"/>'
         +'<input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub3.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub3.id+'\',this.value)"/>'
+        +'<select class="inp" style="font-size:11px;padding:4px 6px;background:'+(curGsId?'#f0fdf4':'#fff')+';border-color:'+(curGsId?'#86efac':'var(--border)')+';" onchange="updSubGS(\''+sub3.id+'\',this.value)">'+gsOptsHtml.replace('value="'+curGsId+'"','value="'+curGsId+'" selected')+'</select>'
         +'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div>';
     }
     h+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
@@ -970,7 +979,7 @@ async function createAudit(){
   var aud=res.data;
   if(usingCsv&&csvSecs){
     var keys=Object.keys(csvSecs);
-    for(var ki=0;ki<keys.length;ki++){var sn=keys[ki];var sd=csvSecs[sn];var sr=await sb.from('sections').insert({audit_id:aud.id,name:sn,assignee_email:sd.assignee||null,due_date:fDue||null,sort_order:ki}).select().single();if(sr.data){for(var subi=0;subi<sd.subs.length;subi++){var subx=sd.subs[subi];await sb.from('subsections').insert({section_id:sr.data.id,name:subx.name,assignee_email:subx.assignee||sd.assignee||null,due_date:fDue||null,budget_hours:subx.budget||0,step:'Not Started',sort_order:subi});}}}
+    for(var ki=0;ki<keys.length;ki++){var sn=keys[ki];var sd=csvSecs[sn];var sr=await sb.from('sections').insert({audit_id:aud.id,name:sn,assignee_email:sd.assignee||null,due_date:fDue||null,sort_order:ki}).select().single();if(sr.data){for(var subi=0;subi<sd.subs.length;subi++){var subx=sd.subs[subi];await sb.from('subsections').insert({section_id:sr.data.id,name:subx.name,assignee_email:subx.assignee||sd.assignee||null,due_date:subx.dueDate||fDue||null,budget_hours:subx.budget||0,step:'Not Started',sort_order:subi});}}}
     csvSecs=null;usingCsv=false;
   } else {
     var secs2=STPLS.filter(function(t){return fSel[t.n];});
@@ -1017,6 +1026,7 @@ async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}
 async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function updSubGS(id,v){if(!v){await sb.from('gs_subsection_activity_map').delete().eq('subsection_id',id);}else{await sb.from('gs_subsection_activity_map').upsert({subsection_id:id,gs_activity_code_id:v},{onConflict:'subsection_id'});}toast('GS activity saved.');}
 async function delSubE(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);vEdit();}
 async function addSubE(sid,inA,inD){var n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a name.');return;}var a=document.getElementById('na_'+sid).value||inA||null;var d=document.getElementById('nd_'+sid).value||inD||null;var b=parseFloat(document.getElementById('nb_'+sid).value)||0;await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999});toast('✅ Added.');vEdit();}
 function showTeams(an,sn,sub,step,due,hrs){document.getElementById('teamsTxt').value='📋 Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nStep: '+step+(due?'\nDue: '+due:'')+'\nHours: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';openM('teamsModal');}
@@ -1027,7 +1037,7 @@ async function doChangePwd(){var p1=document.getElementById('pwd1').value;var p2
 async function doForgot(){var e=document.getElementById('fgtEmail').value.trim();var st=document.getElementById('fgtSt');if(!e){st.className='al al-e';st.textContent='Enter your email.';st.style.display='block';return;}var res=await sb.auth.resetPasswordForEmail(e,{redirectTo:'https://tyront3.github.io/HVNSAuditPro/'});st.className=res.error?'al al-e':'al al-s';st.textContent=res.error?res.error.message:'✅ Reset link sent!';st.style.display='block';}
 
 // ── csv ───────────────────────────────────────────────────────────────────
-function dlTpl(){var csv='Section,Subsection,Assignee Email,Budget Hours\nPlanning,Engagement Letter,staff@hvns.co.za,2\nPlanning,Audit Plan,staff@hvns.co.za,4\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3';var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function dlTpl(){var csv='Section,Subsection,Assignee Email,Budget Hours,Due Date (YYYY-MM-DD)\nPlanning,Engagement Letter,staff@hvns.co.za,2,2025-03-31\nPlanning,Audit Plan,staff@hvns.co.za,4,2025-03-31\nCash & Bank,Bank Reconciliation,staff@hvns.co.za,3,2025-04-15';var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='audit_plan_template.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
 function importCSV(e){
   var file=e.target.files[0];if(!file)return;
   var reader=new FileReader();
@@ -1041,16 +1051,18 @@ function importCSV(e){
       var sbi=headers.findIndex(function(h){return h.indexOf('subsection')>=0;});
       var ai=headers.findIndex(function(h){return h.indexOf('assignee')>=0||h.indexOf('email')>=0;});
       var bi=headers.findIndex(function(h){return h.indexOf('budget')>=0||h.indexOf('hour')>=0;});
+      var di=headers.findIndex(function(h){return h.indexOf('due')>=0;});
       if(si<0||sbi<0){alert('CSV must have Section and Subsection columns.');return;}
       var rows=lines.slice(1).map(function(l){if(delim==='\t')return l.split('\t').map(function(v){return v.trim().replace(/^"|"$/g,'');});var v=[];var cur='';var inQ=false;for(var i=0;i<l.length;i++){if(l[i]==='"')inQ=!inQ;else if(l[i]===','&&!inQ){v.push(cur.trim());cur='';}else cur+=l[i];}v.push(cur.trim());return v;});
-      var newSecs={};var cnt=0;
-      rows.forEach(function(v){var sn=(v[si]||'').trim().replace(/^"|"$/g,'');var sub=(v[sbi]||'').trim().replace(/^"|"$/g,'');var ass=ai>=0?(v[ai]||'').trim().replace(/^"|"$/g,''):'';var bud=bi>=0?parseFloat((v[bi]||'').replace(/^"|"$/g,''))||0:0;if(!sn||!sub)return;if(!newSecs[sn])newSecs[sn]={assignee:ass,subs:[]};newSecs[sn].subs.push({name:sub,assignee:ass,budget:bud});if(ass&&!newSecs[sn].assignee)newSecs[sn].assignee=ass;cnt++;});
+      var newSecs={};var cnt=0;var badDates=[];
+      rows.forEach(function(v){var sn=(v[si]||'').trim().replace(/^"|"$/g,'');var sub=(v[sbi]||'').trim().replace(/^"|"$/g,'');var ass=ai>=0?(v[ai]||'').trim().replace(/^"|"$/g,''):'';var bud=bi>=0?parseFloat((v[bi]||'').replace(/^"|"$/g,''))||0:0;var due=di>=0?(v[di]||'').trim().replace(/^"|"$/g,''):'';if(due&&!/^\d{4}-\d{2}-\d{2}$/.test(due)){badDates.push('"'+due+'"');due='';}if(!sn||!sub)return;if(!newSecs[sn])newSecs[sn]={assignee:ass,subs:[]};newSecs[sn].subs.push({name:sub,assignee:ass,budget:bud,dueDate:due||null});if(ass&&!newSecs[sn].assignee)newSecs[sn].assignee=ass;cnt++;});
       csvSecs=newSecs;usingCsv=true;
       var reg=new Set(AU.map(function(u){return u.email.toLowerCase();}));var unreg=new Set();
       Object.values(newSecs).forEach(function(sd){if(sd.assignee&&!reg.has(sd.assignee.toLowerCase()))unreg.add(sd.assignee);sd.subs.forEach(function(s){if(s.assignee&&!reg.has(s.assignee.toLowerCase()))unreg.add(s.assignee);});});
       var msg='✅ '+cnt+' rows imported across '+Object.keys(newSecs).length+' sections.';
       if(unreg.size>0)msg+='<br/>⚠️ <b>'+unreg.size+' unregistered: '+Array.from(unreg).join(', ')+'</b>';
       else msg+=' All assignees registered ✅';
+      if(badDates.length>0)msg+='<br/>⚠️ <b>Invalid date format ignored (use YYYY-MM-DD): '+badDates.join(', ')+'</b>';
       var stEl=document.getElementById('csvSt');if(stEl)stEl.innerHTML=msg;
       e.target.value='';
       var nEl=document.getElementById('faN');var dEl=document.getElementById('faDue');var cEl=document.getElementById('faCl');
