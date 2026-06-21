@@ -46,6 +46,7 @@
 | `supabase/migrations/` | Additive SQL migrations (never destructive) |
 | `supabase/migrations/20260620000000_gs_mapping_tables.sql` | GS employee/audit/section/activity code tables + 127 activity code seed rows |
 | `supabase/migrations/20260620000001_tax_tb_tables.sql` | Tax TB tables (gs_tax_codes, gs_tb_mapping, tax_tb_imports, tax_tb_lines) — **not yet applied to production** |
+| `supabase/migrations/20260620000003_auth_user_trigger.sql` | Auth trigger: auto-creates `public.users` profile on auth user creation with correct `id`; unique index on `email` |
 | `supabase/security/rls_hardening_staging.sql` | RLS policies — test in staging before applying to prod |
 | `docs/security-hardening.md` | Role/access design and RLS test checklist |
 | `docs/greatsoft-integration-plan.md` | GreatSoft mapping and rollout plan |
@@ -69,12 +70,18 @@ Audit logging: `security_audit_log`
 - `public.is_manager()` — true for manager or tyron
 - `public.is_director()` — true for director role
 - `public.can_view_reports()` — true for manager/director/tyron
+- `public.handle_new_auth_user()` — SECURITY DEFINER trigger function; auto-inserts `public.users` row (id=auth.uid, role=staff, active=false) on Supabase Auth user creation
+- `public.section_has_assignee_subsection(section_id, email)` — SECURITY DEFINER; used in `sections_select_visible` to check if any subsection of the section is assigned to the user, without triggering RLS on `subsections` (breaks mutual recursion)
+- `public.subsection_parent_section_assignee(section_id, email)` — SECURITY DEFINER; used in `subsections_select_visible` to check if the parent section is assigned to the user, without triggering RLS on `sections` (breaks mutual recursion)
 
 **Migration strategy:** Always additive — new nullable columns or new tables only. Never drop or rename columns without explicit sign-off.
 
 **Pending migrations (not yet applied to production Supabase):**
 1. `20260620000000_gs_mapping_tables.sql` — GS activity code tables; required for GS activity selector in Edit view
 2. `20260620000001_tax_tb_tables.sql` — Tax TB tables; required for Tax TB import feature
+3. `20260620000003_auth_user_trigger.sql` — Auth user trigger + email unique index; required for in-app Add User to work
+4. `20260620000004_subsection_comment.sql` — Adds `comment text` column to `subsections`; required for notes feature
+5. `20260620000005_fix_rls_recursion.sql` — Fixes infinite recursion in sections/subsections RLS policies; **apply immediately** if workload screen shows recursion error
 
 To apply: Supabase Dashboard → SQL Editor → paste and run each file in order.
 
@@ -193,9 +200,31 @@ No automated test suite. Manual testing checklist lives in `docs/security-harden
 
 ## Security Notes
 
-- RLS is **not yet enabled** on main app tables in production (it's ready in `rls_hardening_staging.sql` — apply after staging validation). Tax TB tables have RLS on by default.
-- All role checks rely on `public.current_user_email()` and `public.current_user_role()` in RLS policies.
+- RLS is **live in production** on all tables as of 2026-06-20. Migration: `20260620000002_rls_main_tables.sql`.
+- The staging script `supabase/security/rls_hardening_staging.sql` is now superseded — use the migration file as the source of truth.
+- All role checks rely on `public.current_user_email()` and `public.current_user_role()` in RLS policies (SECURITY DEFINER, bypass RLS safely).
+- **Critical RLS invariant:** `public.users.id` must equal the user's `auth.uid()`. The `handle_new_auth_user` trigger enforces this for all new users. If a user can't log in (profile fetch returns 0 rows), check that their `public.users.id` matches their `auth.users.id`.
 - The `security_audit_log` table exists but is not yet written to from the frontend.
-- Do not introduce `SECURITY DEFINER` functions or bypass RLS without explicit review.
+- Do not introduce additional `SECURITY DEFINER` functions or bypass RLS without explicit review.
 - Do not store PII beyond what's already in `users` (email, display name, role).
 - `.gitignore` excludes `*.xlsx`, `*.xls`, `*.csv` — company-sensitive data must never be committed.
+- Supabase client uses `storageKey: 'hvns-audit-pro'` to namespace session storage and avoid stale lock conflicts in development.
+
+## User Management
+
+**Adding a new user (in-app flow):**
+1. Create user in **Supabase Auth → Users → Add user** — the `on_auth_user_created` trigger auto-creates a `public.users` profile (role=staff, active=false, name=email prefix)
+2. Open **User Management → Add User** → enter email + full name + role + dept → Save Profile — this updates the trigger-created row with the correct details and activates the account
+3. User can now log in — their `public.users.id` will correctly match `auth.uid()`
+
+**Editing existing users:** Name is editable inline in the User Management table (`updName()`). Role and department have inline dropdowns (`updRole()`, `updDept()`). Activate/Deactivate toggles `active`.
+
+**If a user can't log in:** Their `public.users.id` may not match `auth.uid()` (possible if created before the trigger was in place). Fix via Supabase SQL Editor:
+```sql
+UPDATE public.users pu SET id = au.id
+FROM auth.users au WHERE au.email = pu.email AND pu.id != au.id;
+```
+
+## Workload View
+
+`vWorkload()` queries `subsections` directly (not a view) with a separate `step_logs` fetch for actual hours. Do not replace this with a `subsection_summary` view dependency — that view had security/RLS issues after RLS was applied to the underlying tables and is no longer used.
