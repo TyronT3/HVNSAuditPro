@@ -76,14 +76,9 @@ Audit logging: `security_audit_log`
 
 **Migration strategy:** Always additive — new nullable columns or new tables only. Never drop or rename columns without explicit sign-off.
 
-**Pending migrations (not yet applied to production Supabase):**
-1. `20260620000000_gs_mapping_tables.sql` — GS activity code tables; required for GS activity selector in Edit view
-2. `20260620000001_tax_tb_tables.sql` — Tax TB tables; required for Tax TB import feature
-3. `20260620000003_auth_user_trigger.sql` — Auth user trigger + email unique index; required for in-app Add User to work
-4. `20260620000004_subsection_comment.sql` — Adds `comment text` column to `subsections`; required for notes feature
-5. `20260620000005_fix_rls_recursion.sql` — Fixes infinite recursion in sections/subsections RLS policies; **apply immediately** if workload screen shows recursion error
+**All migrations applied to production as of 2026-06-21.** No pending migrations.
 
-To apply: Supabase Dashboard → SQL Editor → paste and run each file in order.
+To apply future migrations: Supabase Dashboard → SQL Editor → paste and run each file in order.
 
 ---
 
