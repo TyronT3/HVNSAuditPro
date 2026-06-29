@@ -182,7 +182,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
         <div><label class="lbl">Note (optional)</label><input type="text" id="hrsNote" class="inp" placeholder="e.g. client call"/></div>
       </div>
     </div>
-    <div class="mf"><button class="gbtn" onclick="confirmAdv(0)">Skip</button><button class="pbtn" onclick="confirmAdv()">Confirm &amp; Save</button></div>
+    <div class="mf"><button id="hrsSkipBtn" class="gbtn" onclick="confirmAdv(0)">Skip</button><button class="pbtn" onclick="confirmAdv()">Confirm &amp; Save</button></div>
   </div>
 </div>
 
@@ -753,6 +753,7 @@ async function vUpdate(){
         +trail(si4)
         +'<div style="display:flex;gap:8px;">'
         +(si4>0&&!isSignedOff?'<button onclick="regressStep(\''+sub4.id+'\')" class="gbtn">← Back</button>':'')
+        +(!isSignedOff?'<button onclick="reqLogOnly(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="gbtn">⏱ Log</button>':'')
         +(isSignedOff
           ?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Signed Off!</div>'
           :!canGoNext
@@ -1051,13 +1052,23 @@ function reqAdv(sid,name,next,bud,act){
   var rem=parseFloat(bud)-parseFloat(act);
   document.getElementById('hrsTxt').innerHTML='Moving <b>'+name+'</b> to <b>'+next+'</b>.<br/>Hours spent?'+(parseFloat(bud)>0?'<br/><span style="font-size:11px;color:#6b7280;">Budget remaining: '+H(rem)+'h</span>':'');
   document.getElementById('hrsInp').value='';document.getElementById('hrsNote').value='';
+  document.getElementById('hrsSkipBtn').style.display='';
+  openM('hrsModal');
+}
+function reqLogOnly(sid,name,curStep,bud,act){
+  pendAdv={sid:sid,step:curStep,logOnly:true};
+  var rem=parseFloat(bud)-parseFloat(act);
+  document.getElementById('hrsTxt').innerHTML='Log hours for <b>'+name+'</b>.<br/><span style="font-size:11px;color:#6b7280;">Step will not advance.'+(parseFloat(bud)>0?' Budget remaining: '+H(rem)+'h.':'')+'</span>';
+  document.getElementById('hrsInp').value='';document.getElementById('hrsNote').value='';
+  document.getElementById('hrsSkipBtn').style.display='none';
   openM('hrsModal');
 }
 async function confirmAdv(skip){
+  if(pendAdv.logOnly&&skip===0){closeM('hrsModal');return;}
   var hrs=skip===0?0:parseFloat(document.getElementById('hrsInp').value)||0;
   var note=document.getElementById('hrsNote').value||'';
-  await sb.from('subsections').update({step:pendAdv.next}).eq('id',pendAdv.sid);
-  if(hrs>0)await sb.from('step_logs').insert({subsection_id:pendAdv.sid,step:pendAdv.next,hours:hrs,logged_by:CU.id,logged_by_email:CU.email,note:note||null});
+  if(!pendAdv.logOnly)await sb.from('subsections').update({step:pendAdv.next}).eq('id',pendAdv.sid);
+  if(hrs>0)await sb.from('step_logs').insert({subsection_id:pendAdv.sid,step:pendAdv.logOnly?pendAdv.step:pendAdv.next,hours:hrs,logged_by:CU.id,logged_by_email:CU.email,note:note||null});
   closeM('hrsModal');renderView();
 }
 async function regressStep(sid){var r=await sb.from('subsections').select('step').eq('id',sid).single();var i=STEPS.indexOf(r.data.step);if(i<=0)return;await sb.from('subsections').update({step:STEPS[i-1]}).eq('id',sid);renderView();}
