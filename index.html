@@ -194,6 +194,14 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
+<div id="asgChgModal" class="mo" style="display:none;">
+  <div class="md" style="width:480px;max-width:95vw;">
+    <div class="mh"><h3>🔔 Assignment Changes</h3><button class="mx" onclick="closeM('asgChgModal')">✕</button></div>
+    <div id="asgChgBody" class="mb" style="overflow-y:auto;max-height:60vh;"></div>
+    <div class="mf"><button class="pbtn" onclick="closeM('asgChgModal')">Got it</button></div>
+  </div>
+</div>
+
 <div id="tsModal" class="mo" style="display:none;">
   <div class="md" style="width:500px;max-width:95vw;">
     <div class="mh"><h3>📅 Weekly Time Reconciliation</h3><button class="mx" onclick="closeM('tsModal')">✕</button></div>
@@ -420,7 +428,39 @@ async function initApp(user){
   AU=us.data||[];
   buildNav();
   setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
+  await checkAssignmentChanges(CU.email);
   goView('dashboard');
+}
+async function checkAssignmentChanges(email){
+  var q=await sb.from('subsections').select('id,name,assignee_email,co_assignees,sections(name,audits(name))').or('assignee_email.eq.'+email+',co_assignees.cs.{"'+email+'"}').neq('step','Signed Off');
+  if(q.error)return;
+  var cur=(q.data||[]).map(function(s){return {id:s.id,name:s.name,section:s.sections?s.sections.name:'',audit:s.sections&&s.sections.audits?s.sections.audits.name:'',role:s.assignee_email===email?'primary':'co-assignee'};});
+  var key='hvns-asgn-'+email,tsKey='hvns-asgn-ts-'+email;
+  var prevRaw=localStorage.getItem(key);
+  var prevTs=localStorage.getItem(tsKey);
+  localStorage.setItem(key,JSON.stringify(cur));
+  localStorage.setItem(tsKey,String(Date.now()));
+  if(!prevRaw)return;
+  var prev;try{prev=JSON.parse(prevRaw);}catch(e){return;}
+  var prevMap={};prev.forEach(function(x){prevMap[x.id]=x;});
+  var curMap={};cur.forEach(function(x){curMap[x.id]=x;});
+  var added=cur.filter(function(x){return !prevMap[x.id];});
+  var removed=prev.filter(function(x){return !curMap[x.id];});
+  if(!added.length&&!removed.length)return;
+  var sinceStr=prevTs?'Since '+new Date(parseInt(prevTs)).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'})+':':'Since your last visit:';
+  var h='<div style="font-size:12px;color:#6b7280;margin-bottom:12px;">'+sinceStr+'</div>';
+  if(added.length){
+    h+='<div style="margin-bottom:14px;"><div style="font-size:11px;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:6px;">NEWLY ASSIGNED TO YOU</div>';
+    added.forEach(function(x){h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;margin-bottom:4px;"><span style="font-size:15px;">📋</span><div><div style="font-size:13px;font-weight:600;color:#15803d;">'+esc(x.name)+'</div><div style="font-size:11px;color:#6b7280;">'+esc(x.audit)+' › '+esc(x.section)+(x.role==='co-assignee'?' · <em>co-assignee</em>':'')+'</div></div></div>';});
+    h+='</div>';
+  }
+  if(removed.length){
+    h+='<div><div style="font-size:11px;font-weight:700;color:#dc2626;letter-spacing:.05em;margin-bottom:6px;">REMOVED FROM YOUR QUEUE</div>';
+    removed.forEach(function(x){h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;margin-bottom:4px;"><span style="font-size:15px;">🗂️</span><div><div style="font-size:13px;font-weight:600;color:#b91c1c;text-decoration:line-through;">'+esc(x.name)+'</div><div style="font-size:11px;color:#6b7280;">'+esc(x.audit)+' › '+esc(x.section)+(x.role==='co-assignee'?' · <em>co-assignee</em>':'')+'</div></div></div>';});
+    h+='</div>';
+  }
+  document.getElementById('asgChgBody').innerHTML=h;
+  document.getElementById('asgChgModal').style.display='flex';
 }
 sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT'){appInitBusy=false;showLogin();}});
 
