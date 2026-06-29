@@ -717,6 +717,7 @@ async function vEdit(){
         +'<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'
         +AU.filter(function(u){return u.email!==sub3.assignee_email;}).map(function(u){var ck=(sub3.co_assignees||[]).indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'#eff6ff':'#f1f5f9')+';border:1px solid '+(ck?'#bfdbfe':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+sub3.id+'\')"/>'+u.full_name+'</label>';}).join('')
         +'</div>'
+        +'<div style="padding:4px 16px 10px;display:flex;flex-wrap:wrap;gap:3px;align-items:center;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Step:</span>'+STEPS.map(function(s){var isCur=s===sub3.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub3.id+'\',\''+s+'\',\''+sub3.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>'
         +'</div>';
     }
     h+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
@@ -778,6 +779,7 @@ async function vUpdate(){
           ?'<div style="flex:1;padding:12px;background:#fdf2f8;color:#db2777;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
           :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
         +'</div>'
+        +(CR==='manager'||IS_SUPER?'<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px dashed #f1f5f9;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Jump to:</span>'+STEPS.map(function(s){var isCur=s===sub4.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub4.id+'\',\''+s+'\',\''+sub4.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>':'')
         +'<button onclick="showTeams(\''+g.a.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
         +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
         +'</div>';
@@ -1255,6 +1257,14 @@ async function confirmAdv(skip){
   closeM('hrsModal');renderView();
 }
 async function regressStep(sid){var r=await sb.from('subsections').select('step').eq('id',sid).single();var i=STEPS.indexOf(r.data.step);if(i<=0)return;await sb.from('subsections').update({step:STEPS[i-1]}).eq('id',sid);renderView();}
+async function jumpStep(sid,targetStep,curStep){
+  if(targetStep===curStep)return;
+  var tgt=STEPS.indexOf(targetStep);var cur=STEPS.indexOf(curStep);if(tgt<0)return;
+  var delta=tgt-cur;var skip=Math.abs(delta)-1;
+  if(skip>0&&!confirm((delta>0?'Advance':'Revert')+' to "'+targetStep+'"?\nThis skips '+skip+' step'+(skip>1?'s':'')+'. No hours will be logged for skipped steps.'))return;
+  await sb.from('subsections').update({step:targetStep}).eq('id',sid);
+  renderView();
+}
 function openRsn(sid,cur){pendRsn={sid:sid};document.getElementById('rsnSel').innerHTML=staffOpts(cur);openM('rsnModal');}
 async function doReassign(){var v=document.getElementById('rsnSel').value;if(!v)return;await sb.from('subsections').update({assignee_email:v}).eq('id',pendRsn.sid);closeM('rsnModal');renderView();}
 function openAsn(aid,sid){pendAsn={aid:aid,sid:sid};document.getElementById('asnName').value='';document.getElementById('asnDue').value='';document.getElementById('asnBud').value='';document.getElementById('asnAss').innerHTML='<option value="">Inherit</option>'+staffOpts();openM('asnModal');}
