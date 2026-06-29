@@ -98,6 +98,8 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .cal-day.other{background:#f8fafc;opacity:.5;}
 .cal-day.today{border-color:var(--orange);border-width:2px;}
 .cal-day.cal-sel{background:#eff6ff;border-color:#2563eb;border-width:2px;}
+@keyframes skPulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk{background:linear-gradient(90deg,#f1f5f9 25%,#e8edf2 50%,#f1f5f9 75%);background-size:200% 100%;border-radius:10px;animation:skPulse 1.5s ease infinite;}
 .cal-dn{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:3px;}
 .cal-item{font-size:10px;border-radius:4px;padding:2px 5px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
 .wl-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px;margin-bottom:12px;}
@@ -374,6 +376,8 @@ var csvSecs=null,usingCsv=false;
 var rollAID=null;
 var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null,ganttAuditId=null;
+var mwSubs=null,mwSm={},mwAm={},myWorkShowDone=false,myWorkSearch='';
+function showSkeleton(){setMain('<div style="display:flex;flex-direction:column;gap:14px;padding:4px;">'+Array(5).fill('<div class="sk" style="height:72px;"></div>').join('')+'</div>');}
 
 // ── helpers ──────────────────────────────────────────────────────────────
 function R(n){return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -499,6 +503,7 @@ async function renderView(){
 
 // ── dashboard ─────────────────────────────────────────────────────────────
 async function vDash(){
+  showSkeleton();
   var audQ=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
   var allAudits=(audQ.data||[]).filter(function(a){return deptMatch(a.type);});
   var subsQ=await sb.from('subsection_summary').select('*');
@@ -509,6 +514,10 @@ async function vDash(){
   var tf=allAudits.reduce(function(a,x){return a+parseFloat(x.fee_value||0);},0);
   var tb=allAudits.reduce(function(a,x){return a+parseFloat(x.budget_hours||0);},0);
   var ta=allAudits.reduce(function(a,x){return a+parseFloat(x.actual_hours||0);},0);
+  var tot=allS.length;
+  var doneCnt=allS.filter(function(s){return s.step==='Signed Off';}).length;
+  var inRev=allS.filter(function(s){return s.step==='Review';}).length;
+  var compPct=tot?Math.round(doneCnt/tot*100):0;
   var typeLabel=CDept==='accounting'?'Projects':'Audits';
   var h='<div class="stats">'
     +'<div class="stat"><div class="sval">'+allAudits.length+'</div><div class="slbl">'+audIcon(CDept==='accounting'?'accounting':'audit')+' Total '+typeLabel+'</div></div>'
@@ -521,6 +530,12 @@ async function vDash(){
       +'<div class="stat"><div class="sval">'+H(tb)+'h</div><div class="slbl">⏱ Budget Hours</div></div>'
       +'<div class="stat"><div class="sval">'+H(ta)+'h</div><div class="slbl">⏱ Actual Hours</div></div>'
       +'<div class="stat" style="border-left-color:'+(ta>tb?'#dc2626':'#16a34a')+'"><div class="sval" style="color:'+(ta>tb?'#dc2626':'#16a34a')+'">'+H(tb-ta)+'h</div><div class="slbl">📊 Hours Remaining</div></div>'
+      +'</div>';
+    h+='<div class="stats" style="grid-template-columns:repeat(4,1fr);">'
+      +'<div class="stat"><div class="sval">'+tot+'</div><div class="slbl">📋 Total Items</div></div>'
+      +'<div class="stat" style="border-left-color:#16a34a;"><div class="sval" style="color:#16a34a;">'+doneCnt+'</div><div class="slbl">✅ Signed Off</div></div>'
+      +'<div class="stat" style="border-left-color:#db2777;"><div class="sval" style="color:#db2777;">'+inRev+'</div><div class="slbl">🔍 Awaiting Sign-Off</div></div>'
+      +'<div class="stat" style="border-left-color:'+(compPct>=80?'#16a34a':compPct>=50?'#d97706':'#dc2626')+'"><div class="sval" style="color:'+(compPct>=80?'#16a34a':compPct>=50?'#d97706':'#dc2626')+'">'+compPct+'%</div><div class="slbl">📊 Completion Rate</div></div>'
       +'</div>';
   }
   if(!allAudits.length){
@@ -775,60 +790,119 @@ async function vEdit(){
 
 // ── update view ───────────────────────────────────────────────────────────
 async function vUpdate(){
+  showSkeleton();
   var me=CU.email;
   var ssQ=await sb.from('subsections').select('*').or('assignee_email.eq.'+me+',co_assignees.cs.{"'+me+'"}');
   var secsQ2=await sb.from('sections').select('*');
   var audQ2=await sb.from('audits').select('*');
-  var sm={};(secsQ2.data||[]).forEach(function(s){sm[s.id]=s;});
-  var am={};(audQ2.data||[]).forEach(function(a){am[a.id]=a;});
-  var subs2=ssQ.data||[];
-  if(subs2.length){var ids2=subs2.map(function(s){return s.id;});var lQ2=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids2);var hm2={};(lQ2.data||[]).forEach(function(l){hm2[l.subsection_id]=(hm2[l.subsection_id]||0)+(parseFloat(l.hours)||0);});subs2.forEach(function(s){s.actual_hours=hm2[s.id]||0;});}
+  mwSm={};(secsQ2.data||[]).forEach(function(s){mwSm[s.id]=s;});
+  mwAm={};(audQ2.data||[]).forEach(function(a){mwAm[a.id]=a;});
+  mwSubs=ssQ.data||[];
+  if(mwSubs.length){var ids2=mwSubs.map(function(s){return s.id;});var lQ2=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids2);var hm2={};(lQ2.data||[]).forEach(function(l){hm2[l.subsection_id]=(hm2[l.subsection_id]||0)+(parseFloat(l.hours)||0);});mwSubs.forEach(function(s){s.actual_hours=hm2[s.id]||0;});}
+  myWorkSearch='';
+  renderMyWork();
+}
+function filterMyWork(v){myWorkSearch=v.toLowerCase();renderMyWork();}
+function toggleMyWorkDone(){myWorkShowDone=!myWorkShowDone;renderMyWork();}
+function renderMyWork(){
+  var me=CU.email;
   var tod=new Date();var dow=tod.getDay();var isMon=dow===1;var dtm=isMon?0:(8-dow)%7||7;
   var tsBtn=isMon?'<button onclick="openTs()" class="obtn" style="font-size:13px;padding:8px 16px;">📅 Submit Timesheet</button>':'<button disabled style="font-size:13px;padding:8px 14px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;line-height:1.4;">📅 Timesheets<br/><span style="font-size:10px;">Opens Mon ('+dtm+'d)</span></button>';
-  var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'+tsBtn+'</div>';
-  if(!(ssQ.data||[]).length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
-  var byA={};(ssQ.data||[]).forEach(function(sub){var sec=sm[sub.section_id];if(!sec)return;var a=am[sec.audit_id];if(!a)return;if(!byA[a.id])byA[a.id]={a:a,items:[]};byA[a.id].items.push({sub:sub,sec:sec});});
-  var akeys=Object.keys(byA).sort(function(a,b){return byA[a].a.name.localeCompare(byA[b].a.name);});
-  for(var ai=0;ai<akeys.length;ai++){
-    var g=byA[akeys[ai]];
-    g.items.sort(function(x,y){var s=x.sec.name.localeCompare(y.sec.name);return s!==0?s:x.sub.name.localeCompare(y.sub.name);});
-    h+='<div style="margin-bottom:20px;"><div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">'+audIcon(g.a.type||'audit')+' '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
-    for(var ii=0;ii<g.items.length;ii++){
-      var item=g.items[ii];var sub4=item.sub;var sec4=item.sec;
-      var c4=SC[sub4.step]||SC['Not Started'];var si4=STEPS.indexOf(sub4.step);
-      var isSignedOff=sub4.step==='Signed Off';
-      var isReview=sub4.step==='Review';
-      var nextStep=si4<STEPS.length-1?STEPS[si4+1]:null;
-      var canGoNext=!isReview||(isReview&&CR==='manager');
-      var ob=parseFloat(sub4.actual_hours)>parseFloat(sub4.budget_hours)&&parseFloat(sub4.budget_hours)>0;
-      h+='<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c4.c)+';border:1px solid var(--border);border-left-width:4px;">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'
-        +'<div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec4.name+'</div>'
-        +'<div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);">'+sub4.name+'</div>'
-        +'<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">'
-        +dueB(sub4.due_date)+stFlag(sub4.due_date,sub4.step)
-        +'<span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ '+H(sub4.actual_hours)+'h / '+H(sub4.budget_hours)+'h</span>'
-        +(ob?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':'')
-        +'</div></div>'
-        +'<span class="sbadge" style="color:'+c4.c+';background:'+c4.b+'">'+sub4.step+'</span></div>'
-        +trail(si4)
-        +'<div style="display:flex;gap:8px;">'
-        +(si4>0&&!isSignedOff?'<button onclick="regressStep(\''+sub4.id+'\')" class="gbtn">← Back</button>':'')
-        +(!isSignedOff?'<button onclick="reqLogOnly(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="gbtn">⏱ Log</button>':'')
-        +(isSignedOff
-          ?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Signed Off!</div>'
-          :!canGoNext
-          ?'<div style="flex:1;padding:12px;background:#fdf2f8;color:#db2777;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
-          :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
-        +'</div>'
-        +(CR==='manager'||IS_SUPER?'<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px dashed #f1f5f9;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Jump to:</span>'+STEPS.map(function(s){var isCur=s===sub4.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub4.id+'\',\''+s+'\',\''+sub4.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>':'')
-        +'<button onclick="showTeams(\''+g.a.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
-        +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
-        +'</div>';
+  var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
+    +'<div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+    +'<input id="mwSearch" type="text" placeholder="🔍 Search..." value="'+esc(myWorkSearch)+'" oninput="filterMyWork(this.value)" class="inp" style="width:160px;font-size:13px;padding:6px 10px;"/>'
+    +'<button onclick="exportMyTimesheetXlsx()" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">📥 Export Excel</button>'
+    +tsBtn+'</div></div>';
+  if(!mwSubs||!mwSubs.length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
+  var sq=myWorkSearch;
+  var active=[],done=[];
+  mwSubs.forEach(function(sub){
+    var sec=mwSm[sub.section_id];if(!sec)return;
+    var a=mwAm[sec.audit_id];if(!a)return;
+    if(sq&&(sub.name+' '+sec.name+' '+a.name).toLowerCase().indexOf(sq)<0)return;
+    (sub.step==='Signed Off'?done:active).push({sub:sub,sec:sec,a:a});
+  });
+  function sortItems(arr){arr.sort(function(x,y){var sa=x.a.name.localeCompare(y.a.name);if(sa!==0)return sa;var ss=x.sec.name.localeCompare(y.sec.name);return ss!==0?ss:x.sub.name.localeCompare(y.sub.name);});}
+  sortItems(active);sortItems(done);
+  function groupByAudit(items){var g={},o=[];items.forEach(function(item){var aid=item.a.id;if(!g[aid]){g[aid]={a:item.a,items:[]};o.push(aid);}g[aid].items.push(item);});return o.map(function(aid){return g[aid];});}
+  function renderCard(item,aud){
+    var sub4=item.sub,sec4=item.sec;
+    var c4=SC[sub4.step]||SC['Not Started'];var si4=STEPS.indexOf(sub4.step);
+    var isSignedOff=sub4.step==='Signed Off';var isReview=sub4.step==='Review';
+    var nextStep=si4<STEPS.length-1?STEPS[si4+1]:null;
+    var canGoNext=!isReview||(isReview&&(CR==='manager'||IS_SUPER));
+    var ob=parseFloat(sub4.actual_hours)>parseFloat(sub4.budget_hours)&&parseFloat(sub4.budget_hours)>0;
+    return '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c4.c)+';border:1px solid var(--border);border-left-width:4px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'
+      +'<div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec4.name+'</div>'
+      +'<div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);">'+sub4.name+'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">'
+      +dueB(sub4.due_date)+stFlag(sub4.due_date,sub4.step)
+      +'<span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ '+H(sub4.actual_hours)+'h / '+H(sub4.budget_hours)+'h</span>'
+      +(ob?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':'')
+      +'</div></div>'
+      +'<span class="sbadge" style="color:'+c4.c+';background:'+c4.b+'">'+sub4.step+'</span></div>'
+      +trail(si4)
+      +'<div style="display:flex;gap:8px;">'
+      +(si4>0&&!isSignedOff?'<button onclick="regressStep(\''+sub4.id+'\')" class="gbtn">← Back</button>':'')
+      +(!isSignedOff?'<button onclick="reqLogOnly(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="gbtn">⏱ Log</button>':'')
+      +(isSignedOff?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Signed Off!</div>'
+        :!canGoNext?'<div style="flex:1;padding:12px;background:#fdf2f8;color:#db2777;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
+        :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
+      +'</div>'
+      +(CR==='manager'||IS_SUPER?'<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px dashed #f1f5f9;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Jump to:</span>'+STEPS.map(function(s){var isCur=s===sub4.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub4.id+'\',\''+s+'\',\''+sub4.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>':'')
+      +'<button onclick="showTeams(\''+aud.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
+      +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
+      +'</div>';
+  }
+  function renderGroups(groups,opacity){
+    var out='';
+    groups.forEach(function(g){
+      out+='<div style="margin-bottom:20px;'+(opacity?'opacity:0.65;':'')+'"><div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">'+audIcon(g.a.type||'audit')+' '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
+      g.items.forEach(function(item){out+=renderCard(item,g.a);});
+      out+='</div></div>';
+    });
+    return out;
+  }
+  if(!active.length&&!done.length){h+='<div style="text-align:center;padding:40px;color:#9ca3af;font-size:14px;">No items match your search.</div>';}
+  else{
+    h+=renderGroups(groupByAudit(active),false);
+    if(done.length){
+      h+='<div style="margin:4px 0 16px;"><button onclick="toggleMyWorkDone()" style="width:100%;padding:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">'+(myWorkShowDone?'▲ Hide ':'▼ Show ')+done.length+' completed item'+(done.length!==1?'s':'')+'</button></div>';
+      if(myWorkShowDone)h+=renderGroups(groupByAudit(done),true);
     }
-    h+='</div></div>';
   }
   setMain(h);
+  if(sq){var el=document.getElementById('mwSearch');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}}
+}
+
+async function exportMyTimesheetXlsx(){
+  var me=CU.email;
+  var lq=await sb.from('step_logs').select('subsection_id,step,hours,note,logged_at,logged_by_email').eq('logged_by_email',me).order('logged_at',{ascending:true});
+  if(lq.error){toast('Export failed: '+lq.error.message);return;}
+  var logs=lq.data||[];
+  if(!logs.length){toast('No time entries found.');return;}
+  var ids=[...new Set(logs.map(function(l){return l.subsection_id;}))];
+  var sq=await sb.from('subsections').select('id,name,sections(name,audits(name))').in('id',ids);
+  var subMap={};(sq.data||[]).forEach(function(s){subMap[s.id]=s;});
+  var rows=[['Date','Audit','Section','Subsection','Step','Hours','Note']];
+  logs.forEach(function(l){
+    var sub=subMap[l.subsection_id];
+    rows.push([
+      l.logged_at?new Date(l.logged_at).toLocaleDateString('en-ZA'):'',
+      sub&&sub.sections&&sub.sections.audits?sub.sections.audits.name:'',
+      sub&&sub.sections?sub.sections.name:'',
+      sub?sub.name:'',
+      l.step||'',parseFloat(l.hours)||0,l.note||''
+    ]);
+  });
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:30},{wch:25},{wch:30},{wch:15},{wch:8},{wch:30}];
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Time Entries');
+  XLSX.writeFile(wb,'timesheet_'+me.split('@')[0]+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('✅ Timesheet exported.');
 }
 
 // ── timesheets ─────────────────────────────────────────────────────────────
@@ -916,6 +990,7 @@ async function approveTs(id){await sb.from('timesheet_entries').update({status:'
 // ── calendar ──────────────────────────────────────────────────────────────
 var CAL_COLORS={'Not Started':{bg:'#f3f4f6',c:'#6b7280'},'Client Requested':{bg:'#ecfeff',c:'#0891b2'},'Client Received':{bg:'#e8eef4',c:'#1A2B3C'},'Processing':{bg:'#f5f3ff',c:'#7c3aed'},'Finalising':{bg:'#fffbeb',c:'#d97706'},'Review':{bg:'#fdf2f8',c:'#db2777'},'Signed Off':{bg:'#f0fdf4',c:'#16a34a'}};
 async function vCalendar(){
+  showSkeleton();
   var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
   var q=isMgr
     ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audits(name))').not('due_date','is',null).neq('step','Signed Off')
@@ -1009,6 +1084,7 @@ function calNav(dir){if(dir===0){calYear=new Date().getFullYear();calMonth=new D
 
 // ── gantt ──────────────────────────────────────────────────────────────────
 async function vGantt(){
+  showSkeleton();
   var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
   var audQ=await sb.from('audits').select('id,name').eq('archived',false).order('name');
   var auds=audQ.data||[];
@@ -1107,6 +1183,7 @@ function renderGantt(auds,secs,subs){
 
 // ── capacity ──────────────────────────────────────────────────────────────
 async function vCapacity(){
+  showSkeleton();
   var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
   var q=isMgr
     ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name))').not('due_date','is',null).neq('step','Signed Off')
@@ -1193,6 +1270,7 @@ function renderCapacity(items){
 
 // ── workload ──────────────────────────────────────────────────────────────
 async function vWorkload(){
+  showSkeleton();
   var isMgr=CR==='manager'||CR==='director';
   var subQ=isMgr
     ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))')
