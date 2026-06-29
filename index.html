@@ -365,7 +365,7 @@ var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit';
 var csvSecs=null,usingCsv=false;
 var rollAID=null;
 var tbGsOpts='';
-var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null;
+var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null,ganttAuditId=null;
 
 // ── helpers ──────────────────────────────────────────────────────────────
 function R(n){return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -429,7 +429,7 @@ function buildNav(){
   var tabs=[['dashboard','📊 Dashboard']];
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
-  tabs.push(['timesheet','📅 Timesheets'],['calendar','📆 Calendar'],['workload','👥 Workload']);
+  tabs.push(['timesheet','📅 Timesheets'],['calendar','📆 Calendar'],['gantt','📈 Timeline'],['workload','👥 Workload']);
   if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
@@ -449,6 +449,7 @@ async function renderView(){
   else if(CV==='update')await vUpdate();
   else if(CV==='timesheet')await vTs();
   else if(CV==='calendar')await vCalendar();
+  else if(CV==='gantt')await vGantt();
   else if(CV==='workload')await vWorkload();
   else if(CV==='taxTB')await vTaxTB();
   else if(CV==='users')await vUsers();
@@ -960,6 +961,104 @@ function showCalDayDom(){
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function calNav(dir){if(dir===0){calYear=new Date().getFullYear();calMonth=new Date().getMonth();}else{calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}else if(calMonth>11){calMonth=0;calYear++;}}vCalendar();}
+
+// ── gantt ──────────────────────────────────────────────────────────────────
+async function vGantt(){
+  var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
+  var audQ=await sb.from('audits').select('id,name').eq('archived',false).order('name');
+  var auds=audQ.data||[];
+  if(!auds.length){setMain('<div class="load">No active audits.</div>');return;}
+  if(!ganttAuditId||!auds.find(function(a){return a.id===ganttAuditId;}))ganttAuditId=auds[0].id;
+  var secsQ=await sb.from('sections').select('id,name,sort_order,assignee_email').eq('audit_id',ganttAuditId).order('sort_order');
+  var secs=secsQ.data||[];
+  var subs=[];
+  if(secs.length){
+    var secIds=secs.map(function(s){return s.id;});
+    var subQ=isMgr
+      ?await sb.from('subsections').select('id,name,step,due_date,budget_hours,sort_order,assignee_email,section_id').in('section_id',secIds).order('sort_order')
+      :await sb.from('subsections').select('id,name,step,due_date,budget_hours,sort_order,assignee_email,section_id').in('section_id',secIds).or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}').order('sort_order');
+    subs=subQ.data||[];
+  }
+  renderGantt(auds,secs,subs);
+}
+function renderGantt(auds,secs,subs){
+  var today=new Date();today.setHours(0,0,0,0);
+  var dObjs=subs.filter(function(s){return s.due_date;}).map(function(s){var d=new Date(s.due_date);d.setHours(0,0,0,0);return d;});
+  var minD=new Date(today);minD.setDate(minD.getDate()-14);
+  var maxD=new Date(today);maxD.setDate(maxD.getDate()+45);
+  if(dObjs.length){
+    var mn=new Date(Math.min.apply(null,dObjs));mn.setDate(mn.getDate()-7);
+    var mx=new Date(Math.max.apply(null,dObjs));mx.setDate(mx.getDate()+7);
+    if(mn<minD)minD=mn;if(mx>maxD)maxD=mx;
+  }
+  var span=Math.max(1,Math.round((maxD-minD)/86400000));
+  function pct(d){var x=new Date(d);x.setHours(0,0,0,0);return Math.max(0,Math.min(100,Math.round((x-minD)/86400000/span*10000)/100));}
+  var todayPct=pct(today);
+  var SPROG={'Not Started':0,'Client Requested':14,'Client Received':28,'Processing':42,'Finalising':57,'Review':71,'Signed Off':100};
+  var LW=200;
+  var h='<div>';
+  h+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">';
+  h+='<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">📈 Project Timeline</span>';
+  h+='<select onchange="ganttAuditId=this.value;vGantt();" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--navy);background:#fff;">';
+  auds.forEach(function(a){h+='<option value="'+a.id+'"'+(a.id===ganttAuditId?' selected':'')+'>'+esc(a.name)+'</option>';});
+  h+='</select>';
+  if(subs.length){var done=subs.filter(function(s){return s.step==='Signed Off';}).length;h+='<span style="font-size:12px;color:#9ca3af;">'+done+'/'+subs.length+' signed off</span>';}
+  h+='</div>';
+  h+='<div style="display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;">';
+  Object.entries(CAL_COLORS).forEach(function(e){h+='<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
+  h+='<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#dc262615;color:#dc2626;font-weight:600;">⚠ Overdue</span>';
+  h+='<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#f1f5f9;color:#9ca3af;font-weight:600;">⟳ Waiting</span>';
+  h+='</div>';
+  h+='<div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff;">';
+  h+='<div style="min-width:600px;">';
+  h+='<div style="display:flex;background:#f8fafc;border-bottom:2px solid var(--border);">';
+  h+='<div style="width:'+LW+'px;min-width:'+LW+'px;padding:8px;font-size:10px;font-weight:700;color:#9ca3af;border-right:1px solid var(--border);">ITEM</div>';
+  h+='<div style="flex:1;position:relative;height:32px;">';
+  var ws=new Date(minD);while(ws.getDay()!==0)ws.setDate(ws.getDate()-1);
+  while(ws<=maxD){
+    var wp=pct(ws);
+    h+='<div style="position:absolute;left:'+wp+'%;top:0;bottom:0;border-left:1px solid #e5e7eb;padding:8px 3px 0;font-size:9px;color:#9ca3af;white-space:nowrap;pointer-events:none;">'+ws.toLocaleDateString('en-ZA',{day:'numeric',month:'short'})+'</div>';
+    ws=new Date(ws);ws.setDate(ws.getDate()+7);
+  }
+  h+='<div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;border-left:2px solid #d97706;z-index:2;pointer-events:none;"><span style="position:absolute;top:6px;left:3px;font-size:9px;font-weight:700;color:#d97706;white-space:nowrap;">Today</span></div>';
+  h+='</div></div>';
+  if(!secs.length)h+='<div style="text-align:center;padding:40px;color:#9ca3af;">No sections found for this audit.</div>';
+  secs.forEach(function(sec){
+    var secSubs=subs.filter(function(s){return s.section_id===sec.id;});
+    if(!secSubs.length)return;
+    var secAsn=AU.find(function(u){return u.email===sec.assignee_email;});
+    h+='<div style="display:flex;background:#f1f5f9;border-bottom:1px solid var(--border);">';
+    h+='<div style="width:'+LW+'px;min-width:'+LW+'px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--navy);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(sec.name)+'">'+esc(sec.name)+(secAsn?'<span style="color:#9ca3af;font-weight:400;"> · '+esc(secAsn.full_name)+'</span>':'')+'</div>';
+    h+='<div style="flex:1;position:relative;min-height:26px;"><div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;border-left:2px dashed rgba(217,119,6,0.2);"></div></div></div>';
+    secSubs.forEach(function(sub,idx){
+      var cc=CAL_COLORS[sub.step]||CAL_COLORS['Not Started'];
+      var prog=SPROG[sub.step]||0;
+      var isOver=sub.due_date&&days(sub.due_date)<0&&sub.step!=='Signed Off';
+      var isWait=idx>0&&secSubs[idx-1].step!=='Signed Off'&&sub.step==='Not Started';
+      var asn=AU.find(function(u){return u.email===sub.assignee_email;});
+      h+='<div style="display:flex;border-bottom:1px solid #f1f5f9;min-height:32px;align-items:center;">';
+      h+='<div style="width:'+LW+'px;min-width:'+LW+'px;padding:4px 10px 4px 22px;font-size:11px;color:var(--navy);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(sub.name)+(asn?' — '+esc(asn.full_name):'')+'">'+(isWait?'<span style="color:#9ca3af;margin-right:3px;" title="Waiting for previous item">⟳</span>':'')+esc(sub.name)+'</div>';
+      h+='<div style="flex:1;position:relative;align-self:stretch;display:flex;align-items:center;">';
+      h+='<div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;border-left:2px dashed rgba(217,119,6,0.2);z-index:1;"></div>';
+      if(sub.due_date){
+        var bh=parseFloat(sub.budget_hours)||0;
+        var wDays=bh>0?Math.max(1,Math.ceil(bh/8)):5;
+        var dueD=new Date(sub.due_date);dueD.setHours(0,0,0,0);
+        var startD=new Date(dueD);startD.setDate(startD.getDate()-wDays);
+        var bl=pct(startD);var br=pct(dueD);var bw=Math.max(br-bl,0.5);
+        h+='<div style="position:absolute;left:'+bl+'%;width:'+bw+'%;height:16px;border-radius:8px;background:'+cc.bg+';border:1.5px '+(isWait?'dashed':'solid')+' '+(isOver?'#dc2626':cc.c)+';overflow:hidden;z-index:2;" title="'+esc(sub.step)+' · Due '+sub.due_date+(asn?' · '+esc(asn.full_name):'')+'">';
+        if(prog>0)h+='<div style="width:'+prog+'%;height:100%;background:'+cc.c+';opacity:0.65;"></div>';
+        h+='</div>';
+        h+='<div style="position:absolute;left:'+Math.min(br+0.5,97)+'%;font-size:9px;white-space:nowrap;z-index:3;color:'+(isOver?'#dc2626':'#9ca3af')+';font-weight:'+(isOver?'700':'400')+';padding-left:2px;">'+(isOver?'⚠ ':'')+sub.due_date.slice(5)+'</div>';
+      } else {
+        h+='<span style="padding:0 12px;font-size:10px;color:#d1d5db;">No due date</span>';
+      }
+      h+='</div></div>';
+    });
+  });
+  h+='</div></div></div>';
+  setMain(h);
+}
 
 // ── workload ──────────────────────────────────────────────────────────────
 async function vWorkload(){
