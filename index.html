@@ -261,7 +261,10 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   <div class="md rwrap">
     <div class="mh"><div><h3 id="rptTitle"></h3><div id="rptSub" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div></div><button class="mx" onclick="closeM('rptModal')">✕</button></div>
     <div class="rscroll"><table class="dtbl"><thead id="rptHead"></thead><tbody id="rptBody"></tbody></table></div>
-    <div style="padding:14px 20px;border-top:1px solid var(--border);background:#f8fafc;"><div style="font-size:12px;font-weight:600;margin-bottom:6px;">📋 CSV — click inside, Ctrl+A, Ctrl+C, paste into Notepad, save as .csv, open in Excel</div><textarea id="csvTxt" readonly onclick="this.select()" style="width:100%;height:70px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-family:monospace;resize:none;outline:none;"></textarea></div>
+    <div style="padding:10px 20px;border-top:1px solid var(--border);background:#f8fafc;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+      <button onclick="printClientRpt()" style="padding:8px 16px;background:#1A2B3C;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">🖨️ Client Report (PDF)</button>
+      <div style="flex:1;min-width:200px;"><div style="font-size:12px;font-weight:600;margin-bottom:4px;">📋 CSV Export</div><textarea id="csvTxt" readonly onclick="this.select()" style="width:100%;height:60px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-family:monospace;resize:none;outline:none;"></textarea></div>
+    </div>
   </div>
 </div>
 
@@ -377,6 +380,7 @@ var rollAID=null;
 var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null,ganttAuditId=null;
 var mwSubs=null,mwSm={},mwAm={},myWorkShowDone=false,myWorkSearch='';
+var _rptData=null,analyticsView='audit',analyticsPeriod='all';
 function showSkeleton(){setMain('<div style="display:flex;flex-direction:column;gap:14px;padding:4px;">'+Array(5).fill('<div class="sk" style="height:72px;"></div>').join('')+'</div>');}
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -474,6 +478,7 @@ function buildNav(){
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['timesheet','📅 Timesheets'],['calendar','📆 Calendar'],['gantt','📈 Timeline'],['capacity','⚖️ Capacity'],['workload','👥 Workload']);
+  if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics']);
   if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
@@ -496,6 +501,7 @@ async function renderView(){
   else if(CV==='gantt')await vGantt();
   else if(CV==='capacity')await vCapacity();
   else if(CV==='workload')await vWorkload();
+  else if(CV==='analytics')await vAnalytics();
   else if(CV==='taxTB')await vTaxTB();
   else if(CV==='users')await vUsers();
   else if(CV==='settings')await vSettings();
@@ -1268,6 +1274,82 @@ function renderCapacity(items){
   setMain(h);
 }
 
+// ── analytics ─────────────────────────────────────────────────────────────
+async function vAnalytics(){
+  showSkeleton();
+  function pill(label,val,active){return '<button onclick="'+val+'" style="padding:5px 14px;border-radius:20px;border:1px solid '+(active?'var(--navy)':'var(--border)')+';background:'+(active?'var(--navy)':'#fff')+';color:'+(active?'#fff':'#374151')+';font-weight:600;font-size:12px;cursor:pointer;">'+label+'</button>';}
+  var h='<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+    +'<span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">Analytics & History</span>'
+    +'<div style="display:flex;gap:4px;">'
+    +pill('By Audit',"analyticsView='audit';vAnalytics()",analyticsView==='audit')
+    +pill('By Person',"analyticsView='person';vAnalytics()",analyticsView==='person')
+    +'</div></div>';
+  if(analyticsView==='audit'){
+    var aq=await sb.from('audits').select('id,name,client,type,due_date,budget_hours,archived').order('created_at',{ascending:false});
+    var sumQ=await sb.from('audit_summary').select('id,budget_hours,actual_hours,progress_pct');
+    var sumMap={};(sumQ.data||[]).forEach(function(s){sumMap[s.id]=s;});
+    var ssQ2=await sb.from('subsection_summary').select('id,step,sections(audit_id)');
+    var totMap={},doneMap={};
+    (ssQ2.data||[]).forEach(function(s){var aid=s.sections?s.sections.audit_id:null;if(!aid)return;totMap[aid]=(totMap[aid]||0)+1;if(s.step==='Signed Off')doneMap[aid]=(doneMap[aid]||0)+1;});
+    var audits=aq.data||[];
+    h+='<div style="overflow-x:auto;"><table class="dtbl"><thead><tr>'
+      +['Audit','Client','Type','Budget h','Actual h','Variance','Items','Completion','Status'].map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+    audits.forEach(function(a){
+      var sm=sumMap[a.id]||{};
+      var bud=parseFloat(sm.budget_hours||0);var act=parseFloat(sm.actual_hours||0);var vr=bud-act;var ov=vr<0;
+      var tot=totMap[a.id]||0;var done=doneMap[a.id]||0;
+      var pct=tot?Math.round(done/tot*100):0;
+      h+='<tr>'
+        +'<td style="font-weight:600;color:var(--navy);">'+esc(a.name)+'</td>'
+        +'<td style="font-size:12px;color:#6b7280;">'+(a.client||'—')+'</td>'
+        +'<td>'+audIcon(a.type||'audit')+' '+audLabel(a.type||'audit')+'</td>'
+        +'<td>'+H(bud)+'h</td>'
+        +'<td>'+H(act)+'h</td>'
+        +'<td style="font-weight:700;color:'+(ov?'#dc2626':'#16a34a')+'">'+(vr>0?'+':'')+H(vr)+'h</td>'
+        +'<td style="color:#6b7280;">'+done+'/'+tot+'</td>'
+        +'<td><div style="display:flex;align-items:center;gap:6px;">'+bar(pct,6)+'<b>'+pct+'%</b></div></td>'
+        +'<td><span class="badge" style="color:'+(a.archived?'#6b7280':'#16a34a')+';background:'+(a.archived?'#f3f4f6':'#f0fdf4')+'">'+(a.archived?'Archived':'Active')+'</span></td>'
+        +'</tr>';
+    });
+    h+='</tbody></table></div>';
+  } else {
+    h+='<div style="display:flex;gap:4px;margin-bottom:14px;align-items:center;">'
+      +'<span style="font-size:12px;font-weight:600;color:#6b7280;margin-right:4px;">Period:</span>'
+      +pill('All Time',"analyticsPeriod='all';vAnalytics()",analyticsPeriod==='all')
+      +pill('Last 90 days',"analyticsPeriod='90';vAnalytics()",analyticsPeriod==='90')
+      +pill('Last 30 days',"analyticsPeriod='30';vAnalytics()",analyticsPeriod==='30')
+      +'</div>';
+    var slQ;
+    if(analyticsPeriod==='30'){var s30=new Date();s30.setDate(s30.getDate()-30);slQ=await sb.from('step_logs').select('logged_by_email,hours').gte('logged_at',s30.toISOString());}
+    else if(analyticsPeriod==='90'){var s90=new Date();s90.setDate(s90.getDate()-90);slQ=await sb.from('step_logs').select('logged_by_email,hours').gte('logged_at',s90.toISOString());}
+    else{slQ=await sb.from('step_logs').select('logged_by_email,hours');}
+    var subQ2=await sb.from('subsections').select('assignee_email,budget_hours,step');
+    var budMap={};
+    (subQ2.data||[]).forEach(function(s){var e=s.assignee_email;if(!e)return;if(!budMap[e])budMap[e]={bud:0,tot:0,done:0};budMap[e].bud+=parseFloat(s.budget_hours||0);budMap[e].tot++;if(s.step==='Signed Off')budMap[e].done++;});
+    var logMap={};
+    (slQ.data||[]).forEach(function(l){var e=l.logged_by_email;if(!e)return;logMap[e]=(logMap[e]||0)+parseFloat(l.hours||0);});
+    var people=AU.slice().sort(function(a,b){return (a.full_name||'').localeCompare(b.full_name||'');});
+    h+='<div style="overflow-x:auto;"><table class="dtbl"><thead><tr>'
+      +['Name','Email','Budget Assigned','Logged (period)','Utilisation','Items Assigned','Signed Off'].map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+    people.forEach(function(u){
+      var bm=budMap[u.email]||{bud:0,tot:0,done:0};var logged=logMap[u.email]||0;
+      var util=bm.bud?Math.round(logged/bm.bud*100):0;
+      var utilCol=util>100?'#dc2626':util>80?'#d97706':'#16a34a';
+      h+='<tr>'
+        +'<td style="font-weight:600;color:var(--navy);">'+esc(u.full_name||u.email)+'</td>'
+        +'<td style="font-size:12px;color:#6b7280;">'+u.email+'</td>'
+        +'<td>'+H(bm.bud)+'h</td>'
+        +'<td style="font-weight:600;color:'+(logged>bm.bud&&bm.bud>0?'#dc2626':'var(--charcoal)')+'">'+H(logged)+'h</td>'
+        +'<td><div style="display:flex;align-items:center;gap:6px;">'+bar(Math.min(util,100),6)+'<b style="color:'+utilCol+'">'+util+'%</b></div></td>'
+        +'<td>'+bm.tot+'</td>'
+        +'<td><b style="color:#16a34a;">'+bm.done+'</b> / '+bm.tot+'</td>'
+        +'</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  setMain(h);
+}
+
 // ── workload ──────────────────────────────────────────────────────────────
 async function vWorkload(){
   showSkeleton();
@@ -1374,6 +1456,7 @@ async function showRpt(id){
   var ss=await sb.from('subsection_summary').select('*,sections!inner(name,audit_id,sort_order)').eq('sections.audit_id',id);
   var rows=(ss.data||[]).map(function(s){return{sec:s.sections?s.sections.name:'',secOrder:s.sections?s.sections.sort_order:0,sub:s.name,ass:s.assignee_email||'',due:s.due_date||'',step:s.step,prog:s.progress_pct||0,bud:parseFloat(s.budget_hours||0),act:parseFloat(s.actual_hours||0),vr:parseFloat(s.budget_hours||0)-parseFloat(s.actual_hours||0),fee:parseFloat(s.fee_value||0)};});
   rows.sort(function(a,b){return a.secOrder-b.secOrder||a.sec.localeCompare(b.sec)||a.sub.localeCompare(b.sub);});
+  _rptData={audit:a.data,rows:rows};
   document.getElementById('rptTitle').textContent='📊 '+(a.data?a.data.name:'')+' — '+(a.data?audLabel(a.data.type||'audit'):'')+' Report';
   var tb=rows.reduce(function(a,r){return a+r.bud;},0);var ta=rows.reduce(function(a,r){return a+r.act;},0);var tf=rows.reduce(function(a,r){return a+r.fee;},0);
   document.getElementById('rptSub').textContent=rows.length+' items · Budget: '+H(tb)+'h · Actual: '+H(ta)+'h · Fee: '+R(tf);
@@ -1382,6 +1465,65 @@ async function showRpt(id){
   var hd=['Section','Subsection','Assignee','Due','Step','Progress','Budget Hrs','Actual Hrs','Variance Hrs','Fee (R)'];
   document.getElementById('csvTxt').value=[hd].concat(rows.map(function(r){return[r.sec,r.sub,r.ass,r.due,r.step,r.prog,H(r.bud),H(r.act),H(r.vr),r.fee.toFixed(2)];})).map(function(r){return r.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
   openM('rptModal');
+}
+function printClientRpt(){
+  if(!_rptData)return;
+  var d=_rptData;
+  var today=new Date().toLocaleDateString('en-ZA',{day:'numeric',month:'long',year:'numeric'});
+  var doneCnt=d.rows.filter(function(r){return r.step==='Signed Off';}).length;
+  var totPct=d.rows.length?Math.round(doneCnt/d.rows.length*100):0;
+  var secGroups={},secOrder=[];
+  d.rows.forEach(function(r){if(!secGroups[r.sec]){secGroups[r.sec]=[];secOrder.push(r.sec);}secGroups[r.sec].push(r);});
+  var secHtml=secOrder.map(function(sn){
+    var items=secGroups[sn];
+    var dSec=items.filter(function(r){return r.step==='Signed Off';}).length;
+    var sPct=items.length?Math.round(dSec/items.length*100):0;
+    var itemHtml=items.map(function(r){
+      var isWait=r.step==='Client Requested';var isDone=r.step==='Signed Off';var isRec=r.step==='Client Received';
+      var lbl=isDone?'Complete':isWait?'Awaiting Documents from Client':isRec?'Documents Received — Processing':'In Progress';
+      var bg=isDone?'#f0fdf4':isWait?'#fff7ed':'#eff6ff';var col=isDone?'#16a34a':isWait?'#c2410c':'#1d4ed8';
+      return '<tr style="border-bottom:1px solid #e5e7eb;">'
+        +'<td style="padding:8px 12px;font-size:13px;">'+(isWait?'📬 ':isDone?'✅ ':'🔄 ')+r.sub+'</td>'
+        +'<td style="padding:8px 12px;font-size:12px;color:#6b7280;white-space:nowrap;">'+(r.due||'—')+'</td>'
+        +'<td style="padding:8px 12px;"><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;background:'+bg+';color:'+col+';">'+lbl+'</span></td>'
+        +'</tr>';
+    }).join('');
+    return '<div style="margin-bottom:20px;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#1A2B3C;color:white;border-radius:6px 6px 0 0;">'
+      +'<span style="font-weight:700;font-size:14px;">'+sn+'</span>'
+      +'<span style="font-size:12px;opacity:0.75;">'+sPct+'% complete</span></div>'
+      +'<table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 6px 6px;">'
+      +'<thead><tr style="background:#f8fafc;"><th style="padding:6px 12px;font-size:10px;font-weight:700;text-align:left;color:#9ca3af;text-transform:uppercase;">Item</th>'
+      +'<th style="padding:6px 12px;font-size:10px;font-weight:700;text-align:left;color:#9ca3af;text-transform:uppercase;">Due</th>'
+      +'<th style="padding:6px 12px;font-size:10px;font-weight:700;text-align:left;color:#9ca3af;text-transform:uppercase;">Status</th></tr></thead>'
+      +'<tbody>'+itemHtml+'</tbody></table></div>';
+  }).join('');
+  var barW=totPct,barCol=totPct>=80?'#16a34a':totPct>=50?'#d97706':'#1A2B3C';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+d.audit.name+' — Progress Report</title>'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:30px;max-width:880px;margin:0 auto;}'
+    +'@media print{body{padding:0;}@page{margin:15mm;}#printBtn{display:none!important;}}'
+    +'</style></head><body>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:3px solid #1A2B3C;">'
+    +'<div><div style="font-size:22px;font-weight:700;color:#1A2B3C;">HVNS & Company</div>'
+    +'<div style="font-size:13px;color:#6b7280;margin-top:2px;">Chartered Accountants &amp; Auditors</div></div>'
+    +'<div style="text-align:right;"><div style="font-size:12px;color:#6b7280;">Report Date: '+today+'</div>'
+    +'<div style="font-size:11px;color:#9ca3af;margin-top:3px;">Confidential — client use only</div></div></div>'
+    +'<div style="margin-bottom:20px;">'
+    +'<div style="font-size:20px;font-weight:700;color:#1A2B3C;">'+esc(d.audit.name)+'</div>'
+    +(d.audit.client?'<div style="font-size:14px;color:#374151;margin-top:4px;">Client: <b>'+esc(d.audit.client)+'</b></div>':'')
+    +(d.audit.due_date?'<div style="font-size:13px;color:#6b7280;margin-top:2px;">Engagement target: '+d.audit.due_date+'</div>':'')+'</div>'
+    +'<div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;padding:14px 18px;background:#f8fafc;border-radius:8px;border:1px solid #e5e7eb;">'
+    +'<div><div style="font-size:32px;font-weight:700;color:'+barCol+'">'+totPct+'%</div>'
+    +'<div style="font-size:12px;color:#6b7280;">Overall Complete</div></div>'
+    +'<div style="flex:1;"><div style="height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;">'
+    +'<div style="height:100%;width:'+barW+'%;background:'+barCol+';border-radius:5px;transition:width 0.3s;"></div></div></div>'
+    +'<div style="font-size:13px;color:#6b7280;white-space:nowrap;">'+doneCnt+' of '+d.rows.length+' items complete</div></div>'
+    +secHtml
+    +'<div style="margin-top:28px;padding-top:14px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">'
+    +'<div style="font-size:11px;color:#9ca3af;">Generated by HVNS &amp; Company · '+today+'</div>'
+    +'<button id="printBtn" onclick="window.print()" style="padding:9px 20px;background:#1A2B3C;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">🖨️ Print / Save as PDF</button></div>'
+    +'</body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();
 }
 
 // ── actions ───────────────────────────────────────────────────────────────
