@@ -1412,7 +1412,17 @@ async function syncSecAssignees(auditId){
   vEdit();
 }
 async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
-async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
+async function updSubA(id,v){
+  var curQ=await sb.from('subsections').select('assignee_email,co_assignees').eq('id',id).single();
+  var oldEmail=curQ.data?curQ.data.assignee_email:null;
+  var newEmail=v||null;
+  var cas=((curQ.data&&curQ.data.co_assignees)||[]).filter(function(e){return e!==newEmail;});
+  if(oldEmail&&cas.indexOf(oldEmail)<0)cas.push(oldEmail);
+  await sb.from('subsections').update({assignee_email:newEmail,co_assignees:cas}).eq('id',id);
+  var cont=document.getElementById('coa_'+id);
+  if(cont)cont.innerHTML='<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'+AU.filter(function(u){return u.email!==newEmail;}).map(function(u){var ck=cas.indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'#eff6ff':'#f1f5f9')+';border:1px solid '+(ck?'#bfdbfe':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+id+'\')"/>'+u.full_name+'</label>';}).join('');
+  toast('Assignee updated.');
+}
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
 async function updSubCmt(id,v){await sb.from('subsections').update({comment:v||null}).eq('id',id);toast('Note saved.');}
