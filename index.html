@@ -680,6 +680,7 @@ async function vEdit(){
     +'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'
     +'<button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn">Save Details</button>'
     +'<button onclick="showAuditDist(\''+aud.id+'\',\''+aud.name.replace(/'/g,'')+'\')" class="gbtn">📊 Distribution</button>'
+    +'<button onclick="syncSecAssignees(\''+aud.id+'\')" class="gbtn" title="Add each section\'s assignee as co-assignee on all subsections in that section">🔗 Sync Assignees</button>'
     +'<button onclick="rolloverAudit(\''+aud.id+'\')" class="gbtn">🔄 Rollover to Next Year</button>'
     +'<button onclick="archiveAudit(\''+aud.id+'\')" class="dbtn" style="padding:10px 18px;font-size:13px;">📦 Archive</button>'
     +'</div></div>'
@@ -1208,7 +1209,37 @@ async function doRollover(){
   }
 }
 
-async function updSecA(id,v){await sb.from('sections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
+async function updSecA(id,v){
+  var oldQ=await sb.from('sections').select('assignee_email').eq('id',id).single();
+  var oldEmail=oldQ.data?oldQ.data.assignee_email:null;
+  var newEmail=v||null;
+  await sb.from('sections').update({assignee_email:newEmail}).eq('id',id);
+  var subsQ=await sb.from('subsections').select('id,assignee_email,co_assignees').eq('section_id',id);
+  await Promise.all((subsQ.data||[]).map(function(sub){
+    var cas=(sub.co_assignees||[]).filter(function(e){return e!==oldEmail;});
+    if(newEmail&&newEmail!==sub.assignee_email&&cas.indexOf(newEmail)<0)cas.push(newEmail);
+    return sb.from('subsections').update({co_assignees:cas}).eq('id',sub.id);
+  }));
+  toast('Assignee updated.');
+}
+async function syncSecAssignees(auditId){
+  var secsQ=await sb.from('sections').select('id,assignee_email').eq('audit_id',auditId);
+  var secs=secsQ.data||[];
+  var secMap={};secs.forEach(function(s){secMap[s.id]=s.assignee_email;});
+  var secIds=secs.map(function(s){return s.id;});
+  if(!secIds.length){toast('No sections.');return;}
+  var subsQ=await sb.from('subsections').select('id,section_id,assignee_email,co_assignees').in('section_id',secIds);
+  var changed=0;
+  await Promise.all((subsQ.data||[]).map(function(sub){
+    var se=secMap[sub.section_id];
+    if(!se||se===sub.assignee_email)return Promise.resolve();
+    var cas=(sub.co_assignees||[]).slice();
+    if(cas.indexOf(se)<0){cas.push(se);changed++;return sb.from('subsections').update({co_assignees:cas}).eq('id',sub.id);}
+    return Promise.resolve();
+  }));
+  toast('✅ Synced — '+changed+' subsection'+(changed!==1?'s':'')+' updated.');
+  vEdit();
+}
 async function updSecD(id,v){await sb.from('sections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
 async function updSubA(id,v){await sb.from('subsections').update({assignee_email:v||null}).eq('id',id);toast('Assignee updated.');}
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
@@ -1240,7 +1271,7 @@ async function autoMatchGSForAudit(audId){
 }
 async function doAutoMatchGS(audId){var n=await autoMatchGSForAudit(audId);if(n>0){toast('✅ Auto-matched '+n+' subsection'+(n>1?'s':'')+'.');vEdit();}else toast('No new matches found.');}
 async function delSubE(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);vEdit();}
-async function addSubE(sid,inA,inD){var n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a name.');return;}var a=document.getElementById('na_'+sid).value||inA||null;var d=document.getElementById('nd_'+sid).value||inD||null;var b=parseFloat(document.getElementById('nb_'+sid).value)||0;await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999});toast('✅ Added.');vEdit();}
+async function addSubE(sid,inA,inD){var n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a name.');return;}var a=document.getElementById('na_'+sid).value||inA||null;var d=document.getElementById('nd_'+sid).value||inD||null;var b=parseFloat(document.getElementById('nb_'+sid).value)||0;var cas=(inA&&inA!==a)?[inA]:[];await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999,co_assignees:cas});toast('✅ Added.');vEdit();}
 function showTeams(an,sn,sub,step,due,hrs){document.getElementById('teamsTxt').value='📋 Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nStep: '+step+(due?'\nDue: '+due:'')+'\nHours: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';openM('teamsModal');}
 
 // ── tax tb ────────────────────────────────────────────────────────────────
