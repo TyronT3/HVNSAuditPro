@@ -773,7 +773,7 @@ async function vUpdate(){
           ?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Signed Off!</div>'
           :!canGoNext
           ?'<div style="flex:1;padding:12px;background:#fdf2f8;color:#db2777;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
-          :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
+          :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
         +'</div>'
         +'<button onclick="showTeams(\''+g.a.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
         +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
@@ -1062,13 +1062,19 @@ async function signOff(subId){
   toast('✅ Signed Off.');renderView();
 }
 
-function reqAdv(sid,name,next,bud,act){
+async function reqAdv(sid,name,next,curStep,bud,act){
   pendAdv={sid:sid,next:next};
   var rem=parseFloat(bud)-parseFloat(act);
-  document.getElementById('hrsTxt').innerHTML='Moving <b>'+name+'</b> to <b>'+next+'</b>.<br/>Hours spent?'+(parseFloat(bud)>0?'<br/><span style="font-size:11px;color:#6b7280;">Budget remaining: '+H(rem)+'h</span>':'');
+  document.getElementById('hrsTxt').innerHTML='Moving <b>'+name+'</b> to <b>'+next+'</b>.'+(parseFloat(bud)>0?'<br/><span style="font-size:11px;color:#6b7280;">Budget remaining: '+H(rem)+'h</span>':'');
   document.getElementById('hrsInp').value='';document.getElementById('hrsNote').value='';
   document.getElementById('hrsSkipBtn').style.display='';
   openM('hrsModal');
+  var lq=await sb.from('step_logs').select('hours').eq('subsection_id',sid).eq('step',curStep);
+  var already=(lq.data||[]).reduce(function(a,l){return a+(parseFloat(l.hours)||0);},0);
+  var txt='Moving <b>'+name+'</b> to <b>'+next+'</b>.';
+  if(already>0)txt+='<br/><span style="font-size:12px;color:#7c3aed;font-weight:600;">📌 Already logged at this step: '+H(already)+'h — only add time since your last entry.</span>';
+  txt+=(parseFloat(bud)>0?'<br/><span style="font-size:11px;color:#6b7280;">Budget remaining: '+H(rem)+'h</span>':'');
+  document.getElementById('hrsTxt').innerHTML=txt;
 }
 function reqLogOnly(sid,name,curStep,bud,act){
   pendAdv={sid:sid,step:curStep,logOnly:true};
