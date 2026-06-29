@@ -1071,7 +1071,15 @@ async function vCapacity(){
     ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name))').not('due_date','is',null).neq('step','Signed Off')
     :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name))').eq('assignee_email',CU.email).not('due_date','is',null).neq('step','Signed Off');
   if(q.error){setMain('<div class="al al-e">Error: '+q.error.message+'</div>');return;}
-  renderCapacity(q.data||[]);
+  var items=q.data||[];
+  if(items.length){
+    var ids=items.map(function(s){return s.id;});
+    var logsQ=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids);
+    var hrMap={};
+    (logsQ.data||[]).forEach(function(l){hrMap[l.subsection_id]=(hrMap[l.subsection_id]||0)+(parseFloat(l.hours)||0);});
+    items.forEach(function(s){s.logged=hrMap[s.id]||0;s.remaining=Math.max(0,(parseFloat(s.budget_hours)||0)-s.logged);});
+  }
+  renderCapacity(items);
 }
 function renderCapacity(items){
   function getMon(d){var dt=new Date(d);dt.setHours(0,0,0,0);var day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));return dt;}
@@ -1086,7 +1094,7 @@ function renderCapacity(items){
     var email=s.assignee_email;var key=getMon(s.due_date).toISOString().slice(0,10);
     if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{}};}
     if(!byPerson[email].byWeek[key])byPerson[email].byWeek[key]={hours:0,items:[]};
-    byPerson[email].byWeek[key].hours+=parseFloat(s.budget_hours)||0;
+    byPerson[email].byWeek[key].hours+=s.remaining||0;
     byPerson[email].byWeek[key].items.push(s);
   });
   var people=Object.values(byPerson).sort(function(a,b){return a.name.localeCompare(b.name);});
@@ -1095,7 +1103,7 @@ function renderCapacity(items){
   var h='<div style="max-width:100%;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
   h+='<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">⚖️ Weekly Capacity</span>';
-  h+='<span style="font-size:12px;color:#9ca3af;">Budget hours per person · 40h/week · open items only</span>';
+  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours (budget − logged) · 40h/week · primary assignee only · open items</span>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
   [{bg:'#f0fdf4',c:'#16a34a',l:'≤20h — OK'},{bg:'#fefce8',c:'#ca8a04',l:'20–30h — Busy'},{bg:'#fff7ed',c:'#ea580c',l:'30–40h — Tight'},{bg:'#fef2f2',c:'#dc2626',l:'>40h — Over'}].forEach(function(s){h+='<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:'+s.bg+';color:'+s.c+';">'+s.l+'</span>';});
@@ -1128,7 +1136,7 @@ function renderCapacity(items){
         h+='<div style="font-size:9px;font-weight:600;color:'+c.c+';background:'+c.bg+';border:1px solid '+c.c+'30;padding:1px 6px;border-radius:8px;">'+c.l+'</div>';
         h+='<div style="font-size:10px;color:#9ca3af;">'+cnt+' item'+(cnt!==1?'s':'')+'</div>';
         h+='<div style="width:100%;margin-top:3px;display:flex;flex-direction:column;gap:2px;">';
-        wd.items.slice(0,2).forEach(function(s){var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+sc.bg+';color:'+sc.c+';border-radius:3px;font-weight:600;" title="'+esc(an)+' — '+esc(s.name)+'">'+esc(s.name)+'</div>';});
+        wd.items.slice(0,2).forEach(function(s){var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var tip=esc(an)+' — '+esc(s.name)+' | Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h · Remaining: '+H(s.remaining||0)+'h';h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+sc.bg+';color:'+sc.c+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(s.remaining||0)+'h left)</span></div>';});
         if(cnt>2)h+='<div style="font-size:9px;color:#9ca3af;text-align:center;">+' + (cnt-2)+' more</div>';
         h+='</div>';
       } else {
