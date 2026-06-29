@@ -97,6 +97,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .cal-day{min-height:80px;background:#fff;border-radius:8px;border:1px solid var(--border);padding:4px;}
 .cal-day.other{background:#f8fafc;opacity:.5;}
 .cal-day.today{border-color:var(--orange);border-width:2px;}
+.cal-day.cal-sel{background:#eff6ff;border-color:#2563eb;border-width:2px;}
 .cal-dn{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:3px;}
 .cal-item{font-size:10px;border-radius:4px;padding:2px 5px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
 .wl-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px;margin-bottom:12px;}
@@ -364,7 +365,7 @@ var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit';
 var csvSecs=null,usingCsv=false;
 var rollAID=null;
 var tbGsOpts='';
-var calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null;
 
 // ── helpers ──────────────────────────────────────────────────────────────
 function R(n){return 'R '+parseFloat(n||0).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -870,32 +871,93 @@ async function approveTs(id){await sb.from('timesheet_entries').update({status:'
 // ── calendar ──────────────────────────────────────────────────────────────
 var CAL_COLORS={'Not Started':{bg:'#f3f4f6',c:'#6b7280'},'Client Requested':{bg:'#ecfeff',c:'#0891b2'},'Client Received':{bg:'#e8eef4',c:'#1A2B3C'},'Processing':{bg:'#f5f3ff',c:'#7c3aed'},'Finalising':{bg:'#fffbeb',c:'#d97706'},'Review':{bg:'#fdf2f8',c:'#db2777'},'Signed Off':{bg:'#f0fdf4',c:'#16a34a'}};
 async function vCalendar(){
-  var q=CR==='staff'?await sb.from('subsection_summary').select('*,sections(name,audits(name))').eq('assignee_email',CU.email).not('due_date','is',null):await sb.from('subsection_summary').select('*,sections(name,audits(name))').not('due_date','is',null);
+  var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
+  var q=isMgr
+    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audits(name))').not('due_date','is',null).neq('step','Signed Off')
+    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audits(name))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}').not('due_date','is',null).neq('step','Signed Off');
+  if(q.error){setMain('<div class="al al-e">Error loading calendar: '+q.error.message+'</div>');return;}
   renderCal(q.data||[]);
 }
 function renderCal(items){
+  calItems=items;
   var today=new Date();today.setHours(0,0,0,0);
   var firstDay=new Date(calYear,calMonth,1);var lastDay=new Date(calYear,calMonth+1,0);
   var mNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var byDate={};items.forEach(function(s){if(!s.due_date)return;var d=s.due_date.slice(0,10);if(!byDate[d])byDate[d]=[];byDate[d].push(s);});
-  var h='<div style="max-width:1000px;margin:0 auto;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;"><span style="font-family:Trebuchet MS,sans-serif;font-size:20px;font-weight:700;color:var(--navy);">'+mNames[calMonth]+' '+calYear+'</span><div style="display:flex;gap:8px;"><button onclick="calNav(-1)" class="gbtn">← Prev</button><button onclick="calNav(0)" class="gbtn">Today</button><button onclick="calNav(1)" class="gbtn">Next →</button></div></div>';
+  var sorted=items.slice().sort(function(a,b){return a.due_date<b.due_date?-1:1;});
+  var overdue=sorted.filter(function(s){return days(s.due_date)<0;});
+  var dueToday=sorted.filter(function(s){return days(s.due_date)===0;});
+  var dueWeek=sorted.filter(function(s){var n=days(s.due_date);return n>=1&&n<=7;});
+  var dueFort=sorted.filter(function(s){var n=days(s.due_date);return n>=8&&n<=14;});
+  var dueMo=sorted.filter(function(s){var n=days(s.due_date);return n>=15&&n<=30;});
+  var h='<div style="max-width:1000px;margin:0 auto;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;"><span style="font-family:Trebuchet MS,sans-serif;font-size:20px;font-weight:700;color:var(--navy);">'+mNames[calMonth]+' '+calYear+'</span><div style="display:flex;gap:8px;"><button onclick="calNav(-1)" class="gbtn">← Prev</button><button onclick="calNav(0)" class="gbtn">Today</button><button onclick="calNav(1)" class="gbtn">Next →</button></div></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">';
-  Object.entries(CAL_COLORS).forEach(function(e){h+='<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
+  Object.entries(CAL_COLORS).forEach(function(e){if(e[0]==='Signed Off')return;h+='<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
+  h+='<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#dc262615;color:#dc2626;font-weight:600;">● Overdue</span>';
+  h+='<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#d9770615;color:#d97706;font-weight:600;">● Due soon</span>';
   h+='</div><div class="cal-grid">';
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){h+='<div class="cal-hdr">'+d+'</div>';});
   for(var i=0;i<firstDay.getDay();i++)h+='<div class="cal-day other"></div>';
   for(var d=1;d<=lastDay.getDate();d++){
     var dt=new Date(calYear,calMonth,d);dt.setHours(0,0,0,0);
     var dtStr=dt.toISOString().slice(0,10);var isToday=dt.getTime()===today.getTime();
-    var dayItems=byDate[dtStr]||[];
-    h+='<div class="cal-day'+(isToday?' today':'')+'"><div class="cal-dn">'+(isToday?'<span style="background:var(--orange);color:var(--navy);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">'+d+'</span>':d)+'</div>';
-    if(dayItems.length)h+='<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);margin:2px auto;display:none;" class="cal-dot"></div>';
-    var shown=0;dayItems.forEach(function(s){if(shown>=2)return;var cc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];h+='<div class="cal-item" style="background:'+cc.bg+';color:'+cc.c+';" title="'+((s.sections&&s.sections.audits?s.sections.audits.name:'')+' — '+s.name)+'">'+s.name+'</div>';shown++;});
-    if(dayItems.length>2)h+='<div style="font-size:9px;color:#9ca3af;text-align:center;">+'+(dayItems.length-2)+' more</div>';
+    var dayItems=byDate[dtStr]||[];var n=days(dtStr);
+    var lBorder=dayItems.length?(n<0?'border-left:3px solid #dc2626;':n<=7?'border-left:3px solid #d97706;':'border-left:3px solid #93c5fd;'):'';
+    var isSel=calSelDate===dtStr;
+    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' cal-sel':'')+'" style="'+lBorder+(dayItems.length?'cursor:pointer;':'')+'"'+(dayItems.length?' onclick="showCalDay(\''+dtStr+'\')"':'')+' >';
+    h+='<div class="cal-dn">'+(isToday?'<span style="background:var(--orange);color:var(--navy);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">'+d+'</span>':d)+'</div>';
+    if(dayItems.length){var dc=n<0?'#dc2626':n<=7?'#d97706':'#2563eb';h+='<div style="font-size:11px;font-weight:700;color:'+dc+';text-align:center;margin-top:4px;">'+dayItems.length+'</div>';}
     h+='</div>';
   }
   var endDow=lastDay.getDay();for(var j=endDow+1;j<7;j++)h+='<div class="cal-day other"></div>';
-  h+='</div></div>';setMain(h);
+  h+='</div>';
+  h+='<div id="calDet" style="margin-top:10px;"></div>';
+  h+='<div style="margin-top:28px;"><div style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:14px;">Upcoming Deadlines</div>';
+  function grp(title,color,g){
+    if(!g.length)return '';
+    var s='<div style="margin-bottom:18px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:'+color+';margin-bottom:8px;">'+title+' · '+g.length+'</div>';
+    g.forEach(function(sub){
+      var n2=days(sub.due_date);var dl=n2<0?Math.abs(n2)+'d overdue':n2===0?'Today':'In '+n2+'d';
+      var cc=CAL_COLORS[sub.step]||CAL_COLORS['Not Started'];
+      var an=sub.sections&&sub.sections.audits?sub.sections.audits.name:'';var sn=sub.sections?sub.sections.name:'';
+      var asn=AU.find(function(u){return u.email===sub.assignee_email;});var asnN=asn?asn.full_name:sub.assignee_email||'';
+      s+='<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:5px;border-left:3px solid '+color+';">';
+      s+='<div style="min-width:80px;font-size:11px;font-weight:700;color:'+color+';">'+dl+'</div>';
+      s+='<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(an)+' <span style="color:#9ca3af;font-weight:400;">›</span> '+esc(sn)+' <span style="color:#9ca3af;font-weight:400;">›</span> '+esc(sub.name)+'</div>';
+      if((CR==='manager'||IS_SUPER)&&asnN)s+='<div style="font-size:11px;color:#6b7280;margin-top:1px;">'+esc(asnN)+'</div>';
+      s+='</div><span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;white-space:nowrap;background:'+cc.bg+';color:'+cc.c+';">'+sub.step+'</span>';
+      s+='</div>';
+    });
+    s+='</div>';return s;
+  }
+  if(!sorted.length){h+='<div style="text-align:center;padding:40px;color:#9ca3af;background:#fff;border-radius:12px;border:1px solid var(--border);">No open deadlines found.</div>';}
+  else{h+=grp('Overdue','#dc2626',overdue)+grp('Due today','#d97706',dueToday)+grp('Due this week','#f59e0b',dueWeek)+grp('Due next week','#2563eb',dueFort)+grp('Due in 2–4 weeks','#6b7280',dueMo);}
+  h+='</div></div>';
+  setMain(h);
+  if(calSelDate)showCalDayDom();
+}
+function showCalDay(dtStr){calSelDate=(calSelDate===dtStr)?null:dtStr;renderCal(calItems);}
+function showCalDayDom(){
+  var wrap=document.getElementById('calDet');if(!wrap||!calSelDate)return;
+  var dayItems=calItems.filter(function(s){return s.due_date&&s.due_date.slice(0,10)===calSelDate;});
+  if(!dayItems.length){wrap.innerHTML='';return;}
+  var n=days(calSelDate);var dl=n<0?Math.abs(n)+'d overdue':n===0?'Today':'In '+n+' day'+(n!==1?'s':'');
+  var h='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;">'+dl+' — '+calSelDate+' <span style="font-size:12px;font-weight:400;color:#9ca3af;">('+dayItems.length+' item'+(dayItems.length!==1?'s':'')+')</span></div>';
+  dayItems.forEach(function(s){
+    var cc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];
+    var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var sn=s.sections?s.sections.name:'';
+    var asn=AU.find(function(u){return u.email===s.assignee_email;});var asnN=asn?asn.full_name:s.assignee_email||'';
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;margin-bottom:5px;background:'+cc.bg+';">';
+    h+='<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(an)+' <span style="color:#9ca3af;font-weight:400;">›</span> '+esc(sn)+' <span style="color:#9ca3af;font-weight:400;">›</span> '+esc(s.name)+'</div>';
+    if((CR==='manager'||IS_SUPER)&&asnN)h+='<div style="font-size:11px;color:#6b7280;margin-top:1px;">'+esc(asnN)+'</div>';
+    h+='</div><span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;border:1px solid '+cc.c+';color:'+cc.c+';">'+s.step+'</span>';
+    h+='</div>';
+  });
+  h+='</div>';
+  wrap.innerHTML=h;
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function calNav(dir){if(dir===0){calYear=new Date().getFullYear();calMonth=new Date().getMonth();}else{calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}else if(calMonth>11){calMonth=0;calYear++;}}vCalendar();}
 
