@@ -186,6 +186,13 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
+<div id="distModal" class="mo" style="display:none;">
+  <div class="md" style="width:700px;max-width:96vw;">
+    <div class="mh"><h3>📊 Workload Distribution</h3><button class="mx" onclick="closeM('distModal')">✕</button></div>
+    <div id="distBody" class="mb" style="overflow-y:auto;max-height:65vh;"></div>
+  </div>
+</div>
+
 <div id="tsModal" class="mo" style="display:none;">
   <div class="md" style="width:500px;max-width:95vw;">
     <div class="mh"><h3>📅 Weekly Time Reconciliation</h3><button class="mx" onclick="closeM('tsModal')">✕</button></div>
@@ -672,6 +679,7 @@ async function vEdit(){
     +'<div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div>'
     +'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'
     +'<button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn">Save Details</button>'
+    +'<button onclick="showAuditDist(\''+aud.id+'\',\''+aud.name.replace(/'/g,'')+'\')" class="gbtn">📊 Distribution</button>'
     +'<button onclick="rolloverAudit(\''+aud.id+'\')" class="gbtn">🔄 Rollover to Next Year</button>'
     +'<button onclick="archiveAudit(\''+aud.id+'\')" class="dbtn" style="padding:10px 18px;font-size:13px;">📦 Archive</button>'
     +'</div></div>'
@@ -702,6 +710,10 @@ async function vEdit(){
         +'<select class="inp" style="font-size:11px;padding:4px 6px;background:'+(curGsId?'#f0fdf4':'#fff')+';border-color:'+(curGsId?'#86efac':'var(--border)')+';" onchange="updSubGS(\''+sub3.id+'\',this.value)">'+gsOptsHtml.replace('value="'+curGsId+'"','value="'+curGsId+'" selected')+'</select>'
         +'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div>'
         +'<div style="padding:0 16px 6px;"><input class="inp" style="width:100%;box-sizing:border-box;font-size:11px;padding:4px 8px;background:#fffef5;" placeholder="Manager note..." value="'+esc(sub3.comment)+'" onblur="updSubCmt(\''+sub3.id+'\',this.value)"/></div>'
+        +'<div id="coa_'+sub3.id+'" style="padding:2px 16px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;">'
+        +'<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'
+        +AU.filter(function(u){return u.email!==sub3.assignee_email;}).map(function(u){var ck=(sub3.co_assignees||[]).indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'#eff6ff':'#f1f5f9')+';border:1px solid '+(ck?'#bfdbfe':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+sub3.id+'\')"/>'+u.full_name+'</label>';}).join('')
+        +'</div>'
         +'</div>';
     }
     h+='<div style="padding:10px 16px;background:#f8fafc;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
@@ -719,7 +731,7 @@ async function vEdit(){
 // ── update view ───────────────────────────────────────────────────────────
 async function vUpdate(){
   var me=CU.email;
-  var ssQ=await sb.from('subsections').select('*').eq('assignee_email',me);
+  var ssQ=await sb.from('subsections').select('*').or('assignee_email.eq.'+me+',co_assignees.cs.{"'+me+'"}');
   var secsQ2=await sb.from('sections').select('*');
   var audQ2=await sb.from('audits').select('*');
   var sm={};(secsQ2.data||[]).forEach(function(s){sm[s.id]=s;});
@@ -776,7 +788,7 @@ async function vUpdate(){
 function getFris(n){var fs=[];var d=new Date();d.setHours(0,0,0,0);var dw=d.getDay();d.setDate(d.getDate()-(dw===6?0:dw===0?1:dw+1));for(var i=0;i<n;i++){fs.push(new Date(d));d.setDate(d.getDate()-7);}return fs;}
 function fmtFri(dt){var now=new Date();now.setHours(0,0,0,0);var wks=Math.round((now-dt)/86400000/7);var lbl=dt.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});var ago=wks===0?'this past Friday':wks===1?'last week':wks+' weeks ago';return '<option value="'+dt.toISOString().slice(0,10)+'">'+lbl+' — '+ago+'</option>';}
 async function openTs(){
-  var ss=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').eq('assignee_email',CU.email);
+  var ss=await sb.from('subsections').select('id,name,section_id,sections(name,audits(name))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}');
   document.getElementById('tsSub').innerHTML=(ss.data||[]).map(function(s){return '<option value="'+s.id+'">'+(s.sections&&s.sections.audits?s.sections.audits.name:'')+' → '+(s.sections?s.sections.name:'')+' → '+s.name+'</option>';}).join('');
   var fris=getFris(4);document.getElementById('tsWeek').innerHTML=fris.map(fmtFri).join('');
   document.getElementById('tsFirm').value='';document.getElementById('tsApp').value='';
@@ -891,7 +903,7 @@ async function vWorkload(){
   var isMgr=CR==='manager'||CR==='director';
   var subQ=isMgr
     ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))')
-    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))').eq('assignee_email',CU.email);
+    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}');
   if(subQ.error){setMain('<div class="al al-e">Error loading workload: '+subQ.error.message+'</div>');return;}
   var all=subQ.data||[];
   if(all.length){
@@ -1081,6 +1093,56 @@ function openAsn(aid,sid){pendAsn={aid:aid,sid:sid};document.getElementById('asn
 async function confirmAsn(){var n=document.getElementById('asnName').value.trim();if(!n)return;var a=document.getElementById('asnAss').value;var d=document.getElementById('asnDue').value;var b=parseFloat(document.getElementById('asnBud').value)||0;var sr=await sb.from('sections').select('assignee_email,due_date').eq('id',pendAsn.sid).single();await sb.from('subsections').insert({section_id:pendAsn.sid,name:n,assignee_email:a||sr.data.assignee_email||null,due_date:d||sr.data.due_date||null,budget_hours:b});closeM('asnModal');renderView();}
 async function delSub(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderView();}
 async function updBud(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function saveCoAssignees(subId){
+  var cont=document.getElementById('coa_'+subId);if(!cont)return;
+  var emails=Array.from(cont.querySelectorAll('input[type=checkbox]:checked')).map(function(cb){return cb.value;});
+  await sb.from('subsections').update({co_assignees:emails}).eq('id',subId);
+  toast('Co-assignees saved.');
+}
+async function showAuditDist(auditId,auditName){
+  document.getElementById('distBody').innerHTML='<div style="padding:20px;text-align:center;color:#9ca3af;">Loading...</div>';
+  openM('distModal');
+  var secsQ=await sb.from('sections').select('id').eq('audit_id',auditId);
+  var secIds=(secsQ.data||[]).map(function(s){return s.id;});
+  if(!secIds.length){document.getElementById('distBody').innerHTML='<div class="al al-w">No sections found.</div>';return;}
+  var subsQ=await sb.from('subsections').select('id,name,assignee_email,budget_hours,step').in('section_id',secIds);
+  var subs=subsQ.data||[];
+  var subIds=subs.map(function(s){return s.id;});
+  var logsQ=subIds.length?await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',subIds):{data:[]};
+  var hrMap={};(logsQ.data||[]).forEach(function(l){hrMap[l.subsection_id]=(hrMap[l.subsection_id]||0)+(parseFloat(l.hours)||0);});
+  subs.forEach(function(s){s.ah=hrMap[s.id]||0;});
+  var byP={};
+  subs.forEach(function(s){var e=s.assignee_email||'__none__';if(!byP[e])byP[e]={e:e,bud:0,act:0,cnt:0,done:0};byP[e].bud+=parseFloat(s.budget_hours||0);byP[e].act+=s.ah;byP[e].cnt++;if(s.step==='Signed Off')byP[e].done++;});
+  var totB=Object.values(byP).reduce(function(a,p){return a+p.bud;},0);
+  var totA=Object.values(byP).reduce(function(a,p){return a+p.act;},0);
+  var totDone=subs.filter(function(s){return s.step==='Signed Off';}).length;
+  var sorted=Object.values(byP).sort(function(a,b){return b.bud-a.bud;});
+  var h='<div style="font-size:13px;color:#6b7280;margin-bottom:14px;">Budget distribution across staff for <b>'+auditName+'</b></div>';
+  h+='<div style="overflow-x:auto;"><table class="dtbl"><thead><tr><th>Person</th><th style="text-align:center;">Items</th><th style="text-align:right;">Budget</th><th style="text-align:right;">Actual</th><th>Share of total</th><th style="text-align:center;">Done</th></tr></thead><tbody>';
+  sorted.forEach(function(p){
+    var u=AU.find(function(u){return u.email===p.e;});
+    var nm=p.e==='__none__'?'⚪ Unassigned':(u?u.full_name:p.e);
+    var pct=totB>0?Math.round(p.bud/totB*100):0;
+    var ob=p.bud>0&&p.act>p.bud;
+    h+='<tr>'
+      +'<td><div style="font-weight:600;font-size:13px;">'+nm+'</div>'+(p.e!=='__none__'?'<div style="font-size:11px;color:#9ca3af;">'+p.e+'</div>':'')+'</td>'
+      +'<td style="text-align:center;">'+p.cnt+'</td>'
+      +'<td style="text-align:right;font-weight:600;">'+H(p.bud)+'h</td>'
+      +'<td style="text-align:right;font-weight:600;color:'+(ob?'#dc2626':'inherit')+';">'+H(p.act)+'h'+(ob?' ⚠️':'')+'</td>'
+      +'<td style="min-width:140px;"><div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:var(--orange);border-radius:4px;"></div></div><span style="font-size:12px;font-weight:700;min-width:34px;">'+pct+'%</span></div></td>'
+      +'<td style="text-align:center;color:#16a34a;font-weight:600;">'+p.done+'/'+p.cnt+'</td>'
+      +'</tr>';
+  });
+  var totUtil=totB>0?Math.round(totA/totB*100):0;
+  h+='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid var(--border);">'
+    +'<td>Total</td><td style="text-align:center;">'+subs.length+'</td>'
+    +'<td style="text-align:right;">'+H(totB)+'h</td>'
+    +'<td style="text-align:right;">'+H(totA)+'h</td>'
+    +'<td><span style="font-size:12px;color:#6b7280;">'+totUtil+'% utilised overall</span></td>'
+    +'<td style="text-align:center;color:#16a34a;">'+totDone+'/'+subs.length+'</td>'
+    +'</tr></tbody></table></div>';
+  document.getElementById('distBody').innerHTML=h;
+}
 async function saveAudDet(id){var n=document.getElementById('eaN').value.trim();var cl=document.getElementById('eaCl').value.trim();var d=document.getElementById('eaDue').value;if(!n){alert('Name cannot be empty.');return;}await sb.from('audits').update({name:n,client:cl||null,due_date:d||null}).eq('id',id);toast('✅ Saved.');}
 
 async function archiveAudit(id){
