@@ -390,11 +390,14 @@ async function doLogin(){
   if(res.error){err.textContent=res.error.message;err.style.display='block';return;}
   await initApp(res.data.user);
 }
-async function doLogout(){await sb.auth.signOut();document.getElementById('appShell').style.display='none';document.getElementById('loginScreen').style.display='flex';}
+function showLogin(){document.getElementById('appShell').style.display='none';document.getElementById('loginScreen').style.display='flex';}
+async function doLogout(){await sb.auth.signOut();}
+var appInitBusy=false;
 async function initApp(user){
+  if(appInitBusy)return;appInitBusy=true;
   var pr=await sb.from('users').select('*').eq('id',user.id).single();
-  if(pr.error||!pr.data){var e=document.getElementById('liErr');e.textContent='Profile not found. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
-  if(!pr.data.active){var e2=document.getElementById('liErr');e2.textContent='Your account is not active. Contact your manager.';e2.style.display='block';await sb.auth.signOut();return;}
+  if(pr.error||!pr.data){appInitBusy=false;var e=document.getElementById('liErr');e.textContent='Profile not found. Contact your manager.';e.style.display='block';await sb.auth.signOut();return;}
+  if(!pr.data.active){appInitBusy=false;var e2=document.getElementById('liErr');e2.textContent='Your account is not active. Contact your manager.';e2.style.display='block';await sb.auth.signOut();return;}
   CU=pr.data;CR=pr.data.role;CDept=pr.data.department||'both';
   REAL_R=CR;IS_SUPER=(CU.email||'').trim().toLowerCase()===SUPER_EMAIL;
   console.log('LOGIN DEBUG → email read as:',JSON.stringify(CU.email),'| IS_SUPER:',IS_SUPER);
@@ -411,7 +414,7 @@ async function initApp(user){
   setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
   goView('dashboard');
 }
-sb.auth.onAuthStateChange(async function(ev,session){if(ev==='SIGNED_IN'&&session)await initApp(session.user);});
+sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT'){appInitBusy=false;showLogin();}});
 
 // ── nav ───────────────────────────────────────────────────────────────────
 function buildNav(){
