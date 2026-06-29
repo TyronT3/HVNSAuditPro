@@ -429,7 +429,7 @@ function buildNav(){
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['timesheet','📅 Timesheets'],['calendar','📆 Calendar'],['workload','👥 Workload']);
-  if(CR==='manager'||CR==='director')tabs.push(['taxTB','🧾 Tax TB']);
+  if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
 }
