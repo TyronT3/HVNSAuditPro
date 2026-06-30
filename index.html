@@ -437,7 +437,7 @@ async function initApp(user){
   buildNav();
   setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
   await checkAssignmentChanges(CU.email);
-  renderTimerWidget();
+  initTimer();
   goView('dashboard');
 }
 async function checkAssignmentChanges(email){
@@ -520,6 +520,12 @@ async function vDash(){
   var ar=allS.filter(function(s){return s.step!=='Signed Off'&&s.due_date&&days(s.due_date)<=7&&days(s.due_date)>=0&&AT.indexOf(s.step)>=0;}).length;
   var tf=allAudits.reduce(function(a,x){return a+parseFloat(x.fee_value||0);},0);
   var tb=allAudits.reduce(function(a,x){return a+parseFloat(x.budget_hours||0);},0);
+  var dlMap={};
+  if(CR!=='staff'){
+    var dlToday=new Date();dlToday.setHours(0,0,0,0);
+    var dlQ=await sb.from('step_logs').select('logged_by_email,hours').gte('logged_at',dlToday.toISOString());
+    (dlQ.data||[]).forEach(function(l){if(l.logged_by_email)dlMap[l.logged_by_email.toLowerCase()]=(dlMap[l.logged_by_email.toLowerCase()]||0)+parseFloat(l.hours||0);});
+  }
   var ta=allAudits.reduce(function(a,x){return a+parseFloat(x.actual_hours||0);},0);
   var tot=allS.length;
   var doneCnt=allS.filter(function(s){return s.step==='Signed Off';}).length;
@@ -549,6 +555,33 @@ async function vDash(){
       +'<div class="stat" style="border-left-color:#db2777;"><div class="sval" style="color:#db2777;">'+inRev+'</div><div class="slbl">🔍 Awaiting Sign-Off</div></div>'
       +'<div class="stat" style="border-left-color:'+(compPct>=80?'#16a34a':compPct>=50?'#d97706':'#dc2626')+'"><div class="sval" style="color:'+(compPct>=80?'#16a34a':compPct>=50?'#d97706':'#dc2626')+'">'+compPct+'%</div><div class="slbl">📊 Completion Rate</div></div>'
       +'</div>';
+  }
+  if(CR!=='staff'){
+    var dlAll=AU.slice();
+    var dlLogged=dlAll.filter(function(u){return dlMap[u.email.toLowerCase()]>0;});
+    var dlNot=dlAll.filter(function(u){return !dlMap[u.email.toLowerCase()];});
+    h+='<div class="card" style="margin-bottom:16px;">';
+    h+='<div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;">';
+    h+='<span style="font-family:Trebuchet MS,sans-serif;font-size:14px;font-weight:700;color:var(--navy);">📋 Today\'s Time Logging</span>';
+    h+='<span style="font-size:11px;color:#9ca3af;">'+new Date().toLocaleDateString('en-ZA',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+'</span>';
+    h+='</div>';
+    h+='<div style="padding:12px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;">';
+    dlNot.forEach(function(u){
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">';
+      h+='<span style="color:#dc2626;font-size:13px;flex-shrink:0;">❌</span>';
+      h+='<div style="min-width:0;"><div style="font-size:12px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(u.full_name||u.email)+'</div>';
+      h+='<div style="font-size:10px;color:#9ca3af;text-transform:uppercase;">'+u.role+'</div></div>';
+      h+='</div>';
+    });
+    dlLogged.forEach(function(u){
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f0fdf4;border-radius:8px;border-left:3px solid #16a34a;">';
+      h+='<span style="color:#16a34a;font-size:13px;flex-shrink:0;">✅</span>';
+      h+='<div style="min-width:0;"><div style="font-size:12px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(u.full_name||u.email)+'</div>';
+      h+='<div style="font-size:10px;color:#16a34a;font-weight:600;">'+H(dlMap[u.email.toLowerCase()]||0)+'h</div></div>';
+      h+='</div>';
+    });
+    if(!dlAll.length)h+='<div style="color:#9ca3af;font-size:12px;padding:4px;">No active users found.</div>';
+    h+='</div></div>';
   }
   if(!allAudits.length){
     h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No '+typeLabel.toLowerCase()+' yet</div>'+(CR==='manager'?'<button class="pbtn" style="margin-top:14px;" onclick="goView(\'add\')">Create First</button>':'')+'</div>';
@@ -930,7 +963,7 @@ function startTimer(subId,subName,auditName,step){
     if(!confirm('Discard current timer for "'+ex.subName+'" and start a new one?\nTo save the current timer first, click Cancel and stop it from the widget.'))return;
     clrTmr();if(timerTick){clearInterval(timerTick);timerTick=null;}var w=document.getElementById('tmrWidget');if(w)w.remove();
   }
-  setTmr({subId:subId,subName:subName,auditName:auditName,step:step,startTime:new Date().toISOString()});
+  setTmr({subId:subId,subName:subName,auditName:auditName,step:step,startTime:new Date().toISOString(),userEmail:CU.email});
   renderTimerWidget();
   if(CV==='update')renderView();
 }
@@ -947,10 +980,31 @@ function stopTimer(auto){
   document.getElementById('hrsSkipBtn').style.display='none';
   openM('hrsModal');
 }
+function initTimer(){
+  var t=getTmr();if(!t)return;
+  if(t.userEmail&&t.userEmail!==CU.email){clrTmr();return;}
+  var startDate=new Date(t.startTime);
+  var todayMid=new Date();todayMid.setHours(0,0,0,0);
+  var startMid=new Date(startDate);startMid.setHours(0,0,0,0);
+  if(startMid<todayMid){
+    var cap=new Date(startDate);cap.setHours(16,30,0,0);
+    var hrs=Math.max(0,Math.round(Math.max(0,cap-startDate)/3600000*4)/4);
+    clrTmr();
+    pendAdv={sid:t.subId,step:t.step,logOnly:true};
+    document.getElementById('hrsTxt').innerHTML='Timer recovered from <b>'+startDate.toLocaleDateString('en-ZA')+'</b> for <b>'+esc(t.subName)+'</b>. <span style="color:#d97706;">(capped at 16:30)</span><br/><span style="font-size:11px;color:#6b7280;">Adjust time if needed, then save.</span>';
+    document.getElementById('hrsInp').value=hrs>0?hrs:'';
+    document.getElementById('hrsNote').value='Timer from '+startDate.toLocaleDateString('en-ZA');
+    document.getElementById('hrsSkipBtn').style.display='none';
+    openM('hrsModal');
+    return;
+  }
+  renderTimerWidget();
+}
 function renderTimerWidget(){
   var w=document.getElementById('tmrWidget');if(w)w.remove();
   if(timerTick){clearInterval(timerTick);timerTick=null;}
   var t=getTmr();if(!t)return;
+  if(t.userEmail&&t.userEmail!==CU.email){clrTmr();return;}
   var el=document.createElement('div');el.id='tmrWidget';
   el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:8000;background:var(--navy);color:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;font-family:inherit;max-width:380px;min-width:260px;';
   el.innerHTML='<div style="min-width:0;flex:1;">'
