@@ -818,14 +818,12 @@ function filterMyWork(v){myWorkSearch=v.toLowerCase();renderMyWork();}
 function toggleMyWorkDone(){myWorkShowDone=!myWorkShowDone;renderMyWork();}
 function renderMyWork(){
   var me=CU.email;
-  var tod=new Date();var dow=tod.getDay();var isMon=dow===1;var dtm=isMon?0:(8-dow)%7||7;
-  var tsBtn=isMon?'<button onclick="openTs()" class="obtn" style="font-size:13px;padding:8px 16px;">📅 Submit Timesheet</button>':'<button disabled style="font-size:13px;padding:8px 14px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:8px;font-weight:600;cursor:not-allowed;line-height:1.4;">📅 Timesheets<br/><span style="font-size:10px;">Opens Mon ('+dtm+'d)</span></button>';
   var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
     +'<div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'
     +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
     +'<input id="mwSearch" type="text" placeholder="🔍 Search..." value="'+esc(myWorkSearch)+'" oninput="filterMyWork(this.value)" class="inp" style="width:160px;font-size:13px;padding:6px 10px;"/>'
     +'<button onclick="exportMyTimesheetXlsx()" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">📥 Export Excel</button>'
-    +tsBtn+'</div></div>';
+    +'</div></div>';
   if(!mwSubs||!mwSubs.length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
   var sq=myWorkSearch;
   var active=[],done=[];
