@@ -477,7 +477,7 @@ function buildNav(){
   var tabs=[['dashboard','📊 Dashboard']];
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
-  tabs.push(['timesheet','📅 Timesheets'],['calendar','📆 Calendar'],['gantt','📈 Timeline'],['capacity','⚖️ Capacity'],['workload','👥 Workload']);
+  tabs.push(['calendar','📆 Calendar'],['gantt','📈 Timeline'],['capacity','⚖️ Capacity'],['workload','👥 Workload']);
   if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics']);
   if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
@@ -592,7 +592,7 @@ async function vDash(){
             var unreg=sub.assignee_email&&!reg.has(sub.assignee_email.toLowerCase());
             var isRev=sub.step==='Review';
             h+='<div style="background:'+(ob?'#fff5f5':isRev?'#fdf2f8':'#fafafa')+';display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 20px 8px 44px;border-top:1px solid var(--border);min-width:700px;">'
-              +'<span style="font-size:13px;color:var(--charcoal);font-weight:500;">'+sub.name+' '+stf+'</span>'
+              +'<div style="min-width:0;"><span style="font-size:13px;color:var(--charcoal);font-weight:500;">'+sub.name+' '+stf+'</span>'+(sub.notes?'<div style="font-size:11px;color:#9ca3af;margin-top:2px;white-space:normal;line-height:1.4;">📎 '+esc(sub.notes)+'</div>':'')+'</div>'
               +'<span style="font-size:12px;color:#9ca3af;">'+(sub.assignee_email||'—')+(unreg?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
               +'<span>'+dueB(sub.due_date)+'</span>'
               +'<span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'
@@ -605,6 +605,7 @@ async function vDash(){
               +(CR!=='staff'?'<span style="font-size:12px;color:#16a34a;font-weight:600;">'+R(sub.fee_value)+'</span>':'<span></span>')
               +'<div style="display:flex;gap:3px;">'
               +(CR==='manager'?'<button onclick="openRsn(\''+sub.id+'\',\''+sub.assignee_email+'\')" style="padding:3px 7px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>':'')
+              +(CR==='manager'?'<button onclick="editNotes(\''+sub.id+'\')" style="padding:3px 7px;background:#f0f9ff;color:#0369a1;border:none;border-radius:6px;font-size:11px;font-weight:600;" title="'+(sub.notes?'Edit notes':'Add notes')+'">📎</button>':'')
               +(CR==='manager'?'<button onclick="delSub(\''+sub.id+'\')" class="dbtn" style="padding:3px 6px;">🗑</button>':'')
               +'</div></div>';
           }
@@ -1107,8 +1108,8 @@ async function vGantt(){
   if(secs.length){
     var secIds=secs.map(function(s){return s.id;});
     var subQ=isMgr
-      ?await sb.from('subsections').select('id,name,step,due_date,budget_hours,sort_order,assignee_email,section_id').in('section_id',secIds).order('sort_order')
-      :await sb.from('subsections').select('id,name,step,due_date,budget_hours,sort_order,assignee_email,section_id').in('section_id',secIds).or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}').order('sort_order');
+      ?await sb.from('subsections').select('id,name,step,due_date,budget_hours,sort_order,assignee_email,section_id,notes').in('section_id',secIds).order('sort_order')
+      :await sb.from('subsections').select('id,name,step,due_date,budget_hours,sort_order,assignee_email,section_id,notes').in('section_id',secIds).or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}').order('sort_order');
     subs=subQ.data||[];
   }
   renderGantt(auds,secs,subs);
@@ -1181,7 +1182,7 @@ function renderGantt(auds,secs,subs){
       var isWait=idx>0&&secSubs[idx-1].step!=='Signed Off'&&sub.step==='Not Started';
       var asn=AU.find(function(u){return u.email===sub.assignee_email;});
       h+='<div style="display:flex;border-bottom:1px solid #f1f5f9;min-height:32px;align-items:center;">';
-      h+='<div style="width:'+LW+'px;min-width:'+LW+'px;padding:4px 10px 4px 22px;font-size:11px;color:var(--navy);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(sub.name)+(asn?' — '+esc(asn.full_name):'')+'">'+(isWait?'<span style="color:#9ca3af;margin-right:3px;" title="Waiting for previous item">⟳</span>':'')+esc(sub.name)+'</div>';
+      h+='<div style="width:'+LW+'px;min-width:'+LW+'px;padding:4px 10px 4px 22px;font-size:11px;color:var(--navy);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(sub.name)+(asn?' — '+esc(asn.full_name):'')+(sub.notes?' · '+esc(sub.notes):'')+'">'+(isWait?'<span style="color:#9ca3af;margin-right:3px;" title="Waiting for previous item">⟳</span>':'')+esc(sub.name)+(sub.notes?'<span style="color:#9ca3af;margin-left:3px;" title="'+esc(sub.notes)+'">📎</span>':'')+'</div>';
       h+='<div style="flex:1;position:relative;align-self:stretch;display:flex;align-items:center;">';
       h+='<div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;border-left:2px dashed rgba(217,119,6,0.2);z-index:1;"></div>';
       if(adjDue){
@@ -1638,6 +1639,29 @@ function openAsn(aid,sid){pendAsn={aid:aid,sid:sid};document.getElementById('asn
 async function confirmAsn(){var n=document.getElementById('asnName').value.trim();if(!n)return;var a=document.getElementById('asnAss').value;var d=document.getElementById('asnDue').value;var b=parseFloat(document.getElementById('asnBud').value)||0;var sr=await sb.from('sections').select('assignee_email,due_date').eq('id',pendAsn.sid).single();await sb.from('subsections').insert({section_id:pendAsn.sid,name:n,assignee_email:a||sr.data.assignee_email||null,due_date:d||sr.data.due_date||null,budget_hours:b});closeM('asnModal');renderView();}
 async function delSub(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderView();}
 async function updBud(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function editNotes(id){
+  var r=await sb.from('subsections').select('notes').eq('id',id).single();
+  var cur=(r.data&&r.data.notes)||'';
+  var ov=document.createElement('div');ov.id='notesOv';
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML='<div style="background:#fff;border-radius:12px;padding:22px;width:440px;max-width:90vw;box-shadow:0 20px 40px rgba(0,0,0,0.15);">'
+    +'<div style="font-weight:700;color:var(--navy);margin-bottom:12px;font-size:15px;">📎 Notes / Documents Required</div>'
+    +'<textarea id="notesTA" rows="5" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;resize:vertical;font-family:inherit;"></textarea>'
+    +'<div style="font-size:11px;color:#9ca3af;margin-top:6px;">Informational only — visible to all team members assigned to this audit.</div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">'
+    +'<button onclick="document.getElementById(\'notesOv\').remove()" style="padding:7px 16px;background:#f3f4f6;color:#374151;border:none;border-radius:7px;cursor:pointer;font-weight:600;">Cancel</button>'
+    +'<button onclick="saveNotes(\''+id+'\')" style="padding:7px 16px;background:var(--navy);color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:600;">Save</button>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.getElementById('notesTA').value=cur;
+}
+async function saveNotes(id){
+  var val=document.getElementById('notesTA').value.trim()||null;
+  var r=await sb.from('subsections').update({notes:val}).eq('id',id);
+  if(r.error){alert('Error: '+r.error.message);return;}
+  document.getElementById('notesOv').remove();
+  vDash();
+}
 async function saveCoAssignees(subId){
   var cont=document.getElementById('coa_'+subId);if(!cont)return;
   var emails=Array.from(cont.querySelectorAll('input[type=checkbox]:checked')).map(function(cb){return cb.value;});
