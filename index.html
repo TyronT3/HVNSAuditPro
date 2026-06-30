@@ -1142,7 +1142,7 @@ function renderCal(items){
   for(var i=0;i<firstDay.getDay();i++)h+='<div class="cal-day other"></div>';
   for(var d=1;d<=lastDay.getDate();d++){
     var dt=new Date(calYear,calMonth,d);dt.setHours(0,0,0,0);
-    var dtStr=dt.toISOString().slice(0,10);var isToday=dt.getTime()===today.getTime();
+    var dtStr=calYear+'-'+(calMonth+1<10?'0':'')+(calMonth+1)+'-'+(d<10?'0':'')+d;var isToday=dt.getTime()===today.getTime();
     var dayItems=byDate[dtStr]||[];var n=days(dtStr);
     var lBorder=dayItems.length?(n<0?'border-left:3px solid #dc2626;':n<=7?'border-left:3px solid #d97706;':'border-left:3px solid #93c5fd;'):'';
     var isSel=calSelDate===dtStr;
