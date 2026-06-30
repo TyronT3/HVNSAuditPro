@@ -969,13 +969,13 @@ function startTimer(subId,subName,auditName,step){
 }
 function stopTimer(auto){
   var t=getTmr();if(!t)return;
-  var hrs=Math.max(0,Math.round((Date.now()-new Date(t.startTime).getTime())/3600000*4)/4);
+  var hrs=Math.round((Date.now()-new Date(t.startTime).getTime())/3600000*100)/100;
   if(timerTick){clearInterval(timerTick);timerTick=null;}
   clrTmr();var w=document.getElementById('tmrWidget');if(w)w.remove();
   pendAdv={sid:t.subId,step:t.step,logOnly:true};
   var autoTxt=auto?'<span style="color:#dc2626;font-size:11px;"> (auto-stopped at 16:30)</span>':'';
   document.getElementById('hrsTxt').innerHTML='Log timer hours for <b>'+esc(t.subName)+'</b>'+autoTxt+'.<br/><span style="font-size:11px;color:#6b7280;">Step will not advance. Adjust time if needed.</span>';
-  document.getElementById('hrsInp').value=hrs>0?hrs:'';
+  document.getElementById('hrsInp').value=hrs;
   document.getElementById('hrsNote').value=auto?'Auto-stopped at 16:30':'';
   document.getElementById('hrsSkipBtn').style.display='none';
   openM('hrsModal');
@@ -988,11 +988,11 @@ function initTimer(){
   var startMid=new Date(startDate);startMid.setHours(0,0,0,0);
   if(startMid<todayMid){
     var cap=new Date(startDate);cap.setHours(16,30,0,0);
-    var hrs=Math.max(0,Math.round(Math.max(0,cap-startDate)/3600000*4)/4);
+    var hrs=Math.round(Math.max(0,cap-startDate)/3600000*100)/100;
     clrTmr();
     pendAdv={sid:t.subId,step:t.step,logOnly:true};
     document.getElementById('hrsTxt').innerHTML='Timer recovered from <b>'+startDate.toLocaleDateString('en-ZA')+'</b> for <b>'+esc(t.subName)+'</b>. <span style="color:#d97706;">(capped at 16:30)</span><br/><span style="font-size:11px;color:#6b7280;">Adjust time if needed, then save.</span>';
-    document.getElementById('hrsInp').value=hrs>0?hrs:'';
+    document.getElementById('hrsInp').value=hrs;
     document.getElementById('hrsNote').value='Timer from '+startDate.toLocaleDateString('en-ZA');
     document.getElementById('hrsSkipBtn').style.display='none';
     openM('hrsModal');
