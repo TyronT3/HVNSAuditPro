@@ -524,9 +524,14 @@ async function vDash(){
   var doneCnt=allS.filter(function(s){return s.step==='Signed Off';}).length;
   var inRev=allS.filter(function(s){return s.step==='Review';}).length;
   var compPct=tot?Math.round(doneCnt/tot*100):0;
-  var typeLabel=CDept==='accounting'?'Projects':'Audits';
+  var auditCnt=allAudits.filter(function(a){return (a.type||'audit')!=='accounting';}).length;
+  var acctCnt=allAudits.filter(function(a){return a.type==='accounting';}).length;
+  var statVal,statLbl;
+  if(CDept==='accounting'){statVal=acctCnt;statLbl=audIcon('accounting')+' Total Projects';}
+  else if(CDept==='both'&&auditCnt>0&&acctCnt>0){statVal=allAudits.length;statLbl=audIcon('audit')+' '+auditCnt+' Audit'+(auditCnt!==1?'s':'')+' · '+audIcon('accounting')+' '+acctCnt+' Project'+(acctCnt!==1?'s':'');}
+  else{statVal=allAudits.length;statLbl=audIcon('audit')+' Total Audits';}
   var h='<div class="stats">'
-    +'<div class="stat"><div class="sval">'+allAudits.length+'</div><div class="slbl">'+audIcon(CDept==='accounting'?'accounting':'audit')+' Total '+typeLabel+'</div></div>'
+    +'<div class="stat"><div class="sval">'+statVal+'</div><div class="slbl">'+statLbl+'</div></div>'
     +'<div class="stat" style="border-left-color:#dc2626;"><div class="sval" style="color:#dc2626;">'+ov+'</div><div class="slbl">🔴 Items Overdue</div></div>'
     +'<div class="stat" style="border-left-color:#d97706;"><div class="sval" style="color:#d97706;">'+ar+'</div><div class="slbl">🟡 At Risk</div></div>'
     +'<div class="stat" style="border-left-color:#7c3aed;"><div class="sval" style="color:#7c3aed;">'+R(tf)+'</div><div class="slbl">💰 Total Fee Value</div></div>'
@@ -1150,8 +1155,18 @@ function renderGantt(auds,secs,subs){
   h+='<div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;border-left:2px solid #d97706;z-index:2;pointer-events:none;"><span style="position:absolute;top:6px;left:3px;font-size:9px;font-weight:700;color:#d97706;white-space:nowrap;">Today</span></div>';
   h+='</div></div>';
   if(!secs.length)h+='<div style="text-align:center;padding:40px;color:#9ca3af;">No sections found for this audit.</div>';
+  secs=secs.slice().sort(function(a,b){
+    var am=subs.filter(function(s){return s.section_id===a.id&&s.due_date;}).map(function(s){return new Date(s.due_date).getTime();});
+    var bm=subs.filter(function(s){return s.section_id===b.id&&s.due_date;}).map(function(s){return new Date(s.due_date).getTime();});
+    var amin=am.length?Math.min.apply(null,am):Infinity;
+    var bmin=bm.length?Math.min.apply(null,bm):Infinity;
+    return amin-bmin;
+  });
   secs.forEach(function(sec){
-    var secSubs=subs.filter(function(s){return s.section_id===sec.id;});
+    var secSubs=subs.filter(function(s){return s.section_id===sec.id;}).slice().sort(function(a,b){
+      if(!a.due_date&&!b.due_date)return 0;if(!a.due_date)return 1;if(!b.due_date)return -1;
+      return new Date(a.due_date)-new Date(b.due_date);
+    });
     if(!secSubs.length)return;
     var secAsn=AU.find(function(u){return u.email===sec.assignee_email;});
     h+='<div style="display:flex;background:#f1f5f9;border-bottom:1px solid var(--border);">';
@@ -1160,23 +1175,26 @@ function renderGantt(auds,secs,subs){
     secSubs.forEach(function(sub,idx){
       var cc=CAL_COLORS[sub.step]||CAL_COLORS['Not Started'];
       var prog=SPROG[sub.step]||0;
-      var isOver=sub.due_date&&days(sub.due_date)<0&&sub.step!=='Signed Off';
+      var adjDue=null;
+      if(sub.due_date){adjDue=new Date(sub.due_date);adjDue.setHours(0,0,0,0);var dDay=adjDue.getDay();if(dDay===6)adjDue.setDate(adjDue.getDate()-1);else if(dDay===0)adjDue.setDate(adjDue.getDate()-2);}
+      var isOver=adjDue&&adjDue<today&&sub.step!=='Signed Off';
       var isWait=idx>0&&secSubs[idx-1].step!=='Signed Off'&&sub.step==='Not Started';
       var asn=AU.find(function(u){return u.email===sub.assignee_email;});
       h+='<div style="display:flex;border-bottom:1px solid #f1f5f9;min-height:32px;align-items:center;">';
       h+='<div style="width:'+LW+'px;min-width:'+LW+'px;padding:4px 10px 4px 22px;font-size:11px;color:var(--navy);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(sub.name)+(asn?' — '+esc(asn.full_name):'')+'">'+(isWait?'<span style="color:#9ca3af;margin-right:3px;" title="Waiting for previous item">⟳</span>':'')+esc(sub.name)+'</div>';
       h+='<div style="flex:1;position:relative;align-self:stretch;display:flex;align-items:center;">';
       h+='<div style="position:absolute;left:'+todayPct+'%;top:0;bottom:0;border-left:2px dashed rgba(217,119,6,0.2);z-index:1;"></div>';
-      if(sub.due_date){
+      if(adjDue){
         var bh=parseFloat(sub.budget_hours)||0;
         var wDays=bh>0?Math.max(1,Math.ceil(bh/8)):5;
-        var dueD=new Date(sub.due_date);dueD.setHours(0,0,0,0);
+        var dueD=adjDue;
         var startD=new Date(dueD);startD.setDate(startD.getDate()-wDays);
         var bl=pct(startD);var br=pct(dueD);var bw=Math.max(br-bl,0.5);
+        var dueLbl=dueD.toISOString().slice(5,10);
         h+='<div style="position:absolute;left:'+bl+'%;width:'+bw+'%;height:16px;border-radius:8px;background:'+cc.bg+';border:1.5px '+(isWait?'dashed':'solid')+' '+(isOver?'#dc2626':cc.c)+';overflow:hidden;z-index:2;" title="'+esc(sub.step)+' · Due '+sub.due_date+(asn?' · '+esc(asn.full_name):'')+'">';
         if(prog>0)h+='<div style="width:'+prog+'%;height:100%;background:'+cc.c+';opacity:0.65;"></div>';
         h+='</div>';
-        h+='<div style="position:absolute;left:'+Math.min(br+0.5,97)+'%;font-size:9px;white-space:nowrap;z-index:3;color:'+(isOver?'#dc2626':'#9ca3af')+';font-weight:'+(isOver?'700':'400')+';padding-left:2px;">'+(isOver?'⚠ ':'')+sub.due_date.slice(5)+'</div>';
+        h+='<div style="position:absolute;left:'+Math.min(br+0.5,97)+'%;font-size:9px;white-space:nowrap;z-index:3;color:'+(isOver?'#dc2626':'#9ca3af')+';font-weight:'+(isOver?'700':'400')+';padding-left:2px;">'+(isOver?'⚠ ':'')+dueLbl+'</div>';
       } else {
         h+='<span style="padding:0 12px;font-size:10px;color:#d1d5db;">No due date</span>';
       }
