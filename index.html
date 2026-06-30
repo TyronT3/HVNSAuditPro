@@ -437,6 +437,7 @@ async function initApp(user){
   buildNav();
   setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
   await checkAssignmentChanges(CU.email);
+  renderTimerWidget();
   goView('dashboard');
 }
 async function checkAssignmentChanges(email){
@@ -843,6 +844,7 @@ function renderMyWork(){
     var nextStep=si4<STEPS.length-1?STEPS[si4+1]:null;
     var canGoNext=!isReview||(isReview&&(CR==='manager'||IS_SUPER));
     var ob=parseFloat(sub4.actual_hours)>parseFloat(sub4.budget_hours)&&parseFloat(sub4.budget_hours)>0;
+    var tmr=getTmr();var isTiming=tmr&&tmr.subId===sub4.id;
     return '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c4.c)+';border:1px solid var(--border);border-left-width:4px;">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'
       +'<div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec4.name+'</div>'
@@ -857,6 +859,7 @@ function renderMyWork(){
       +'<div style="display:flex;gap:8px;">'
       +(si4>0&&!isSignedOff?'<button onclick="regressStep(\''+sub4.id+'\')" class="gbtn">← Back</button>':'')
       +(!isSignedOff?'<button onclick="reqLogOnly(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="gbtn">⏱ Log</button>':'')
+      +(!isSignedOff?(isTiming?'<button disabled style="padding:8px 12px;background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:700;cursor:default;">⏱ Running</button>':'<button onclick="startTimer(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+aud.name.replace(/'/g,'')+'\',\''+sub4.step+'\')" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">▶ Start</button>'):'')
       +(isSignedOff?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Signed Off!</div>'
         :!canGoNext?'<div style="flex:1;padding:12px;background:#fdf2f8;color:#db2777;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
         :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
@@ -915,6 +918,60 @@ async function exportMyTimesheetXlsx(){
   toast('✅ Timesheet exported.');
 }
 
+// ── live timer ────────────────────────────────────────────────────────────
+var TKEY='hvns-timer',timerTick=null;
+function getTmr(){try{var t=localStorage.getItem(TKEY);return t?JSON.parse(t):null;}catch(e){return null;}}
+function setTmr(d){localStorage.setItem(TKEY,JSON.stringify(d));}
+function clrTmr(){localStorage.removeItem(TKEY);}
+function startTimer(subId,subName,auditName,step){
+  var ex=getTmr();
+  if(ex){
+    if(ex.subId===subId){toast('Timer already running for this item.');return;}
+    if(!confirm('Discard current timer for "'+ex.subName+'" and start a new one?\nTo save the current timer first, click Cancel and stop it from the widget.'))return;
+    clrTmr();if(timerTick){clearInterval(timerTick);timerTick=null;}var w=document.getElementById('tmrWidget');if(w)w.remove();
+  }
+  setTmr({subId:subId,subName:subName,auditName:auditName,step:step,startTime:new Date().toISOString()});
+  renderTimerWidget();
+  if(CV==='update')renderView();
+}
+function stopTimer(auto){
+  var t=getTmr();if(!t)return;
+  var hrs=Math.max(0,Math.round((Date.now()-new Date(t.startTime).getTime())/3600000*4)/4);
+  if(timerTick){clearInterval(timerTick);timerTick=null;}
+  clrTmr();var w=document.getElementById('tmrWidget');if(w)w.remove();
+  pendAdv={sid:t.subId,step:t.step,logOnly:true};
+  var autoTxt=auto?'<span style="color:#dc2626;font-size:11px;"> (auto-stopped at 16:30)</span>':'';
+  document.getElementById('hrsTxt').innerHTML='Log timer hours for <b>'+esc(t.subName)+'</b>'+autoTxt+'.<br/><span style="font-size:11px;color:#6b7280;">Step will not advance. Adjust time if needed.</span>';
+  document.getElementById('hrsInp').value=hrs>0?hrs:'';
+  document.getElementById('hrsNote').value=auto?'Auto-stopped at 16:30':'';
+  document.getElementById('hrsSkipBtn').style.display='none';
+  openM('hrsModal');
+}
+function renderTimerWidget(){
+  var w=document.getElementById('tmrWidget');if(w)w.remove();
+  if(timerTick){clearInterval(timerTick);timerTick=null;}
+  var t=getTmr();if(!t)return;
+  var el=document.createElement('div');el.id='tmrWidget';
+  el.style.cssText='position:fixed;bottom:20px;right:20px;z-index:8000;background:var(--navy);color:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.25);display:flex;align-items:center;gap:14px;font-family:inherit;max-width:380px;min-width:260px;';
+  el.innerHTML='<div style="min-width:0;flex:1;">'
+    +'<div style="font-size:10px;font-weight:700;opacity:0.6;letter-spacing:.5px;margin-bottom:2px;">⏱ TIMING NOW</div>'
+    +'<div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.subName)+'</div>'
+    +'<div style="font-size:11px;opacity:0.55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(t.auditName)+'</div>'
+    +'</div>'
+    +'<div id="tmrTime" style="font-size:20px;font-weight:700;letter-spacing:1px;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0;">0:00:00</div>'
+    +'<button onclick="stopTimer(false)" style="background:#e11d48;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">■ Stop</button>';
+  document.body.appendChild(el);
+  function tick(){
+    var t2=getTmr();var disp=document.getElementById('tmrTime');
+    if(!t2||!disp){clearInterval(timerTick);timerTick=null;return;}
+    var sec=Math.floor((Date.now()-new Date(t2.startTime).getTime())/1000);
+    var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+    disp.textContent=h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    var now=new Date();
+    if(now.getHours()>16||(now.getHours()===16&&now.getMinutes()>=30)){stopTimer(true);}
+  }
+  tick();timerTick=setInterval(tick,1000);
+}
 // ── timesheets ─────────────────────────────────────────────────────────────
 function getFris(n){var fs=[];var d=new Date();d.setHours(0,0,0,0);var dw=d.getDay();d.setDate(d.getDate()-(dw===6?0:dw===0?1:dw+1));for(var i=0;i<n;i++){fs.push(new Date(d));d.setDate(d.getDate()-7);}return fs;}
 function fmtFri(dt){var now=new Date();now.setHours(0,0,0,0);var wks=Math.round((now-dt)/86400000/7);var lbl=dt.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});var ago=wks===0?'this past Friday':wks===1?'last week':wks+' weeks ago';return '<option value="'+dt.toISOString().slice(0,10)+'">'+lbl+' — '+ago+'</option>';}
