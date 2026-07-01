@@ -323,6 +323,17 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
+<div id="expModal" class="mo" style="display:none;">
+  <div class="md" style="width:440px;max-width:95vw;">
+    <div class="mh"><h3>📥 Export My Time</h3><button class="mx" onclick="closeM('expModal')">✕</button></div>
+    <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
+      <div id="expWarn" class="al al-w" style="display:none;"></div>
+      <div><label class="lbl">Select Week (Monday – Friday)</label><select id="expWeekSel" class="inp" style="background:#fff;"></select></div>
+    </div>
+    <div class="mf"><button class="gbtn" onclick="closeM('expModal')">Cancel</button><button class="pbtn" onclick="doExportWeek()">📥 Export Excel</button></div>
+  </div>
+</div>
+
 <div id="rvModal" class="mo" style="display:none;">
   <div class="md" style="width:460px;">
     <div class="mh"><h3>🔄 Rollover to Next Year</h3><button class="mx" onclick="closeM('rvModal')">✕</button></div>
@@ -856,7 +867,7 @@ function renderMyWork(){
     +'<div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'
     +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
     +'<input id="mwSearch" type="text" placeholder="🔍 Search..." value="'+esc(myWorkSearch)+'" oninput="filterMyWork(this.value)" class="inp" style="width:160px;font-size:13px;padding:6px 10px;"/>'
-    +'<button onclick="exportMyTimesheetXlsx()" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">📥 Export Excel</button>'
+    +'<button onclick="openExportModal()" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">📥 Export Excel</button>'
     +'</div></div>';
   if(!mwSubs||!mwSubs.length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
   var sq=myWorkSearch;
@@ -923,12 +934,43 @@ function renderMyWork(){
   if(sq){var el=document.getElementById('mwSearch');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}}
 }
 
-async function exportMyTimesheetXlsx(){
+function openExportModal(){
+  var today=new Date();today.setHours(0,0,0,0);
+  var dow=today.getDay();
+  // Days back to the last Friday that has strictly passed (Fri=7 days if today is also Fri)
+  var daysBack=(dow-5+7)%7||7;
+  var lastFri=new Date(today);lastFri.setDate(today.getDate()-daysBack);
+  function ds(d){return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+  var opts='';
+  for(var i=0;i<8;i++){
+    var fri=new Date(lastFri);fri.setDate(lastFri.getDate()-i*7);
+    var mon=new Date(fri);mon.setDate(fri.getDate()-4);
+    var lbl=mon.toLocaleDateString('en-ZA',{day:'2-digit',month:'short'})+'  –  '+fri.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+    opts+='<option value="'+ds(mon)+'|'+ds(fri)+'"'+(i===0?' selected':'')+'>'+lbl+(i===0?' ◀ last complete week':'')+'</option>';
+  }
+  document.getElementById('expWeekSel').innerHTML=opts;
+  var warn=document.getElementById('expWarn');
+  if(dow===1){
+    warn.style.display='block';
+    warn.textContent='⚠️ It\'s Monday — was all your time for the week ending '+lastFri.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})+' entered before you left on Friday?';
+  }else{warn.style.display='none';}
+  openM('expModal');
+}
+async function doExportWeek(){
+  var sel=document.getElementById('expWeekSel').value;
+  if(!sel)return;
+  var parts=sel.split('|');
+  closeM('expModal');
+  await exportMyTimesheetXlsx(parts[0],parts[1]);
+}
+async function exportMyTimesheetXlsx(monStr,friStr){
   var me=CU.email;
+  var monD=new Date(monStr+'T00:00:00');
+  var friD=new Date(friStr+'T23:59:59.999');
   var lq=await sb.from('step_logs').select('subsection_id,step,hours,note,logged_at,logged_by_email').eq('logged_by_email',me).order('logged_at',{ascending:true});
   if(lq.error){toast('Export failed: '+lq.error.message);return;}
-  var logs=lq.data||[];
-  if(!logs.length){toast('No time entries found.');return;}
+  var logs=(lq.data||[]).filter(function(l){if(!l.logged_at)return false;var d=new Date(l.logged_at);return d>=monD&&d<=friD;});
+  if(!logs.length){toast('No time entries for '+monStr+' – '+friStr+'.');return;}
   var ids=[...new Set(logs.map(function(l){return l.subsection_id;}))];
   var sq=await sb.from('subsections').select('id,name,sections(name,audits(name))').in('id',ids);
   var subMap={};(sq.data||[]).forEach(function(s){subMap[s.id]=s;});
@@ -947,8 +989,8 @@ async function exportMyTimesheetXlsx(){
   ws['!cols']=[{wch:12},{wch:30},{wch:25},{wch:30},{wch:15},{wch:8},{wch:30}];
   var wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Time Entries');
-  XLSX.writeFile(wb,'timesheet_'+me.split('@')[0]+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
-  toast('✅ Timesheet exported.');
+  XLSX.writeFile(wb,'timesheet_'+me.split('@')[0]+'_'+friStr+'.xlsx');
+  toast('✅ Time export ready.');
 }
 
 // ── live timer ────────────────────────────────────────────────────────────
