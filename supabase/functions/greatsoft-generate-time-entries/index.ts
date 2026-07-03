@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
+import { corsHeadersFor, jsonResponse } from "../_shared/cors.ts";
+import { getCallerProfile, MANAGER_ROLES, adminClient } from "../_shared/auth.ts";
 import { createTimeTran, getStdRateId, TimeTranPayload } from "../_shared/greatsoftClient.ts";
 
 type RequestBody = {
@@ -9,27 +9,21 @@ type RequestBody = {
   includeAllStaff?: boolean;
 };
 
-type UserProfile = {
-  id: string;
-  email: string;
-  role: string;
-  active: boolean;
-  greatsoft_emp_id?: string | null;
-  greatsoft_sync_enabled?: boolean | null;
-};
+// South Africa has no DST, so a fixed +02:00 offset is safe.
+const SAST_OFFSET = "+02:00";
 
 function startOfWeekFromFriday(weekEnding: string): { start: string; end: string } {
-  const end = new Date(`${weekEnding}T00:00:00.000Z`);
+  const end = new Date(`${weekEnding}T00:00:00.000${SAST_OFFSET}`);
   const start = new Date(end);
   start.setUTCDate(start.getUTCDate() - 6);
   return {
     start: start.toISOString(),
-    end: new Date(`${weekEnding}T23:59:59.999Z`).toISOString(),
+    end: new Date(`${weekEnding}T23:59:59.999${SAST_OFFSET}`).toISOString(),
   };
 }
 
 function dateOnly(iso: string): string {
-  return new Date(iso).toISOString().slice(0, 10);
+  return new Date(new Date(iso).getTime() + 2 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
 function buildNarration(row: any): string {
@@ -40,63 +34,40 @@ function buildNarration(row: any): string {
   return `HVNSAuditPro: ${auditName} / ${sectionName} / ${subName}${note}`;
 }
 
-function getEnv(name: string): string {
-  const value = Deno.env.get(name);
-  if (!value) throw new Error(`Missing required environment variable: ${name}`);
-  return value;
-}
-
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
+  const cors = corsHeadersFor(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405, cors);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return jsonResponse({ error: "Missing Authorization header" }, 401);
-
-    const supabaseUrl = getEnv("SUPABASE_URL");
-    const anonKey = getEnv("SUPABASE_ANON_KEY");
-    const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const adminClient = createClient(supabaseUrl, serviceKey);
-
-    const { data: authData, error: authError } = await userClient.auth.getUser();
-    if (authError || !authData.user) return jsonResponse({ error: "Invalid user session" }, 401);
-
-    const { data: profile, error: profileError } = await adminClient
-      .from("users")
-      .select("id,email,role,active,greatsoft_emp_id,greatsoft_sync_enabled")
-      .eq("id", authData.user.id)
-      .single();
-
-    const userProfile = profile as UserProfile | null;
-
-    if (profileError || !userProfile || !userProfile.active) {
-      return jsonResponse({ error: "Active user profile not found" }, 403);
-    }
+    const caller = await getCallerProfile(req);
+    if (caller.error) return jsonResponse({ error: caller.error.message }, caller.error.status, cors);
+    const userProfile = caller.profile;
+    const admin = adminClient();
 
     const body = await req.json().catch(() => ({})) as RequestBody;
     const dryRun = body.dryRun !== false;
     const pushEnabled = Deno.env.get("GREATSOFT_PUSH_ENABLED") === "true";
-    const isManager = userProfile.role === "manager" || userProfile.role === "director";
+    const isManager = MANAGER_ROLES.includes(userProfile.role);
     const includeAllStaff = Boolean(body.includeAllStaff && isManager);
 
-    if (!body.weekEnding) {
-      return jsonResponse({ error: "weekEnding is required in YYYY-MM-DD format" }, 400);
+    if (!body.weekEnding || !/^\d{4}-\d{2}-\d{2}$/.test(body.weekEnding)) {
+      return jsonResponse({ error: "weekEnding is required in YYYY-MM-DD format" }, 400, cors);
     }
 
     if (!dryRun && !pushEnabled) {
       return jsonResponse({
         error: "Actual GreatSoft pushes are disabled. Set GREATSOFT_PUSH_ENABLED=true after dry-run testing.",
-      }, 403);
+      }, 403, cors);
+    }
+
+    if (!dryRun && !isManager) {
+      return jsonResponse({ error: "Only managers may push live entries to GreatSoft." }, 403, cors);
     }
 
     const { start, end } = startOfWeekFromFriday(body.weekEnding);
 
-    let query = adminClient
+    let query = admin
       .from("step_logs")
       .select(`
         id,
@@ -135,7 +106,13 @@ Deno.serve(async (req) => {
     if (!includeAllStaff) query = query.eq("logged_by", userProfile.id);
 
     const { data: logs, error: logsError } = await query;
-    if (logsError) return jsonResponse({ error: logsError.message }, 500);
+    if (logsError) return jsonResponse({ error: logsError.message }, 500, cors);
+
+    if ((logs || []).length >= 1000) {
+      return jsonResponse({
+        error: "Too many step logs in range (1000+ rows would be truncated). Narrow the selection with auditId or a single user.",
+      }, 400, cors);
+    }
 
     const filteredLogs = body.auditId
       ? (logs || []).filter((row: any) => row.subsections?.sections?.audits?.id === body.auditId)
@@ -148,18 +125,19 @@ Deno.serve(async (req) => {
         weekEnding: body.weekEnding,
         count: 0,
         results: [],
-      });
+      }, 200, cors);
     }
 
-    const { data: existing, error: pushError } = await adminClient
+    const { data: existing, error: pushError } = await admin
       .from("greatsoft_time_pushes")
       .select("step_log_id,status,greatsoft_wip_tran_det_id")
       .in("step_log_id", filteredLogs.map((row: any) => row.id));
 
-    if (pushError) return jsonResponse({ error: pushError.message }, 500);
+    if (pushError) return jsonResponse({ error: pushError.message }, 500, cors);
 
     const existingByStepLog = new Map((existing || []).map((row: any) => [row.step_log_id, row]));
     const results = [];
+    let abortReason: string | null = null;
 
     for (const row of filteredLogs) {
       const prior = existingByStepLog.get(row.id);
@@ -228,7 +206,7 @@ Deno.serve(async (req) => {
           ? response.wipTranDetID
           : null;
 
-      await adminClient
+      const { error: upsertErr } = await admin
         .from("greatsoft_time_pushes")
         .upsert({
           step_log_id: row.id,
@@ -242,6 +220,20 @@ Deno.serve(async (req) => {
           pushed_at: created.ok ? new Date().toISOString() : null,
         }, { onConflict: "step_log_id" });
 
+      if (upsertErr && created.ok) {
+        // The entry exists in GreatSoft but was NOT recorded locally — rerunning
+        // would push it again. Stop and force manual reconciliation.
+        results.push({
+          stepLogId: row.id,
+          status: "pushed_but_unrecorded",
+          httpStatus: created.status,
+          greatsoftWipTranDetId: wipId,
+          recordError: upsertErr.message,
+        });
+        abortReason = `Push for step_log ${row.id} succeeded in GreatSoft but could not be recorded locally (${upsertErr.message}). Aborting to prevent duplicate billing — reconcile before re-running.`;
+        break;
+      }
+
       results.push({
         stepLogId: row.id,
         status: created.ok ? "pushed" : "failed",
@@ -252,16 +244,17 @@ Deno.serve(async (req) => {
     }
 
     return jsonResponse({
-      ok: true,
+      ok: !abortReason,
       dryRun,
       weekEnding: body.weekEnding,
       count: results.length,
       results,
-    });
+      ...(abortReason ? { warning: abortReason } : {}),
+    }, 200, cors);
   } catch (error) {
     return jsonResponse({
       ok: false,
       error: error instanceof Error ? error.message : String(error),
-    }, 500);
+    }, 500, corsHeadersFor(req));
   }
 });

@@ -39,10 +39,12 @@
 | File | Purpose |
 |------|---------|
 | `index.html` | Entire frontend — UI, auth, all business logic |
-| `supabase/functions/_shared/cors.ts` | CORS headers + JSON response helpers |
-| `supabase/functions/_shared/greatsoftClient.ts` | GreatSoft OAuth 2.0 client + API wrapper |
-| `supabase/functions/greatsoft-test-connection/index.ts` | Edge fn: test GreatSoft credentials |
-| `supabase/functions/greatsoft-generate-time-entries/index.ts` | Edge fn: generate and push time entries |
+| `supabase/functions/_shared/cors.ts` | CORS headers (origin-restricted) + JSON response helpers |
+| `supabase/functions/_shared/auth.ts` | Shared caller JWT + profile/role verification for edge functions |
+| `supabase/functions/_shared/greatsoftClient.ts` | GreatSoft OAuth 2.0 client + API wrapper (caches token) |
+| `supabase/functions/greatsoft-test-connection/index.ts` | Edge fn: test GreatSoft credentials (manager+ only) |
+| `supabase/functions/greatsoft-generate-time-entries/index.ts` | Edge fn: generate and push time entries (live push manager+ only) |
+| `supabase/functions/notifications-daily/index.ts` | Edge fn: overdue/budget digest; requires `x-cron-secret` header or manager+ JWT |
 | `supabase/migrations/` | Additive SQL migrations (never destructive) |
 | `supabase/migrations/20260620000000_gs_mapping_tables.sql` | GS employee/audit/section/activity code tables + 127 activity code seed rows |
 | `supabase/migrations/20260620000001_tax_tb_tables.sql` | Tax TB tables (gs_tax_codes, gs_tb_mapping, tax_tb_imports, tax_tb_lines) — **not yet applied to production** |
@@ -76,7 +78,7 @@ Audit logging: `security_audit_log`
 
 **Migration strategy:** Always additive — new nullable columns or new tables only. Never drop or rename columns without explicit sign-off.
 
-**All migrations applied to production as of 2026-06-21.** No pending migrations.
+**Pending migration:** `20260703000000_security_fixes.sql` (step_logs/timesheet identity + assignment checks, users identity-guard trigger, auth-trigger collision handling, missing DELETE policies, subsections column guard for assignees, greatsoft_time_pushes manager policies) — written 2026-07-03, not yet applied to production. All earlier migrations applied as of 2026-06-21.
 
 To apply future migrations: Supabase Dashboard → SQL Editor → paste and run each file in order.
 
@@ -114,7 +116,7 @@ The `greatsoft-generate-time-entries` edge function will only push live entries 
 1. The caller passes `{ dryRun: false }` in the request body
 2. The `GREATSOFT_PUSH_ENABLED` environment secret is set to exactly `"true"`
 
-Default behaviour is dry-run (preview only). Never change this default without explicit instruction.
+Default behaviour is dry-run (preview only). Never change this default without explicit instruction. Live pushes additionally require the caller to have a manager-tier role (`manager`/`director`/`tyron`); staff can only dry-run their own entries. Live pushes additionally require a manager-tier caller role (`manager`/`director
 
 ---
 
@@ -154,6 +156,7 @@ Stored as Supabase project secrets (never committed to git):
 | `GREATSOFT_CLIENT_SECRET` | OAuth client secret |
 | `GREATSOFT_SCOPE` | OAuth scope string |
 | `GREATSOFT_PUSH_ENABLED` | Must be `"true"` to allow live pushes |
+| `NOTIFICATIONS_CRON_SECRET` | Shared secret for the `notifications-daily` cron caller (`x-cron-secret` header) |
 
 The frontend uses the **anon key** only (`SKEY` in `index.html`) — this is safe to be public.
 

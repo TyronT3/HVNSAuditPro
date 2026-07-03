@@ -48,7 +48,13 @@ async function readJsonOrText(res: Response): Promise<unknown> {
   }
 }
 
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
 export async function getGreatSoftToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt - 60_000) {
+    return cachedToken.token;
+  }
+
   const cfg = getConfig();
   const body = new URLSearchParams({
     grant_type: "client_credentials",

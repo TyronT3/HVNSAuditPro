@@ -1,16 +1,26 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders, jsonResponse } from '../_shared/cors.ts'
+import { corsHeadersFor, jsonResponse } from '../_shared/cors.ts'
+import { getCallerProfile, MANAGER_ROLES, adminClient } from '../_shared/auth.ts'
 
 // Warn when actual hours reach this fraction of budget.
 const BUDGET_WARN_PCT = 0.8
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
+async function isAuthorized(req: Request): Promise<boolean> {
+  const cronSecret = Deno.env.get('NOTIFICATIONS_CRON_SECRET')
+  const provided = req.headers.get('x-cron-secret')
+  if (cronSecret && provided && provided === cronSecret) return true
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
+  const caller = await getCallerProfile(req)
+  return !caller.error && MANAGER_ROLES.includes(caller.profile.role)
+}
+
+Deno.serve(async (req: Request) => {
+  const cors = corsHeadersFor(req)
+  if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
+  if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405, cors)
+
+  if (!(await isAuthorized(req))) return jsonResponse({ error: 'Forbidden' }, 403, cors)
+
+  const supabase = adminClient()
 
   const today = new Date().toISOString().slice(0, 10)
 
@@ -23,7 +33,7 @@ Deno.serve(async (req: Request) => {
     .not('due_date', 'is', null)
     .not('assignee_email', 'is', null)
 
-  if (overdueErr) return jsonResponse({ error: overdueErr.message }, 500)
+  if (overdueErr) return jsonResponse({ error: overdueErr.message }, 500, cors)
 
   // Group overdue items by assignee email for per-person digest emails.
   const overdueByAssignee: Record<string, object[]> = {}
@@ -47,7 +57,7 @@ Deno.serve(async (req: Request) => {
     .select('id, name, client, type, budget_hours, actual_hours')
     .gt('budget_hours', 0)
 
-  if (sumErr) return jsonResponse({ error: sumErr.message }, 500)
+  if (sumErr) return jsonResponse({ error: sumErr.message }, 500, cors)
 
   const nearBudget: object[] = []
   const overBudget: object[] = []
@@ -91,13 +101,14 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── 5. Log the run ────────────────────────────────────────────────────────
-  await supabase.from('notification_log').insert({
+  const { error: logErr } = await supabase.from('notification_log').insert({
     overdue_count:      (overdueRaw ?? []).length,
     near_budget_count:  nearBudget.length,
     over_budget_count:  overBudget.length,
     payload,
     emails_sent:        false,
   })
+  if (logErr) console.error('notification_log insert failed:', logErr.message)
 
-  return jsonResponse(payload)
+  return jsonResponse(payload, 200, cors)
 })
