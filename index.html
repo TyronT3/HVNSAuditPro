@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root{--navy:#1A2B3C;--navy2:#2E4057;--orange:#F5A623;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;}
+:root{--navy:#1A2B3C;--navy2:#2E4057;--orange:#F5A623;--charcoal:#4A4A4A;--light:#F4F6F8;--border:#e2e8f0;--red:#dc2626;--green:#16a34a;--amber:#d97706;--navytint:#E8EEF4;--navytintb:#c9d4de;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Calibri',sans-serif;background:var(--light);color:var(--charcoal);min-height:100vh;}
 button,input,select,textarea{font-family:'Calibri',sans-serif;}
@@ -26,11 +26,11 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .header{background:var(--navy);padding:0 24px;display:flex;align-items:center;justify-content:space-between;min-height:60px;gap:8px;flex-wrap:wrap;}
 .htitle{font-family:'Trebuchet MS',sans-serif;font-size:17px;font-weight:700;color:#fff;}
 .hright{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.upill{background:rgba(255,255,255,0.1);border-radius:20px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.8);}
-.rbadge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;}
-.rm{background:var(--orange);color:var(--navy);}
-.rd{background:#7c3aed;color:#fff;}
-.rs{background:rgba(255,255,255,0.15);color:#fff;}
+.upill{background:rgba(255,255,255,0.1);border-radius:4px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,0.8);}
+.rbadge{padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;}
+.rm{background:rgba(245,166,35,0.15);color:var(--orange);border:1px solid rgba(245,166,35,0.5);}
+.rd{background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);}
+.rs{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.75);border:1px solid rgba(255,255,255,0.2);}
 .hbtn{background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap;}
 .hbtn:hover{border-color:var(--orange);color:var(--orange);}
 .oacc{height:2px;background:var(--orange);}
@@ -41,13 +41,13 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .nbtn:hover{color:rgba(255,255,255,0.85);}
 .nbtn.on{color:#fff;border-bottom-color:var(--orange);}
 .main{flex:1;max-width:1100px;margin:0 auto;padding:24px 16px;width:100%;}
-.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:14px;overflow:hidden;border:1px solid var(--border);}
+.card{background:#fff;border-radius:8px;margin-bottom:14px;overflow:hidden;border:1px solid var(--border);}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.stat{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.07);border-left:3px solid var(--orange);}
+.stat{background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border);border-left:3px solid var(--orange);}
 .sval{font-family:'Trebuchet MS',sans-serif;font-size:22px;font-weight:700;color:var(--navy);}
 .slbl{font-size:12px;color:#6b7280;margin-top:3px;}
-.badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap;}
-.sbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:4px;white-space:nowrap;}
+.sbadge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;}
 .bwrap{background:#e5e7eb;border-radius:99px;overflow:hidden;}
 .binn{height:100%;border-radius:99px;transition:width .4s;}
 .dtbl{width:100%;border-collapse:collapse;font-size:13px;}
@@ -55,7 +55,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .dtbl td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--charcoal);}
 .dtbl tr:hover td{background:#f8fafc;}
 .dtbl tr:last-child td{border-bottom:none;}
-.fbox{background:#fff;border-radius:14px;padding:24px;box-shadow:0 1px 6px rgba(0,0,0,0.08);max-width:720px;margin:0 auto;border:1px solid var(--border);}
+.fbox{background:#fff;border-radius:10px;padding:24px;max-width:720px;margin:0 auto;border:1px solid var(--border);}
 .stitle{font-family:'Trebuchet MS',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--orange);}
 .inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;color:var(--charcoal);background:#fff;}
 .inp:focus{border-color:var(--navy);}
@@ -67,7 +67,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .gbtn:hover{border-color:var(--navy);color:var(--navy);}
 .dbtn{padding:6px 10px;background:#fef2f2;color:var(--red);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
 .mo{position:fixed;inset:0;background:rgba(10,20,30,0.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:12px;}
-.md{background:#fff;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;}
+.md{background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(10,20,30,0.18);overflow:hidden;border:1px solid var(--border);}
 .mh{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
 .mh h3{font-family:'Trebuchet MS',sans-serif;color:#fff;font-size:15px;font-weight:700;}
 .mx{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;}
@@ -97,7 +97,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .cal-day{min-height:80px;background:#fff;border-radius:8px;border:1px solid var(--border);padding:4px;}
 .cal-day.other{background:#f8fafc;opacity:.5;}
 .cal-day.today{border-color:var(--orange);border-width:2px;}
-.cal-day.cal-sel{background:#eff6ff;border-color:#2563eb;border-width:2px;}
+.cal-day.cal-sel{background:var(--navytint);border-color:var(--navy);border-width:2px;}
 @keyframes skPulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .sk{background:linear-gradient(90deg,#f1f5f9 25%,#e8edf2 50%,#f1f5f9 75%);background-size:200% 100%;border-radius:10px;animation:skPulse 1.5s ease infinite;}
 .cal-dn{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:3px;}
@@ -217,7 +217,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
     <div class="mh"><h3>📅 Weekly Time Reconciliation</h3><button class="mx" onclick="closeM('tsModal')">✕</button></div>
     <div class="mb" style="display:flex;flex-direction:column;gap:14px;">
       <div class="al al-w">Submit hours from your <b>firm time tracking system</b>. Select the correct week carefully.</div>
-      <div><label class="lbl">Week Ending (Friday)</label><select id="tsWeek" class="inp" style="background:#fff;" onchange="onTsChange()"></select><div id="tsWLbl" style="font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px;"></div></div>
+      <div><label class="lbl">Week Ending (Friday)</label><select id="tsWeek" class="inp" style="background:#fff;" onchange="onTsChange()"></select><div id="tsWLbl" style="font-size:11px;color:#1A2B3C;font-weight:600;margin-top:4px;"></div></div>
       <div><label class="lbl">Subsection</label><select id="tsSub" class="inp" style="background:#fff;" onchange="onTsChange()"></select><div id="tsAlready" class="al al-w" style="display:none;margin-top:6px;">Already submitted for this week/subsection.</div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="lbl">Firm System Hours</label><input type="number" id="tsFirm" class="inp" min="0" step="0.25" oninput="calcVar()"/></div>
@@ -363,11 +363,11 @@ var sb=supabase.createClient(SURL,SKEY,{auth:{redirectTo:'https://tyront3.github
 var STEPS=['Not Started','Client Requested','Client Received','Processing','Finalising','Review','Signed Off'];
 var SC={
   'Not Started':     {c:'#6b7280',b:'#f3f4f6'},
-  'Client Requested':{c:'#0891b2',b:'#ecfeff'},
+  'Client Requested':{c:'#5b6b7d',b:'#eef2f5'},
   'Client Received': {c:'#1A2B3C',b:'#e8eef4'},
-  'Processing':      {c:'#7c3aed',b:'#f5f3ff'},
-  'Finalising':      {c:'#d97706',b:'#fffbeb'},
-  'Review':          {c:'#db2777',b:'#fdf2f8'},
+  'Processing':      {c:'#33475a',b:'#eaeff3'},
+  'Finalising':      {c:'#b45309',b:'#fef3e2'},
+  'Review':          {c:'#92400e',b:'#fdebd3'},
   'Signed Off':      {c:'#16a34a',b:'#f0fdf4'}
 };
 var AT=['Not Started','Client Requested','Client Received','Processing','Finalising'];
@@ -400,6 +400,7 @@ var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null,ganttAuditId=null;
 var mwSubs=null,mwSm={},mwAm={},myWorkShowDone=false,myWorkShowNoHours=false,myWorkSearch='';
 var logHistDays=14;
+var dashShowDetails=false;
 var _rptData=null,analyticsView='audit',analyticsPeriod='all';
 function showSkeleton(){setMain('<div style="display:flex;flex-direction:column;gap:14px;padding:4px;">'+Array(5).fill('<div class="sk" style="height:72px;"></div>').join('')+'</div>');}
 
@@ -410,7 +411,7 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 function days(d){if(!d)return 9999;var t=new Date();t.setHours(0,0,0,0);var x=new Date(d);x.setHours(0,0,0,0);return Math.round((x-t)/86400000);}
 function dueB(d){if(!d)return '';var n=days(d);var l=n<0?Math.abs(n)+'d overdue':n===0?'Due today':n+'d left';var c=n<0?'#dc2626':n<=7?'#d97706':'#16a34a';return '<span class="badge" style="color:'+c+';background:'+c+'18;">'+l+'</span>';}
 function stFlag(due,step){if(step==='Signed Off'||!due)return '';var n=days(due);if(n<0)return '<span class="badge" style="color:#dc2626;background:#fef2f2;">🔴 Overdue</span>';if(n<=7&&AT.indexOf(step)>=0)return '<span class="badge" style="color:#d97706;background:#fffbeb;">🟡 At Risk</span>';return '';}
-function bar(v,h){h=h||8;var w=Math.max(0,Math.min(100,parseFloat(v)||0));var c=w===100?'#16a34a':w>=50?'#2563eb':w>0?'#d97706':'#e5e7eb';return '<div class="bwrap" style="height:'+h+'px;flex:1;"><div class="binn" style="width:'+w+'%;background:'+c+';height:'+h+'px;"></div></div>';}
+function bar(v,h){h=h||8;var w=Math.max(0,Math.min(100,parseFloat(v)||0));var c=w===100?'#16a34a':w>=50?'#1A2B3C':w>0?'#d97706':'#e5e7eb';return '<div class="bwrap" style="height:'+h+'px;flex:1;"><div class="binn" style="width:'+w+'%;background:'+c+';height:'+h+'px;"></div></div>';}
 function trail(si){var h='<div class="strail">';for(var i=0;i<STEPS.length;i++){var ok=i<=si;var c=SC[STEPS[i]];h+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="sdot" style="background:'+(ok?c.c:'#e5e7eb')+'">'+(ok?'✓':'')+'</div><span class="slb" style="color:'+(ok?c.c:'#9ca3af')+'">'+STEPS[i]+'</span></div>';if(i<STEPS.length-1)h+='<div class="sline" style="background:'+(i<si?'#1A2B3C':'#e5e7eb')+'"></div>';}return h+'</div>';}
 function staffOpts(sel){sel=sel||'';return AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sel?' selected':'')+'>'+u.full_name+' ('+u.email+')</option>';}).join('');}
 function openM(id){document.getElementById(id).style.display='flex';}
@@ -579,8 +580,12 @@ async function vDash(){
     +'<div class="stat"><div class="sval">'+statVal+'</div><div class="slbl">'+statLbl+'</div></div>'
     +'<div class="stat" style="border-left-color:#dc2626;"><div class="sval" style="color:#dc2626;">'+ov+'</div><div class="slbl">🔴 Items Overdue</div></div>'
     +'<div class="stat" style="border-left-color:#d97706;"><div class="sval" style="color:#d97706;">'+ar+'</div><div class="slbl">🟡 At Risk</div></div>'
-    +'<div class="stat" style="border-left-color:#7c3aed;"><div class="sval" style="color:#7c3aed;">'+R(tf)+'</div><div class="slbl">💰 Total Fee Value</div></div>'
+    +'<div class="stat" style="border-left-color:#1A2B3C;"><div class="sval" style="color:#1A2B3C;">'+R(tf)+'</div><div class="slbl">💰 Total Fee Value</div></div>'
     +'</div>';
+  if(CR!=='staff'){
+    h+='<div style="margin-bottom:16px;"><button onclick="toggleDashDetails()" style="width:100%;padding:9px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:#6b7280;cursor:pointer;">'+(dashShowDetails?'▲ Hide details':'▼ Show details')+'</button></div>';
+  }
+  h+='<div style="display:'+(dashShowDetails?'block':'none')+';">';
   if(CR==='manager'){
     h+='<div class="stats" style="grid-template-columns:repeat(3,1fr);">'
       +'<div class="stat"><div class="sval">'+H(tb)+'h</div><div class="slbl">⏱ Budget Hours</div></div>'
@@ -590,7 +595,7 @@ async function vDash(){
     h+='<div class="stats" style="grid-template-columns:repeat(4,1fr);">'
       +'<div class="stat"><div class="sval">'+tot+'</div><div class="slbl">📋 Total Items</div></div>'
       +'<div class="stat" style="border-left-color:#16a34a;"><div class="sval" style="color:#16a34a;">'+doneCnt+'</div><div class="slbl">✅ Signed Off</div></div>'
-      +'<div class="stat" style="border-left-color:#db2777;"><div class="sval" style="color:#db2777;">'+inRev+'</div><div class="slbl">🔍 Awaiting Sign-Off</div></div>'
+      +'<div class="stat" style="border-left-color:#92400e;"><div class="sval" style="color:#92400e;">'+inRev+'</div><div class="slbl">🔍 Awaiting Sign-Off</div></div>'
       +'<div class="stat" style="border-left-color:'+(compPct>=80?'#16a34a':compPct>=50?'#d97706':'#dc2626')+'"><div class="sval" style="color:'+(compPct>=80?'#16a34a':compPct>=50?'#d97706':'#dc2626')+'">'+compPct+'%</div><div class="slbl">📊 Completion Rate</div></div>'
       +'</div>';
   }
@@ -621,6 +626,7 @@ async function vDash(){
     if(!dlAll.length)h+='<div style="color:#9ca3af;font-size:12px;padding:4px;">No active users found.</div>';
     h+='</div></div>';
   }
+  h+='</div>';
   if(!allAudits.length){
     h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No audits or projects yet</div>'+(CR==='manager'?'<button class="pbtn" style="margin-top:14px;" onclick="goView(\'add\')">Create First</button>':'')+'</div>';
     setMain(h);return;
@@ -630,15 +636,15 @@ async function vDash(){
     h+='<div class="card"><div style="padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="togA(\''+a.id+'\')">'
       +'<div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
       +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:16px;color:var(--navy);">'+esc(a.name)+'</span>'
-      +'<span class="badge" style="color:'+(aType==='accounting'?'#0891b2':'#7c3aed')+';background:'+(aType==='accounting'?'#ecfeff':'#f5f3ff')+';">'+audIcon(aType)+' '+audLabel(aType)+'</span>'
+      +'<span class="badge" style="color:'+(aType==='accounting'?'#5b4636':'#1A2B3C')+';background:'+(aType==='accounting'?'#f3ede6':'#E8EEF4')+';">'+audIcon(aType)+' '+audLabel(aType)+'</span>'
       +(a.client?'<span class="badge" style="color:#6b7280;background:#f3f4f6;">🏢 '+esc(a.client)+'</span>':'')
       +dueB(a.due_date)
-      +'<span class="badge" style="color:#7c3aed;background:#f5f3ff;">⏱ '+H(a.actual_hours)+'h / '+H(a.budget_hours)+'h</span>'
+      +'<span class="badge" style="color:#1A2B3C;background:#E8EEF4;">⏱ '+H(a.actual_hours)+'h / '+H(a.budget_hours)+'h</span>'
       +(CR!=='staff'?'<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 '+R(a.fee_value)+'</span>':'')
       +'</div><div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'+bar(a.progress_pct||0)+'<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">'+(a.progress_pct||0)+'%</span></div></div>'
       +'<div style="display:flex;gap:6px;align-items:center;">'
       +(CR!=='staff'?'<button onclick="event.stopPropagation();showRpt(\''+a.id+'\')" style="padding:6px 10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;font-weight:600;">📊</button>':'')
-      +(CR==='manager'?'<button onclick="event.stopPropagation();openEdit(\''+a.id+'\')" style="padding:6px 10px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;font-weight:600;">✏️</button>':'')
+      +(CR==='manager'?'<button onclick="event.stopPropagation();openEdit(\''+a.id+'\')" style="padding:6px 10px;background:var(--navytint);color:var(--navy);border:1px solid var(--navytintb);border-radius:7px;font-size:12px;font-weight:600;">✏️</button>':'')
       +(CR==='manager'?'<button onclick="event.stopPropagation();delAudit(\''+a.id+'\')" class="dbtn">🗑</button>':'')
       +'<span style="font-size:18px;color:#9ca3af;">'+(isO?'▲':'▼')+'</span></div></div>';
     if(isO){
@@ -650,9 +656,9 @@ async function vDash(){
           +'<span style="font-family:Trebuchet MS,sans-serif;font-size:13px;font-weight:700;color:var(--navy);min-width:160px;">'+esc(sec.name)+'</span>'
           +'<span style="font-size:12px;color:#9ca3af;">👤 '+esc(sec.assignee_email||'—')+'</span>'
           +dueB(sec.due_date)
-          +'<span style="font-size:12px;color:#7c3aed;">⏱ '+H(sec.actual_hours)+'h / '+H(sec.budget_hours)+'h</span>'
+          +'<span style="font-size:12px;color:#1A2B3C;">⏱ '+H(sec.actual_hours)+'h / '+H(sec.budget_hours)+'h</span>'
           +'<div style="display:flex;align-items:center;gap:8px;flex:1;min-width:80px;">'+bar(sec.progress_pct||0,6)+'<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:34px;">'+(sec.progress_pct||0)+'%</span></div>'
-          +(CR==='manager'?'<button onclick="event.stopPropagation();openAsn(\''+a.id+'\',\''+sec.id+'\')" style="padding:4px 8px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:600;">+Sub</button>':'')
+          +(CR==='manager'?'<button onclick="event.stopPropagation();openAsn(\''+a.id+'\',\''+sec.id+'\')" style="padding:4px 8px;background:var(--navytint);color:var(--navy);border:1px solid var(--navytintb);border-radius:6px;font-size:11px;font-weight:600;">+Sub</button>':'')
           +'<span style="font-size:14px;color:#9ca3af;">'+(sO?'▲':'▼')+'</span></div>';
         if(sO){
           var ss=await sb.from('subsection_summary').select('*').eq('section_id',sec.id);
@@ -663,7 +669,7 @@ async function vDash(){
             var ob=parseFloat(sub.actual_hours)>parseFloat(sub.budget_hours)&&parseFloat(sub.budget_hours)>0;
             var unreg=sub.assignee_email&&!reg.has(sub.assignee_email.toLowerCase());
             var isRev=sub.step==='Review';
-            h+='<div style="background:'+(ob?'#fff5f5':isRev?'#fdf2f8':'#fafafa')+';display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 20px 8px 44px;border-top:1px solid var(--border);min-width:700px;">'
+            h+='<div style="background:'+(ob?'#fff5f5':isRev?'#fdebd3':'#fafafa')+';display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 20px 8px 44px;border-top:1px solid var(--border);min-width:700px;">'
               +'<div style="min-width:0;"><span style="font-size:13px;color:var(--charcoal);font-weight:500;">'+esc(sub.name)+' '+stf+'</span>'+(sub.notes?'<div style="font-size:11px;color:#9ca3af;margin-top:2px;white-space:normal;line-height:1.4;">📎 '+esc(sub.notes)+'</div>':'')+'</div>'
               +'<span style="font-size:12px;color:#9ca3af;">'+esc(sub.assignee_email||'—')+(unreg?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
               +'<span>'+dueB(sub.due_date)+'</span>'
@@ -677,7 +683,7 @@ async function vDash(){
               +(CR!=='staff'?'<span style="font-size:12px;color:#16a34a;font-weight:600;">'+R(sub.fee_value)+'</span>':'<span></span>')
               +'<div style="display:flex;gap:3px;">'
               +(CR==='manager'?'<button onclick="openRsn(\''+sub.id+'\',\''+esc(String(sub.assignee_email||'').replace(/'/g,''))+'\')" style="padding:3px 7px;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;font-size:11px;font-weight:600;">↔</button>':'')
-              +(CR==='manager'?'<button onclick="editNotes(\''+sub.id+'\')" style="padding:3px 7px;background:#f0f9ff;color:#0369a1;border:none;border-radius:6px;font-size:11px;font-weight:600;" title="'+(sub.notes?'Edit notes':'Add notes')+'">📎</button>':'')
+              +(CR==='manager'?'<button onclick="editNotes(\''+sub.id+'\')" style="padding:3px 7px;background:var(--navytint);color:var(--navy);border:none;border-radius:6px;font-size:11px;font-weight:600;" title="'+(sub.notes?'Edit notes':'Add notes')+'">📎</button>':'')
               +(CR==='manager'?'<button onclick="delSub(\''+sub.id+'\')" class="dbtn" style="padding:3px 6px;">🗑</button>':'')
               +'</div></div>';
           }
@@ -855,7 +861,7 @@ async function vEdit(){
         +'<div style="padding:0 16px 6px;"><input class="inp" style="width:100%;box-sizing:border-box;font-size:11px;padding:4px 8px;background:#fffef5;" placeholder="Manager note..." value="'+esc(sub3.comment)+'" onblur="updSubCmt(\''+sub3.id+'\',this.value)"/></div>'
         +'<div id="coa_'+sub3.id+'" style="padding:2px 16px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;">'
         +'<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'
-        +AU.filter(function(u){return u.email!==sub3.assignee_email;}).map(function(u){var ck=(sub3.co_assignees||[]).indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'#eff6ff':'#f1f5f9')+';border:1px solid '+(ck?'#bfdbfe':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+sub3.id+'\')"/>'+esc(u.full_name)+'</label>';}).join('')
+        +AU.filter(function(u){return u.email!==sub3.assignee_email;}).map(function(u){var ck=(sub3.co_assignees||[]).indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'var(--navytint)':'#f1f5f9')+';border:1px solid '+(ck?'var(--navytintb)':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+sub3.id+'\')"/>'+esc(u.full_name)+'</label>';}).join('')
         +'</div>'
         +'<div style="padding:4px 16px 10px;display:flex;flex-wrap:wrap;gap:3px;align-items:center;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Step:</span>'+STEPS.map(function(s){var isCur=s===sub3.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub3.id+'\',\''+s+'\',\''+sub3.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>'
         +'</div>';
@@ -940,13 +946,13 @@ function renderMyWork(){
     var canGoNext=!isReview||(isReview&&(CR==='manager'||IS_SUPER));
     var ob=parseFloat(sub4.actual_hours)>parseFloat(sub4.budget_hours)&&parseFloat(sub4.budget_hours)>0;
     var tmr=getTmr();var isTiming=tmr&&tmr.subId===sub4.id;
-    return '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid '+(ob?'#dc2626':c4.c)+';border:1px solid var(--border);border-left-width:4px;">'
+    return '<div style="background:#fff;border-radius:8px;padding:16px;border-left:4px solid '+(ob?'#dc2626':c4.c)+';border:1px solid var(--border);border-left-width:4px;">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'
       +'<div><div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">'+sec4.name+'</div>'
       +'<div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);">'+sub4.name+'</div>'
       +'<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center;">'
       +dueB(sub4.due_date)+stFlag(sub4.due_date,sub4.step)
-      +'<span style="font-size:12px;color:#7c3aed;font-weight:600;">⏱ '+H(sub4.actual_hours)+'h / '+H(sub4.budget_hours)+'h</span>'
+      +'<span style="font-size:12px;color:#1A2B3C;font-weight:600;">⏱ '+H(sub4.actual_hours)+'h / '+H(sub4.budget_hours)+'h</span>'
       +(ob?'<span class="badge" style="color:#dc2626;background:#fef2f2;">⚠️ Over Budget</span>':'')
       +'</div></div>'
       +'<span class="sbadge" style="color:'+c4.c+';background:'+c4.b+'">'+sub4.step+'</span></div>'
@@ -956,11 +962,11 @@ function renderMyWork(){
       +(!isSignedOff?'<button onclick="reqLogOnly(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="gbtn">⏱ Log</button>':'')
       +(!isSignedOff?(isTiming?'<button disabled style="padding:8px 12px;background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:700;cursor:default;">⏱ Running</button>':'<button onclick="startTimer(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+aud.name.replace(/'/g,'')+'\',\''+sub4.step+'\')" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">▶ Start</button>'):'')
       +(isSignedOff?'<div style="flex:1;padding:12px;background:#f0fdf4;color:#16a34a;border-radius:9px;font-weight:700;font-size:14px;text-align:center;">✅ Signed Off!</div>'
-        :!canGoNext?'<div style="flex:1;padding:12px;background:#fdf2f8;color:#db2777;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
+        :!canGoNext?'<div style="flex:1;padding:12px;background:#fdebd3;color:#92400e;border-radius:9px;font-weight:600;font-size:13px;text-align:center;">⏳ Awaiting manager sign off</div>'
         :'<button onclick="reqAdv(\''+sub4.id+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+nextStep+'\',\''+sub4.step+'\','+sub4.budget_hours+','+sub4.actual_hours+')" class="pbtn" style="flex:1;">Mark as: '+nextStep+' →</button>')
       +'</div>'
       +(CR==='manager'||IS_SUPER?'<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px dashed #f1f5f9;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Jump to:</span>'+STEPS.map(function(s){var isCur=s===sub4.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub4.id+'\',\''+s+'\',\''+sub4.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>':'')
-      +'<button onclick="showTeams(\''+aud.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
+      +'<button onclick="showTeams(\''+aud.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:var(--navytint);color:var(--navy);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
       +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
       +(showRemove?'<button onclick="hideSub(\''+sub4.id+'\')" class="dbtn" style="width:100%;margin-top:8px;">🚫 Not needed — remove from my list</button>':'')
       +'</div>';
@@ -1211,7 +1217,7 @@ async function flagTs(id){await sb.from('timesheet_entries').update({status:'fla
 async function approveTs(id){await sb.from('timesheet_entries').update({status:'reviewed',reviewed_by:CU.id,reviewed_at:new Date().toISOString()}).eq('id',id);toast('✅ Approved.');vTs();}
 
 // ── calendar ──────────────────────────────────────────────────────────────
-var CAL_COLORS={'Not Started':{bg:'#f3f4f6',c:'#6b7280'},'Client Requested':{bg:'#ecfeff',c:'#0891b2'},'Client Received':{bg:'#e8eef4',c:'#1A2B3C'},'Processing':{bg:'#f5f3ff',c:'#7c3aed'},'Finalising':{bg:'#fffbeb',c:'#d97706'},'Review':{bg:'#fdf2f8',c:'#db2777'},'Signed Off':{bg:'#f0fdf4',c:'#16a34a'}};
+var CAL_COLORS={};STEPS.forEach(function(s){CAL_COLORS[s]={bg:SC[s].b,c:SC[s].c};});
 async function vCalendar(){
   showSkeleton();
   var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
@@ -1236,9 +1242,9 @@ function renderCal(items){
   var h='<div style="max-width:1000px;margin:0 auto;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;"><span style="font-family:Trebuchet MS,sans-serif;font-size:20px;font-weight:700;color:var(--navy);">'+mNames[calMonth]+' '+calYear+'</span><div style="display:flex;gap:8px;"><button onclick="calNav(-1)" class="gbtn">← Prev</button><button onclick="calNav(0)" class="gbtn">Today</button><button onclick="calNav(1)" class="gbtn">Next →</button></div></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">';
-  Object.entries(CAL_COLORS).forEach(function(e){if(e[0]==='Signed Off')return;h+='<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
-  h+='<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#dc262615;color:#dc2626;font-weight:600;">● Overdue</span>';
-  h+='<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#d9770615;color:#d97706;font-weight:600;">● Due soon</span>';
+  Object.entries(CAL_COLORS).forEach(function(e){if(e[0]==='Signed Off')return;h+='<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
+  h+='<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:#dc262615;color:#dc2626;font-weight:600;">● Overdue</span>';
+  h+='<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:#d9770615;color:#d97706;font-weight:600;">● Due soon</span>';
   h+='</div><div class="cal-grid">';
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){h+='<div class="cal-hdr">'+d+'</div>';});
   for(var i=0;i<firstDay.getDay();i++)h+='<div class="cal-day other"></div>';
@@ -1246,7 +1252,7 @@ function renderCal(items){
     var dt=new Date(calYear,calMonth,d);dt.setHours(0,0,0,0);
     var dtStr=calYear+'-'+(calMonth+1<10?'0':'')+(calMonth+1)+'-'+(d<10?'0':'')+d;var isToday=dt.getTime()===today.getTime();
     var dayItems=byDate[dtStr]||[];var n=days(dtStr);
-    var lBorder=dayItems.length?(n<0?'border-left:3px solid #dc2626;':n<=7?'border-left:3px solid #d97706;':'border-left:3px solid #93c5fd;'):'';
+    var lBorder=dayItems.length?(n<0?'border-left:3px solid #dc2626;':n<=7?'border-left:3px solid #d97706;':'border-left:3px solid #b7c4d1;'):'';
     var isSel=calSelDate===dtStr;
     h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' cal-sel':'')+'" style="'+lBorder+(dayItems.length?'cursor:pointer;':'')+'"'+(dayItems.length?' onclick="showCalDay(\''+dtStr+'\')"':'')+' >';
     h+='<div class="cal-dn">'+(isToday?'<span style="background:var(--orange);color:var(--navy);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">'+d+'</span>':d)+'</div>';
@@ -1276,7 +1282,7 @@ function renderCal(items){
     s+='</div>';return s;
   }
   if(!sorted.length){h+='<div style="text-align:center;padding:40px;color:#9ca3af;background:#fff;border-radius:12px;border:1px solid var(--border);">No open deadlines found.</div>';}
-  else{h+=grp('Overdue','#dc2626',overdue)+grp('Due today','#d97706',dueToday)+grp('Due this week','#f59e0b',dueWeek)+grp('Due next week','#2563eb',dueFort)+grp('Due in 2–4 weeks','#6b7280',dueMo);}
+  else{h+=grp('Overdue','#dc2626',overdue)+grp('Due today','#d97706',dueToday)+grp('Due this week','#f59e0b',dueWeek)+grp('Due next week','#1A2B3C',dueFort)+grp('Due in 2–4 weeks','#6b7280',dueMo);}
   h+='</div></div>';
   setMain(h);
   if(calSelDate)showCalDayDom();
@@ -1411,9 +1417,9 @@ function renderGantt(auds,secs,subs){
   if(subs.length){var done=subs.filter(function(s){return s.step==='Signed Off';}).length;h+='<span style="font-size:12px;color:#9ca3af;">'+done+'/'+subs.length+' signed off</span>';}
   h+='</div>';
   h+='<div style="display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;">';
-  Object.entries(CAL_COLORS).forEach(function(e){h+='<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
-  h+='<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#dc262615;color:#dc2626;font-weight:600;">⚠ Overdue</span>';
-  h+='<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#f1f5f9;color:#9ca3af;font-weight:600;">⟳ Waiting</span>';
+  Object.entries(CAL_COLORS).forEach(function(e){h+='<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:'+e[1].bg+';color:'+e[1].c+';">'+e[0]+'</span>';});
+  h+='<span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#dc262615;color:#dc2626;font-weight:600;">⚠ Overdue</span>';
+  h+='<span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#f1f5f9;color:#9ca3af;font-weight:600;">⟳ Waiting</span>';
   h+='</div>';
   h+='<div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff;">';
   h+='<div style="min-width:600px;">';
@@ -1522,7 +1528,7 @@ function renderCapacity(items){
   h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours (budget − logged) · 40h/week · primary assignee only · open items</span>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
-  [{bg:'#f0fdf4',c:'#16a34a',l:'≤20h — OK'},{bg:'#fefce8',c:'#ca8a04',l:'20–30h — Busy'},{bg:'#fff7ed',c:'#ea580c',l:'30–40h — Tight'},{bg:'#fef2f2',c:'#dc2626',l:'>40h — Over'}].forEach(function(s){h+='<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:'+s.bg+';color:'+s.c+';">'+s.l+'</span>';});
+  [{bg:'#f0fdf4',c:'#16a34a',l:'≤20h — OK'},{bg:'#fefce8',c:'#ca8a04',l:'20–30h — Busy'},{bg:'#fff7ed',c:'#ea580c',l:'30–40h — Tight'},{bg:'#fef2f2',c:'#dc2626',l:'>40h — Over'}].forEach(function(s){h+='<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:'+s.bg+';color:'+s.c+';">'+s.l+'</span>';});
   h+='</div>';
   if(!people.length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;background:#fff;border-radius:12px;border:1px solid var(--border);">No open items with due dates found.</div></div>';setMain(h);return;}
   h+='<div style="overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff;">';
@@ -1569,7 +1575,7 @@ function renderCapacity(items){
 // ── analytics ─────────────────────────────────────────────────────────────
 async function vAnalytics(){
   showSkeleton();
-  function pill(label,val,active){return '<button onclick="'+val+'" style="padding:5px 14px;border-radius:20px;border:1px solid '+(active?'var(--navy)':'var(--border)')+';background:'+(active?'var(--navy)':'#fff')+';color:'+(active?'#fff':'#374151')+';font-weight:600;font-size:12px;cursor:pointer;">'+label+'</button>';}
+  function pill(label,val,active){return '<button onclick="'+val+'" style="padding:5px 14px;border-radius:4px;border:1px solid '+(active?'var(--navy)':'var(--border)')+';background:'+(active?'var(--navy)':'#fff')+';color:'+(active?'#fff':'#374151')+';font-weight:600;font-size:12px;cursor:pointer;">'+label+'</button>';}
   var h='<div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
     +'<span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">Analytics & History</span>'
     +'<div style="display:flex;gap:4px;">'
@@ -1683,7 +1689,7 @@ async function vWorkload(){
       +'<div class="wl-stats"><div class="wl-stat"><div class="wl-val">'+total+'</div><div class="wl-lbl">Total Items</div></div><div class="wl-stat"><div class="wl-val" style="color:#16a34a;">'+done+'</div><div class="wl-lbl">Signed Off</div></div><div class="wl-stat"><div class="wl-val" style="color:'+(ob?'#dc2626':'var(--navy)')+';">'+H(actHrs)+'h</div><div class="wl-lbl">Actual / '+H(budHrs)+'h bud</div></div><div class="wl-stat"><div class="wl-val">'+prog+'%</div><div class="wl-lbl">Progress</div></div></div>'
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'+bar(prog,10)+'<span style="font-size:12px;font-weight:700;color:var(--navy);min-width:36px;">'+prog+'%</span></div>'
       +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">';
-    STEPS.forEach(function(s){if(!stepCounts[s])return;var c=SC[s];h+='<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+c.b+';color:'+c.c+';">'+s+': '+stepCounts[s]+'</span>';});
+    STEPS.forEach(function(s){if(!stepCounts[s])return;var c=SC[s];h+='<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;background:'+c.b+';color:'+c.c+';">'+s+': '+stepCounts[s]+'</span>';});
     h+='</div><details><summary style="font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;padding:6px 0;">View all '+total+' items</summary><div style="overflow-x:auto;margin-top:8px;"><table class="dtbl"><thead><tr><th>Audit</th><th>Section</th><th>Subsection</th><th>Step</th><th>Due</th><th>Hrs</th></tr></thead><tbody>';
     items.forEach(function(s){var c=SC[s.step]||SC['Not Started'];var stOv=s.step!=='Signed Off'&&s.due_date&&days(s.due_date)<0?'background:#fff5f5':'';h+='<tr style="'+stOv+'"><td style="font-size:12px;">'+esc(s.sections&&s.sections.audits?s.sections.audits.name:'—')+'</td><td style="font-size:12px;">'+esc(s.sections?s.sections.name:'—')+'</td><td style="font-size:12px;">'+esc(s.name)+'</td><td><span class="sbadge" style="color:'+c.c+';background:'+c.b+'">'+s.step+'</span></td><td style="font-size:12px;">'+dueB(s.due_date)+'</td><td style="font-size:12px;font-weight:600;">'+H(s.actual_hours)+'h</td></tr>';});
     h+='</tbody></table></div></details></div>';
@@ -1701,13 +1707,13 @@ async function vUsers(){
   (usQ.data||[]).forEach(function(u){
     h+='<tr><td><input style="font-size:13px;font-weight:600;border:1px solid var(--border);padding:3px 6px;border-radius:4px;background:#fff;width:140px;" value="'+esc(u.full_name||'')+'" onchange="updName(\''+u.id+'\',this.value)"/></td><td style="font-size:12px;">'+u.email+'</td>'
       +'<td><span class="badge rbadge r'+u.role.charAt(0)+'">'+u.role+'</span></td>'
-      +'<td><span class="badge" style="color:'+(u.department==='audit'?'#7c3aed':u.department==='accounting'?'#0891b2':'#16a34a')+';background:'+(u.department==='audit'?'#f5f3ff':u.department==='accounting'?'#ecfeff':'#f0fdf4')+'">'+(u.department||'both')+'</span></td>'
+      +'<td><span class="badge" style="color:'+(u.department==='audit'?'#1A2B3C':u.department==='accounting'?'#5b4636':'#16a34a')+';background:'+(u.department==='audit'?'#E8EEF4':u.department==='accounting'?'#f3ede6':'#f0fdf4')+'">'+(u.department||'both')+'</span></td>'
       +'<td><span style="color:'+(u.active?'#16a34a':'#dc2626')+';font-weight:600;">'+(u.active?'✅':'❌')+'</span></td>'
       +'<td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">'
       +'<select class="inp" style="width:90px;font-size:11px;padding:4px 6px;background:#fff;" onchange="updRole(\''+u.id+'\',this.value)">'+['staff','manager','director'].map(function(r){return '<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';}).join('')+'</select>'
       +'<select class="inp" style="width:100px;font-size:11px;padding:4px 6px;background:#fff;" onchange="updDept(\''+u.id+'\',this.value)">'+['audit','accounting','both'].map(function(d){return '<option value="'+d+'"'+((u.department||'both')===d?' selected':'')+'>'+d+'</option>';}).join('')+'</select>'
       +'<button onclick="togActive(\''+u.id+'\','+u.active+')" class="'+(u.active?'dbtn':'gbtn')+'" style="font-size:11px;padding:4px 8px;white-space:nowrap;">'+(u.active?'Deactivate':'Activate')+'</button>'
-      +(u.id!==CU.id?'<button onclick="resetPwd(\''+u.email+'\')" style="padding:4px 8px;background:#eff6ff;color:#1A2B3C;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;cursor:pointer;">Reset</button>':'')
+      +(u.id!==CU.id?'<button onclick="resetPwd(\''+u.email+'\')" style="padding:4px 8px;background:var(--navytint);color:var(--navy);border:1px solid var(--navytintb);border-radius:6px;font-size:11px;cursor:pointer;">Reset</button>':'')
       +'</td></tr>';
   });
   h+='</tbody></table></div>';setMain(h);
@@ -1773,7 +1779,7 @@ function printClientRpt(){
     var itemHtml=items.map(function(r){
       var isWait=r.step==='Client Requested';var isDone=r.step==='Signed Off';var isRec=r.step==='Client Received';
       var lbl=isDone?'Complete':isWait?'Awaiting Documents from Client':isRec?'Documents Received — Processing':'In Progress';
-      var bg=isDone?'#f0fdf4':isWait?'#fff7ed':'#eff6ff';var col=isDone?'#16a34a':isWait?'#c2410c':'#1d4ed8';
+      var bg=isDone?'#f0fdf4':isWait?'#fff7ed':'var(--navytint)';var col=isDone?'#16a34a':isWait?'#c2410c':'var(--navy)';
       return '<tr style="border-bottom:1px solid #e5e7eb;">'
         +'<td style="padding:8px 12px;font-size:13px;">'+(isWait?'📬 ':isDone?'✅ ':'🔄 ')+esc(r.sub)+'</td>'
         +'<td style="padding:8px 12px;font-size:12px;color:#6b7280;white-space:nowrap;">'+(r.due||'—')+'</td>'
@@ -1819,6 +1825,7 @@ function printClientRpt(){
 }
 
 // ── actions ───────────────────────────────────────────────────────────────
+function toggleDashDetails(){dashShowDetails=!dashShowDetails;vDash();}
 function togA(id){EA=EA===id?null:id;ES=null;vDash();}
 function togS(id){ES=ES===id?null:id;vDash();}
 function setFStep(s){fStep=s;vAdd();}
@@ -1877,7 +1884,7 @@ async function reqAdv(sid,name,next,curStep,bud,act){
   var lq=await sb.from('step_logs').select('hours').eq('subsection_id',sid).eq('step',curStep);
   var already=(lq.data||[]).reduce(function(a,l){return a+(parseFloat(l.hours)||0);},0);
   var txt='Moving <b>'+name+'</b> to <b>'+next+'</b>.';
-  if(already>0)txt+='<br/><span style="font-size:12px;color:#7c3aed;font-weight:600;">📌 Already logged at this step: '+H(already)+'h — only add time since your last entry.</span>';
+  if(already>0)txt+='<br/><span style="font-size:12px;color:#1A2B3C;font-weight:600;">📌 Already logged at this step: '+H(already)+'h — only add time since your last entry.</span>';
   txt+=(parseFloat(bud)>0?'<br/><span style="font-size:11px;color:#6b7280;">Budget remaining: '+H(rem)+'h</span>':'');
   document.getElementById('hrsTxt').innerHTML=txt;
 }
@@ -2084,7 +2091,7 @@ async function updSubA(id,v){
   if(oldEmail&&cas.indexOf(oldEmail)<0)cas.push(oldEmail);
   await sb.from('subsections').update({assignee_email:newEmail,co_assignees:cas}).eq('id',id);
   var cont=document.getElementById('coa_'+id);
-  if(cont)cont.innerHTML='<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'+AU.filter(function(u){return u.email!==newEmail;}).map(function(u){var ck=cas.indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'#eff6ff':'#f1f5f9')+';border:1px solid '+(ck?'#bfdbfe':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+id+'\')"/>'+u.full_name+'</label>';}).join('');
+  if(cont)cont.innerHTML='<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'+AU.filter(function(u){return u.email!==newEmail;}).map(function(u){var ck=cas.indexOf(u.email)>=0;return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:12px;cursor:pointer;background:'+(ck?'var(--navytint)':'#f1f5f9')+';border:1px solid '+(ck?'var(--navytintb)':'var(--border)')+'"><input type="checkbox" value="'+u.email+'" '+(ck?'checked':'')+' onchange="saveCoAssignees(\''+id+'\')"/>'+u.full_name+'</label>';}).join('');
   toast('Assignee updated.');
 }
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
@@ -2176,8 +2183,8 @@ async function vTaxTB(){
     +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">';
     imports.forEach(function(imp){
       var aud=imp.audits||{};var pct=imp.lines_total>0?Math.round(imp.lines_mapped/imp.lines_total*100):0;
-      var statusCol=imp.status==='pushed'?'#166534':imp.status==='mapped'?'#92400e':'#1e40af';
-      var statusBg=imp.status==='pushed'?'#f0fdf4':imp.status==='mapped'?'#fffbeb':'#eff6ff';
+      var statusCol=imp.status==='pushed'?'#166534':imp.status==='mapped'?'#92400e':'var(--navy)';
+      var statusBg=imp.status==='pushed'?'#f0fdf4':imp.status==='mapped'?'#fffbeb':'var(--navytint)';
       h+='<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">'
         +'<div style="flex:1;min-width:180px;">'
         +'<div style="font-weight:600;font-size:13px;">'+esc(aud.name)+(aud.client?' — '+esc(aud.client):'')+'</div>'
