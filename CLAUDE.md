@@ -78,7 +78,9 @@ Audit logging: `security_audit_log`
 
 **Migration strategy:** Always additive — new nullable columns or new tables only. Never drop or rename columns without explicit sign-off.
 
-**Pending migration:** `20260703000000_security_fixes.sql` (step_logs/timesheet identity + assignment checks, users identity-guard trigger, auth-trigger collision handling, missing DELETE policies, subsections column guard for assignees, greatsoft_time_pushes manager policies) — written 2026-07-03, not yet applied to production. All earlier migrations applied as of 2026-06-21.
+**Pending migration:** `20260706000000_subsection_hidden_flag.sql` (adds `subsections.hidden_from_worklist`, additive column, no RLS changes) — written 2026-07-06, not yet applied to production.
+
+`20260703000000_security_fixes.sql` (step_logs/timesheet identity + assignment checks, users identity-guard trigger, auth-trigger collision handling, missing DELETE policies, subsections column guard for assignees, greatsoft_time_pushes manager policies) — applied 2026-07-03. All migrations up to and including this one are applied as of 2026-07-03.
 
 To apply future migrations: Supabase Dashboard → SQL Editor → paste and run each file in order.
 

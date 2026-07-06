@@ -204,6 +204,14 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
   </div>
 </div>
 
+<div id="logGapModal" class="mo" style="display:none;">
+  <div class="md" style="width:420px;max-width:95vw;">
+    <div class="mh"><h3>⏰ Time Logging Reminder</h3><button class="mx" onclick="closeM('logGapModal')">✕</button></div>
+    <div id="logGapBody" class="mb"></div>
+    <div class="mf"><button class="gbtn" onclick="closeM('logGapModal')">Dismiss</button><button class="pbtn" onclick="closeM('logGapModal');goView('update')">Log Time Now</button></div>
+  </div>
+</div>
+
 <div id="tsModal" class="mo" style="display:none;">
   <div class="md" style="width:500px;max-width:95vw;">
     <div class="mh"><h3>📅 Weekly Time Reconciliation</h3><button class="mx" onclick="closeM('tsModal')">✕</button></div>
@@ -390,7 +398,8 @@ var csvSecs=null,usingCsv=false;
 var rollAID=null;
 var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null,ganttAuditId=null;
-var mwSubs=null,mwSm={},mwAm={},myWorkShowDone=false,myWorkSearch='';
+var mwSubs=null,mwSm={},mwAm={},myWorkShowDone=false,myWorkShowNoHours=false,myWorkSearch='';
+var logHistDays=14;
 var _rptData=null,analyticsView='audit',analyticsPeriod='all';
 function showSkeleton(){setMain('<div style="display:flex;flex-direction:column;gap:14px;padding:4px;">'+Array(5).fill('<div class="sk" style="height:72px;"></div>').join('')+'</div>');}
 
@@ -448,6 +457,7 @@ async function initApp(user){
   buildNav();
   setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
   await checkAssignmentChanges(CU.email);
+  await checkOwnLoggingGap(CU.email);
   initTimer();
   goView('dashboard');
   }finally{appInitBusy=false;}
@@ -483,6 +493,21 @@ async function checkAssignmentChanges(email){
   document.getElementById('asgChgBody').innerHTML=h;
   document.getElementById('asgChgModal').style.display='flex';
 }
+function weekdaysBetweenExclusive(from,to){var n=0;var d=new Date(from);while(d<to){d.setDate(d.getDate()+1);var dow=d.getDay();if(dow!==0&&dow!==6)n++;}return n;}
+async function checkOwnLoggingGap(email){
+  var mySubQ=await sb.from('subsections').select('id',{count:'exact',head:true}).or('assignee_email.eq.'+email+',co_assignees.cs.{"'+email+'"}').neq('step','Signed Off');
+  if(!mySubQ.count)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var lookback=new Date(today);lookback.setDate(lookback.getDate()-30);
+  var lQ=await sb.from('step_logs').select('logged_at,hours').eq('logged_by_email',email).gt('hours',0).gte('logged_at',lookback.toISOString()).order('logged_at',{ascending:false}).limit(1);
+  var lastLog=(lQ.data&&lQ.data[0])?new Date(lQ.data[0].logged_at):null;
+  if(lastLog)lastLog.setHours(0,0,0,0);
+  var gap=lastLog?weekdaysBetweenExclusive(lastLog,today):weekdaysBetweenExclusive(lookback,today);
+  if(gap<2)return;
+  var txt=lastLog?('It\'s been <b>'+gap+' working days</b> since you last logged time (last: '+lastLog.toLocaleDateString('en-ZA',{day:'numeric',month:'short'})+').'):'You haven\'t logged any time in the last 30 days.';
+  document.getElementById('logGapBody').innerHTML='<p style="font-size:13px;color:#374151;">'+txt+'</p><p style="font-size:12px;color:#9ca3af;margin-top:8px;">Logging daily keeps your progress and budgets accurate — a weekly catch-up works too, just don\'t let it slip further.</p>';
+  openM('logGapModal');
+}
 sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT'){appInitBusy=false;showLogin();}});
 
 // ── nav ───────────────────────────────────────────────────────────────────
@@ -491,7 +516,7 @@ function buildNav(){
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['calendar','📆 Calendar'],['gantt','📈 Timeline'],['capacity','⚖️ Capacity'],['workload','👥 Workload']);
-  if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics']);
+  if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics'],['logHistory','🗓️ Log History']);
   if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
@@ -514,6 +539,7 @@ async function renderView(){
   else if(CV==='gantt')await vGantt();
   else if(CV==='capacity')await vCapacity();
   else if(CV==='workload')await vWorkload();
+  else if(CV==='logHistory')await vLogHistory();
   else if(CV==='analytics')await vAnalytics();
   else if(CV==='taxTB')await vTaxTB();
   else if(CV==='users')await vUsers();
@@ -810,7 +836,7 @@ async function vEdit(){
       +'<div style="background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
       +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;color:#fff;font-size:14px;flex:1;">'+esc(sec2.name)+'</span>'
       +'<label style="font-size:11px;color:rgba(255,255,255,0.6);">Assignee</label>'
-      +'<select class="inp" style="width:150px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecA(\''+sec2.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sec2.assignee_email?' selected':'')+'>'+esc(u.full_name)+'</option>';}).join('')+'</select>'
+      +'<select class="inp" style="width:150px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecA(\''+sec2.id+'\',this.value)"><option value="" style="color:#000;">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'" style="color:#000;"'+(u.email===sec2.assignee_email?' selected':'')+'>'+esc(u.full_name)+'</option>';}).join('')+'</select>'
       +'<label style="font-size:11px;color:rgba(255,255,255,0.6);">Due</label>'
       +'<input type="date" class="inp" value="'+(sec2.due_date||'')+'" style="width:130px;font-size:12px;padding:5px 8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);" onchange="updSecD(\''+sec2.id+'\',this.value)"/></div>'
       +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr 0.8fr 2fr auto;gap:8px;padding:6px 16px;background:#f1f5f9;border-bottom:1px solid var(--border);">'
@@ -820,12 +846,12 @@ async function vEdit(){
       var curGsId=gsMap[sub3.id]||'';
       h+='<div style="border-bottom:1px solid var(--border);background:#fff;">'
         +'<div style="display:grid;grid-template-columns:2fr 2fr 1fr 0.8fr 2fr auto;gap:8px;padding:8px 16px;align-items:center;">'
-        +'<span style="font-size:13px;font-weight:500;">'+esc(sub3.name)+(un3?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+'</span>'
+        +'<span style="font-size:13px;font-weight:500;">'+esc(sub3.name)+(un3?' <span class="badge" style="color:#d97706;background:#fffbeb;font-size:10px;">⚠️</span>':'')+(sub3.hidden_from_worklist?' <span class="badge" style="color:#6b7280;background:#f3f4f6;font-size:10px;">🚫 hidden by assignee</span>':'')+'</span>'
         +'<select class="inp" style="font-size:12px;padding:5px 8px;background:#fff;" onchange="updSubA(\''+sub3.id+'\',this.value)"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sub3.assignee_email?' selected':'')+'>'+esc(u.full_name)+'</option>';}).join('')+'</select>'
         +'<input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub3.due_date||'')+'" onchange="updSubD(\''+sub3.id+'\',this.value)"/>'
         +'<input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub3.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub3.id+'\',this.value)"/>'
         +'<select class="inp" style="font-size:11px;padding:4px 6px;background:'+(curGsId?'#f0fdf4':'#fff')+';border-color:'+(curGsId?'#86efac':'var(--border)')+';" onchange="updSubGS(\''+sub3.id+'\',this.value)">'+gsOptsHtml.replace('value="'+curGsId+'"','value="'+curGsId+'" selected')+'</select>'
-        +'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div>'
+        +'<div style="display:flex;gap:4px;">'+(sub3.hidden_from_worklist?'<button onclick="unhideSub(\''+sub3.id+'\')" class="gbtn" style="padding:5px 7px;font-size:11px;" title="Restore to assignee\'s work list">↺</button>':'')+'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div></div>'
         +'<div style="padding:0 16px 6px;"><input class="inp" style="width:100%;box-sizing:border-box;font-size:11px;padding:4px 8px;background:#fffef5;" placeholder="Manager note..." value="'+esc(sub3.comment)+'" onblur="updSubCmt(\''+sub3.id+'\',this.value)"/></div>'
         +'<div id="coa_'+sub3.id+'" style="padding:2px 16px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;">'
         +'<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'
@@ -842,8 +868,23 @@ async function vEdit(){
       +'<button onclick="addSubE(\''+sec2.id+'\',\''+sec2.assignee_email+'\',\''+sec2.due_date+'\')" style="padding:6px 12px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">+ Add</button>'
       +'</div></div>';
   }
+  h+='<div style="border:1.5px dashed var(--border);border-radius:10px;padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+    +'<input id="newSecName" class="inp" style="flex:2;min-width:160px;font-size:13px;" placeholder="New section name..." onkeydown="if(event.key===\'Enter\')addSecE(\''+aud.id+'\')"/>'
+    +'<select id="newSecA" class="inp" style="flex:1;min-width:140px;font-size:13px;background:#fff;"><option value="">Unassigned</option>'+AU.map(function(u){return '<option value="'+u.email+'">'+esc(u.full_name)+'</option>';}).join('')+'</select>'
+    +'<input type="date" id="newSecDue" class="inp" style="flex:1;min-width:130px;font-size:13px;"/>'
+    +'<button onclick="addSecE(\''+aud.id+'\')" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">+ Add Section</button>'
+    +'</div>';
   h+='</div>';
   setMain(h);
+}
+async function addSecE(auditId){
+  var nameEl=document.getElementById('newSecName');var name=nameEl.value.trim();
+  if(!name){toast('Enter a section name.');return;}
+  var a=document.getElementById('newSecA').value;
+  var d=document.getElementById('newSecDue').value;
+  var cntQ=await sb.from('sections').select('id',{count:'exact',head:true}).eq('audit_id',auditId);
+  await sb.from('sections').insert({audit_id:auditId,name:name,assignee_email:a||null,due_date:d||null,sort_order:cntQ.count||0});
+  toast('✅ Section added.');vEdit();
 }
 
 // ── update view ───────────────────────────────────────────────────────────
@@ -862,6 +903,12 @@ async function vUpdate(){
 }
 function filterMyWork(v){myWorkSearch=v.toLowerCase();renderMyWork();}
 function toggleMyWorkDone(){myWorkShowDone=!myWorkShowDone;renderMyWork();}
+function toggleMyWorkNoHours(){myWorkShowNoHours=!myWorkShowNoHours;renderMyWork();}
+async function hideSub(id){
+  if(!confirm('Remove this from your work list? It has no hours allocated — a manager can restore it later if needed.'))return;
+  await sb.from('subsections').update({hidden_from_worklist:true}).eq('id',id);
+  toast('Removed from your list.');vUpdate();
+}
 function renderMyWork(){
   var me=CU.email;
   var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
@@ -872,17 +919,20 @@ function renderMyWork(){
     +'</div></div>';
   if(!mwSubs||!mwSubs.length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
   var sq=myWorkSearch;
-  var active=[],done=[];
+  var active=[],done=[],noHours=[];
   mwSubs.forEach(function(sub){
     var sec=mwSm[sub.section_id];if(!sec)return;
     var a=mwAm[sec.audit_id];if(!a)return;
     if(sq&&(sub.name+' '+sec.name+' '+a.name).toLowerCase().indexOf(sq)<0)return;
-    (sub.step==='Signed Off'?done:active).push({sub:sub,sec:sec,a:a});
+    if(sub.hidden_from_worklist)return;
+    if(sub.step==='Signed Off'){done.push({sub:sub,sec:sec,a:a});return;}
+    if(!parseFloat(sub.budget_hours||0)&&!parseFloat(sub.actual_hours||0)){noHours.push({sub:sub,sec:sec,a:a});return;}
+    active.push({sub:sub,sec:sec,a:a});
   });
   function sortItems(arr){arr.sort(function(x,y){var sa=x.a.name.localeCompare(y.a.name);if(sa!==0)return sa;var ss=x.sec.name.localeCompare(y.sec.name);return ss!==0?ss:x.sub.name.localeCompare(y.sub.name);});}
-  sortItems(active);sortItems(done);
+  sortItems(active);sortItems(done);sortItems(noHours);
   function groupByAudit(items){var g={},o=[];items.forEach(function(item){var aid=item.a.id;if(!g[aid]){g[aid]={a:item.a,items:[]};o.push(aid);}g[aid].items.push(item);});return o.map(function(aid){return g[aid];});}
-  function renderCard(item,aud){
+  function renderCard(item,aud,showRemove){
     var sub4=item.sub,sec4=item.sec;
     var c4=SC[sub4.step]||SC['Not Started'];var si4=STEPS.indexOf(sub4.step);
     var isSignedOff=sub4.step==='Signed Off';var isReview=sub4.step==='Review';
@@ -912,23 +962,29 @@ function renderMyWork(){
       +(CR==='manager'||IS_SUPER?'<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px dashed #f1f5f9;"><span style="font-size:10px;color:#9ca3af;font-weight:600;margin-right:3px;">Jump to:</span>'+STEPS.map(function(s){var isCur=s===sub4.step;var c=SC[s];return '<button onclick="'+(isCur?'void(0)':'jumpStep(\''+sub4.id+'\',\''+s+'\',\''+sub4.step+'\')')+'" style="font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid '+(isCur?c.c:'#e5e7eb')+';background:'+(isCur?c.b:'#f9fafb')+';color:'+(isCur?c.c:'#6b7280')+';cursor:'+(isCur?'default':'pointer')+';font-weight:'+(isCur?'700':'500')+'"'+(isCur?' disabled':'')+'>'+s+'</button>';}).join('')+'</div>':'')
       +'<button onclick="showTeams(\''+aud.name.replace(/'/g,'')+'\',\''+sec4.name.replace(/'/g,'')+'\',\''+sub4.name.replace(/'/g,'')+'\',\''+sub4.step+'\',\''+(sub4.due_date||'')+'\',\''+H(sub4.actual_hours)+'\')" style="margin-top:10px;width:100%;padding:8px;background:#f0f0ff;color:#5b5ea6;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">💬 Copy Teams Message</button>'
       +'<textarea style="margin-top:8px;width:100%;box-sizing:border-box;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;background:#fffef5;resize:vertical;font-family:inherit;color:#374151;" rows="2" placeholder="Add a note (visible to your manager)..." onblur="updSubCmt(\''+sub4.id+'\',this.value)">'+esc(sub4.comment)+'</textarea>'
+      +(showRemove?'<button onclick="hideSub(\''+sub4.id+'\')" class="dbtn" style="width:100%;margin-top:8px;">🚫 Not needed — remove from my list</button>':'')
       +'</div>';
   }
-  function renderGroups(groups,opacity){
+  function renderGroups(groups,opacity,showRemove){
     var out='';
     groups.forEach(function(g){
       out+='<div style="margin-bottom:20px;'+(opacity?'opacity:0.65;':'')+'"><div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">'+audIcon(g.a.type||'audit')+' '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
-      g.items.forEach(function(item){out+=renderCard(item,g.a);});
+      g.items.forEach(function(item){out+=renderCard(item,g.a,showRemove);});
       out+='</div></div>';
     });
     return out;
   }
-  if(!active.length&&!done.length){h+='<div style="text-align:center;padding:40px;color:#9ca3af;font-size:14px;">No items match your search.</div>';}
+  if(!active.length&&!done.length&&!noHours.length){h+='<div style="text-align:center;padding:40px;color:#9ca3af;font-size:14px;">No items match your search.</div>';}
   else{
-    h+=renderGroups(groupByAudit(active),false);
+    h+=renderGroups(groupByAudit(active),false,false);
+    if(!active.length&&!noHours.length&&done.length)h+='<div style="text-align:center;padding:20px;color:#9ca3af;font-size:13px;">No open items — nice work.</div>';
+    if(noHours.length){
+      h+='<div style="margin:4px 0 16px;"><button onclick="toggleMyWorkNoHours()" style="width:100%;padding:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">'+(myWorkShowNoHours?'▲ Hide ':'▼ Show ')+noHours.length+' item'+(noHours.length!==1?'s':'')+' with 0 hours allocated</button></div>';
+      if(myWorkShowNoHours)h+=renderGroups(groupByAudit(noHours),true,true);
+    }
     if(done.length){
       h+='<div style="margin:4px 0 16px;"><button onclick="toggleMyWorkDone()" style="width:100%;padding:10px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">'+(myWorkShowDone?'▲ Hide ':'▼ Show ')+done.length+' completed item'+(done.length!==1?'s':'')+'</button></div>';
-      if(myWorkShowDone)h+=renderGroups(groupByAudit(done),true);
+      if(myWorkShowDone)h+=renderGroups(groupByAudit(done),true,false);
     }
   }
   setMain(h);
@@ -1248,6 +1304,68 @@ function showCalDayDom(){
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function calNav(dir){if(dir===0){calYear=new Date().getFullYear();calMonth=new Date().getMonth();}else{calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}else if(calMonth>11){calMonth=0;calYear++;}}vCalendar();}
+
+// ── time logging history ─────────────────────────────────────────────────
+function setLogHistDays(n){logHistDays=n;vLogHistory();}
+function ymd(d){return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+async function vLogHistory(){
+  if(CR!=='manager'&&CR!=='director'){setMain('<div class="al al-e">Access denied.</div>');return;}
+  showSkeleton();
+  var today=new Date();today.setHours(0,0,0,0);
+  var start=new Date(today);start.setDate(start.getDate()-(logHistDays-1));
+  var days2=[];
+  for(var d=new Date(start);d<=today;d.setDate(d.getDate()+1)){
+    var dow=d.getDay();if(dow===0||dow===6)continue;
+    days2.push(new Date(d));
+  }
+  var slQ=await sb.from('step_logs').select('logged_by_email,hours,logged_at').gte('logged_at',start.toISOString());
+  if(slQ.error){setMain('<div class="al al-e">Error loading history: '+slQ.error.message+'</div>');return;}
+  var byEmailDay={};
+  (slQ.data||[]).forEach(function(l){
+    if(!l.logged_by_email)return;
+    var e=l.logged_by_email.toLowerCase();var dt=ymd(new Date(l.logged_at));
+    if(!byEmailDay[e])byEmailDay[e]={};
+    byEmailDay[e][dt]=(byEmailDay[e][dt]||0)+(parseFloat(l.hours)||0);
+  });
+  var tsQ=await sb.from('timesheet_entries').select('submitted_by_email,week_ending').gte('week_ending',ymd(start));
+  var tsWeeks={};
+  (tsQ.data||[]).forEach(function(t){
+    if(!t.submitted_by_email)return;var e=t.submitted_by_email.toLowerCase();
+    if(!tsWeeks[e])tsWeeks[e]=new Set();
+    tsWeeks[e].add(t.week_ending);
+  });
+  var staff=AU.slice().sort(function(a,b){return (a.full_name||a.email).localeCompare(b.full_name||b.email);});
+  function lastLoggedDays(email){
+    var m=byEmailDay[email.toLowerCase()]||{};
+    var dates=Object.keys(m).filter(function(k){return m[k]>0;}).sort();
+    if(!dates.length)return null;
+    return days(dates[dates.length-1])*-1;
+  }
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">'
+    +'<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">🗓️ Time Logging History</span>'
+    +'<div style="display:flex;gap:6px;">'+[7,14,30].map(function(n){return '<button onclick="setLogHistDays('+n+')" class="'+(logHistDays===n?'pbtn':'gbtn')+'" style="padding:6px 12px;font-size:12px;">'+n+'d</button>';}).join('')+'</div>'
+    +'</div>';
+  h+='<p style="font-size:12px;color:#6b7280;margin:0 0 14px;">Hours logged per weekday (via step updates). A 📅 marks a week a timesheet was submitted for — occasional weekly logging is fine, daily is the goal.</p>';
+  h+='<div style="overflow-x:auto;"><table class="dtbl" style="border-collapse:separate;border-spacing:2px;"><thead><tr><th style="text-align:left;position:sticky;left:0;background:#fff;">Staff</th>'
+    +days2.map(function(dt){var wd=dt.toLocaleDateString('en-ZA',{weekday:'short'});var dn=dt.getDate();var isToday=dt.getTime()===today.getTime();return '<th style="text-align:center;font-size:10px;font-weight:700;color:'+(isToday?'var(--navy)':'#9ca3af')+';min-width:34px;">'+wd+'<br/>'+dn+'</th>';}).join('')
+    +'<th style="text-align:center;">Last logged</th></tr></thead><tbody>';
+  staff.forEach(function(u){
+    var e=u.email.toLowerCase();var m=byEmailDay[e]||{};var wks=tsWeeks[e]||new Set();
+    var ll=lastLoggedDays(e);
+    var llTxt=ll===null?'<span style="color:#9ca3af;">No logs</span>':ll===0?'<span style="color:#16a34a;font-weight:700;">Today</span>':ll===1?'<span style="color:#16a34a;">Yesterday</span>':'<span style="color:'+(ll>=4?'#dc2626':'#d97706')+';font-weight:700;">'+ll+'d ago</span>';
+    h+='<tr><td style="font-weight:600;font-size:12px;white-space:nowrap;position:sticky;left:0;background:#fff;">'+esc(u.full_name||u.email)+'</td>';
+    days2.forEach(function(dt){
+      var dStr=ymd(dt);var hrs=m[dStr]||0;
+      var tsBadge=dt.getDay()===5&&wks.has(dt.toISOString().slice(0,10))?' 📅':'';
+      var bg=hrs>0?'#dcfce7':'#f3f4f6';var col=hrs>0?'#15803d':'#9ca3af';
+      h+='<td style="text-align:center;background:'+bg+';color:'+col+';font-size:11px;font-weight:600;border-radius:4px;padding:5px 2px;">'+(hrs>0?H(hrs):'—')+tsBadge+'</td>';
+    });
+    h+='<td style="text-align:center;font-size:12px;white-space:nowrap;">'+llTxt+'</td></tr>';
+  });
+  if(!staff.length)h+='<tr><td colspan="'+(days2.length+2)+'" style="text-align:center;color:#9ca3af;padding:20px;">No active users found.</td></tr>';
+  h+='</tbody></table></div>';
+  setMain(h);
+}
 
 // ── gantt ──────────────────────────────────────────────────────────────────
 async function vGantt(){
@@ -1793,7 +1911,7 @@ async function doReassign(){var v=document.getElementById('rsnSel').value;if(!v)
 function openAsn(aid,sid){pendAsn={aid:aid,sid:sid};document.getElementById('asnName').value='';document.getElementById('asnDue').value='';document.getElementById('asnBud').value='';document.getElementById('asnAss').innerHTML='<option value="">Inherit</option>'+staffOpts();openM('asnModal');}
 async function confirmAsn(){var n=document.getElementById('asnName').value.trim();if(!n)return;var a=document.getElementById('asnAss').value;var d=document.getElementById('asnDue').value;var b=parseFloat(document.getElementById('asnBud').value)||0;var sr=await sb.from('sections').select('assignee_email,due_date').eq('id',pendAsn.sid).single();await sb.from('subsections').insert({section_id:pendAsn.sid,name:n,assignee_email:a||sr.data.assignee_email||null,due_date:d||sr.data.due_date||null,budget_hours:b});closeM('asnModal');renderView();}
 async function delSub(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);renderView();}
-async function updBud(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function updBud(id,v){var h2=parseFloat(v)||0;var upd={budget_hours:h2};if(h2>0)upd.hidden_from_worklist=false;await sb.from('subsections').update(upd).eq('id',id);toast('Budget updated.');}
 async function editNotes(id){
   var r=await sb.from('subsections').select('notes').eq('id',id).single();
   var cur=(r.data&&r.data.notes)||'';
@@ -1970,7 +2088,7 @@ async function updSubA(id,v){
   toast('Assignee updated.');
 }
 async function updSubD(id,v){await sb.from('subsections').update({due_date:v||null}).eq('id',id);toast('Due date updated.');}
-async function updSubB(id,v){await sb.from('subsections').update({budget_hours:parseFloat(v)||0}).eq('id',id);toast('Budget updated.');}
+async function updSubB(id,v){var h2=parseFloat(v)||0;var upd={budget_hours:h2};if(h2>0)upd.hidden_from_worklist=false;await sb.from('subsections').update(upd).eq('id',id);toast('Budget updated.');}
 async function updSubCmt(id,v){await sb.from('subsections').update({comment:v||null}).eq('id',id);toast('Note saved.');}
 async function updSubGS(id,v){var r;if(!v){r=await sb.from('gs_subsection_activity_map').delete().eq('subsection_id',id);}else{r=await sb.from('gs_subsection_activity_map').upsert({subsection_id:id,gs_activity_code_id:v},{onConflict:'subsection_id'});}if(r&&r.error){toast('⚠️ Could not save GS activity: migration not yet applied to Supabase.');}else{toast('GS activity saved.');}}
 
@@ -1998,6 +2116,7 @@ async function autoMatchGSForAudit(audId){
 }
 async function doAutoMatchGS(audId){var n=await autoMatchGSForAudit(audId);if(n>0){toast('✅ Auto-matched '+n+' subsection'+(n>1?'s':'')+'.');vEdit();}else toast('No new matches found.');}
 async function delSubE(id){if(!confirm('Remove this subsection?'))return;await sb.from('subsections').delete().eq('id',id);vEdit();}
+async function unhideSub(id){await sb.from('subsections').update({hidden_from_worklist:false}).eq('id',id);toast('Restored to work list.');vEdit();}
 async function addSubE(sid,inA,inD){var n=document.getElementById('ns_'+sid).value.trim();if(!n){alert('Enter a name.');return;}var a=document.getElementById('na_'+sid).value||inA||null;var d=document.getElementById('nd_'+sid).value||inD||null;var b=parseFloat(document.getElementById('nb_'+sid).value)||0;var cas=(inA&&inA!==a)?[inA]:[];await sb.from('subsections').insert({section_id:sid,name:n,assignee_email:a,due_date:d,budget_hours:b,step:'Not Started',sort_order:999,co_assignees:cas});toast('✅ Added.');vEdit();}
 function showTeams(an,sn,sub,step,due,hrs){document.getElementById('teamsTxt').value='📋 Update — HVNS & Company\nAudit: '+an+'\nSection: '+sn+' — '+sub+'\nStep: '+step+(due?'\nDue: '+due:'')+'\nHours: '+hrs+'h\n\nPlease update your progress in the Audit Tracker.';openM('teamsModal');}
 
