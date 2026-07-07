@@ -390,15 +390,20 @@ var STPLS=[
   {n:'Going Concern Review',s:['Cash Flow Forecast','Management Assessment'],d:false}
 ];
 
-var CU=null,CR=null,CV='dashboard',FR=1000,AU=[],CDept='both';
+var CU=null,CR=null,CV='dashboard',FR=1000,AU=[],AG=[],CDept='both';
 var SUPER_EMAIL='tyron@hvns.co.za',IS_SUPER=false,REAL_R=null;
 var EA=null,ES=null,editAID=null,pendAdv=null,pendRsn=null,pendAsn=null;
-var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit';
+var fStep=1,fSel={},fDet={},fExtra={},fName='',fClient='',fDue='',fType='audit',fGroup='';
+var EG=null;
 var csvSecs=null,usingCsv=false;
 var rollAID=null;
 var tbGsOpts='';
 var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calItems=[],calSelDate=null,ganttAuditId=null;
 var mwSubs=null,mwSm={},mwAm={},myWorkShowDone=false,myWorkShowNoHours=false,myWorkSearch='';
+var MW_COLLAPSE_KEY='hvns_mw_collapsed';
+function getMWCollapsed(){try{var v=localStorage.getItem(MW_COLLAPSE_KEY);return v?JSON.parse(v):{};}catch(e){return {};}}
+function setMWCollapsed(o){try{localStorage.setItem(MW_COLLAPSE_KEY,JSON.stringify(o));}catch(e){}}
+var mwCollapsed=getMWCollapsed();
 var logHistDays=14;
 var dashShowDetails=false;
 var _rptData=null,analyticsView='audit',analyticsPeriod='all';
@@ -414,6 +419,7 @@ function stFlag(due,step){if(step==='Signed Off'||!due)return '';var n=days(due)
 function bar(v,h){h=h||8;var w=Math.max(0,Math.min(100,parseFloat(v)||0));var c=w===100?'#16a34a':w>=50?'#1A2B3C':w>0?'#d97706':'#e5e7eb';return '<div class="bwrap" style="height:'+h+'px;flex:1;"><div class="binn" style="width:'+w+'%;background:'+c+';height:'+h+'px;"></div></div>';}
 function trail(si){var h='<div class="strail">';for(var i=0;i<STEPS.length;i++){var ok=i<=si;var c=SC[STEPS[i]];h+='<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div class="sdot" style="background:'+(ok?c.c:'#e5e7eb')+'">'+(ok?'✓':'')+'</div><span class="slb" style="color:'+(ok?c.c:'#9ca3af')+'">'+STEPS[i]+'</span></div>';if(i<STEPS.length-1)h+='<div class="sline" style="background:'+(i<si?'#1A2B3C':'#e5e7eb')+'"></div>';}return h+'</div>';}
 function staffOpts(sel){sel=sel||'';return AU.map(function(u){return '<option value="'+u.email+'"'+(u.email===sel?' selected':'')+'>'+u.full_name+' ('+u.email+')</option>';}).join('');}
+function groupOpts(sel){sel=sel||'';return '<option value="">— No group —</option>'+AG.map(function(g){return '<option value="'+g.id+'"'+(g.id===sel?' selected':'')+'>'+esc(g.name)+'</option>';}).join('');}
 function openM(id){document.getElementById(id).style.display='flex';}
 function closeM(id){document.getElementById(id).style.display='none';}
 function setMain(h){document.getElementById('main').innerHTML=h;}
@@ -455,6 +461,8 @@ async function initApp(user){
   if(st.data)st.data.forEach(function(r){if(r.key==='firm_rate')FR=parseFloat(r.value)||1000;});
   var us=await sb.from('users').select('*').eq('active',true);
   AU=us.data||[];
+  var gs=await sb.from('client_groups').select('*').order('name');
+  AG=gs.data||[];
   buildNav();
   setInterval(function(){document.getElementById('fTime').textContent=new Date().toLocaleString();},1000);
   await checkAssignmentChanges(CU.email);
@@ -517,7 +525,7 @@ function buildNav(){
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['calendar','📆 Calendar'],['gantt','📈 Timeline'],['capacity','⚖️ Capacity'],['workload','👥 Workload']);
-  if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics'],['logHistory','🗓️ Log History']);
+  if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics'],['logHistory','🗓️ Log History'],['groups','🏢 Groups']);
   if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
@@ -542,6 +550,7 @@ async function renderView(){
   else if(CV==='workload')await vWorkload();
   else if(CV==='logHistory')await vLogHistory();
   else if(CV==='analytics')await vAnalytics();
+  else if(CV==='groups')await vGroups();
   else if(CV==='taxTB')await vTaxTB();
   else if(CV==='users')await vUsers();
   else if(CV==='settings')await vSettings();
@@ -699,7 +708,7 @@ async function vDash(){
 }
 
 // ── add audit ─────────────────────────────────────────────────────────────
-function initForm(){fStep=1;fSel={};fDet={};fExtra={};fName='';fClient='';fDue='';fType='audit';csvSecs=null;usingCsv=false;STPLS.forEach(function(t){fSel[t.n]=t.d;fExtra[t.n]=[];fDet[t.n]={a:'',due:'',sb:'',subs:{}};t.s.forEach(function(s){fDet[t.n].subs[s]={a:'',due:'',b:''};});});}
+function initForm(){fStep=1;fSel={};fDet={};fExtra={};fName='';fClient='';fDue='';fType='audit';fGroup='';csvSecs=null;usingCsv=false;STPLS.forEach(function(t){fSel[t.n]=t.d;fExtra[t.n]=[];fDet[t.n]={a:'',due:'',sb:'',subs:{}};t.s.forEach(function(s){fDet[t.n].subs[s]={a:'',due:'',b:''};});});}
 
 function vAdd(){
   if(CR!=='manager'){setMain('<div class="al al-e">Access denied.</div>');return;}
@@ -713,6 +722,7 @@ function vAdd(){
       +'</div></div>'
       +'<div><label class="lbl">'+audLabel(fType)+' Name *</label><input id="faN" class="inp" value="'+fName+'" placeholder="e.g. ABC Ltd Year End 2025"/></div>'
       +'<div><label class="lbl">Client Name</label><input id="faCl" class="inp" value="'+fClient+'" placeholder="e.g. ABC Ltd"/></div>'
+      +'<div><label class="lbl">Group</label><select id="faGrp" class="inp" style="background:#fff;">'+groupOpts(fGroup)+'</select></div>'
       +'<div><label class="lbl">Overall Due Date *</label><input type="date" id="faDue" class="inp" value="'+fDue+'"/></div>'
       +'<div style="border-top:1px solid var(--border);padding-top:14px;"><div class="stitle">Or Import from CSV</div>'
       +'<p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Columns: Section, Subsection, Assignee Email, Budget Hours, Due Date — <b>Due Date must be in YYYY-MM-DD format</b> (e.g. 2025-03-31). Leave blank to inherit the audit due date.</p>'
@@ -821,9 +831,10 @@ async function vEdit(){
     +(unreg2.size>0?'<div class="al al-w" style="margin-bottom:16px;">⚠️ '+unreg2.size+' assignee'+(unreg2.size>1?'s':'')+' have no account: '+Array.from(unreg2).map(esc).join(', ')+'</div>':'')
     +'<div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border:1px solid var(--border);">'
     +'<div class="stitle">Details</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:12px;">'
     +'<div><label class="lbl">Name</label><input class="inp" id="eaN" value="'+esc(aud.name)+'"/></div>'
     +'<div><label class="lbl">Client</label><input class="inp" id="eaCl" value="'+esc(aud.client||'')+'"/></div>'
+    +'<div><label class="lbl">Group</label><select class="inp" id="eaGrp" style="background:#fff;">'+groupOpts(aud.group_id)+'</select></div>'
     +'<div><label class="lbl">Due Date</label><input type="date" class="inp" id="eaDue" value="'+(aud.due_date||'')+'"/></div>'
     +'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'
     +'<button onclick="saveAudDet(\''+aud.id+'\')" class="pbtn">Save Details</button>'
@@ -910,6 +921,13 @@ async function vUpdate(){
 function filterMyWork(v){myWorkSearch=v.toLowerCase();renderMyWork();}
 function toggleMyWorkDone(){myWorkShowDone=!myWorkShowDone;renderMyWork();}
 function toggleMyWorkNoHours(){myWorkShowNoHours=!myWorkShowNoHours;renderMyWork();}
+function toggleMWAudit(id){mwCollapsed[id]=!mwCollapsed[id];setMWCollapsed(mwCollapsed);renderMyWork();}
+function toggleMWAll(collapse){
+  var ids={};
+  (mwSubs||[]).forEach(function(sub){var sec=mwSm[sub.section_id];if(!sec)return;var a=mwAm[sec.audit_id];if(!a)return;ids[a.id]=true;});
+  Object.keys(ids).forEach(function(id){mwCollapsed[id]=collapse;});
+  setMWCollapsed(mwCollapsed);renderMyWork();
+}
 async function hideSub(id){
   if(!confirm('Remove this from your work list? It has no hours allocated — a manager can restore it later if needed.'))return;
   await sb.from('subsections').update({hidden_from_worklist:true}).eq('id',id);
@@ -921,6 +939,8 @@ function renderMyWork(){
     +'<div><span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">My Work Items</span><span style="font-size:12px;color:#9ca3af;margin-left:8px;">'+me+'</span></div>'
     +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
     +'<input id="mwSearch" type="text" placeholder="🔍 Search..." value="'+esc(myWorkSearch)+'" oninput="filterMyWork(this.value)" class="inp" style="width:160px;font-size:13px;padding:6px 10px;"/>'
+    +'<button onclick="toggleMWAll(true)" style="padding:8px 12px;background:#f8fafc;color:#6b7280;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">▲ Collapse all</button>'
+    +'<button onclick="toggleMWAll(false)" style="padding:8px 12px;background:#f8fafc;color:#6b7280;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">▼ Expand all</button>'
     +'<button onclick="openExportModal()" style="padding:8px 12px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">📥 Export Excel</button>'
     +'</div></div>';
   if(!mwSubs||!mwSubs.length){h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">📭</div><div style="font-weight:600;margin-top:8px;">No items assigned to you.</div></div>';setMain(h);return;}
@@ -974,9 +994,19 @@ function renderMyWork(){
   function renderGroups(groups,opacity,showRemove){
     var out='';
     groups.forEach(function(g){
-      out+='<div style="margin-bottom:20px;'+(opacity?'opacity:0.65;':'')+'"><div style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">'+audIcon(g.a.type||'audit')+' '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</div><div style="display:flex;flex-direction:column;gap:10px;">';
-      g.items.forEach(function(item){out+=renderCard(item,g.a,showRemove);});
-      out+='</div></div>';
+      var collapsed=!!mwCollapsed[g.a.id];
+      out+='<div style="margin-bottom:20px;'+(opacity?'opacity:0.65;':'')+'">'
+        +'<div onclick="toggleMWAudit(\''+g.a.id+'\')" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:15px;color:var(--navy);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--orange);">'
+        +'<span style="font-size:11px;color:#9ca3af;">'+(collapsed?'▸':'▾')+'</span>'
+        +'<span>'+audIcon(g.a.type||'audit')+' '+g.a.name+(g.a.client?' <span style="font-weight:400;font-size:13px;color:#9ca3af;">— '+g.a.client+'</span>':'')+'</span>'
+        +(collapsed?'<span style="margin-left:auto;font-weight:400;font-size:12px;color:#9ca3af;">'+g.items.length+' item'+(g.items.length!==1?'s':'')+'</span>':'')
+        +'</div>';
+      if(!collapsed){
+        out+='<div style="display:flex;flex-direction:column;gap:10px;">';
+        g.items.forEach(function(item){out+=renderCard(item,g.a,showRemove);});
+        out+='</div>';
+      }
+      out+='</div>';
     });
     return out;
   }
@@ -1510,14 +1540,50 @@ function renderCapacity(items){
   var minMon=new Date(todayMon);var maxMon=new Date(todayMon);maxMon.setDate(maxMon.getDate()+28);
   items.forEach(function(s){if(!s.due_date)return;var mon=getMon(s.due_date);if(mon<minMon)minMon=new Date(mon);if(mon>maxMon)maxMon=new Date(mon);});
   var weeks=[];var w=new Date(minMon);while(w<=maxMon){weeks.push(new Date(w));w.setDate(w.getDate()+7);}
+  // Greedy earliest-deadline-first fill: spread each item's remaining hours from
+  // today toward its due date, capping each person's week at 40h. Only when a
+  // deadline genuinely can't be met within capacity (even using every week of
+  // lead time) does the leftover spill into the due week as flagged overflow —
+  // that's the only case a week should read as truly "Over".
   var byPerson={};
-  items.forEach(function(s){
-    if(!s.due_date||!s.assignee_email)return;
-    var email=s.assignee_email;var key=getMon(s.due_date).toISOString().slice(0,10);
-    if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{}};}
-    if(!byPerson[email].byWeek[key])byPerson[email].byWeek[key]={hours:0,items:[]};
-    byPerson[email].byWeek[key].hours+=s.remaining||0;
-    byPerson[email].byWeek[key].items.push(s);
+  function getPerson(email){
+    if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{},cap:{}};}
+    return byPerson[email];
+  }
+  function addToWeek(email,weekKey,hrs,item,overflow){
+    var p=getPerson(email);
+    if(!p.byWeek[weekKey])p.byWeek[weekKey]={hours:0,items:[]};
+    p.byWeek[weekKey].hours+=hrs;
+    p.byWeek[weekKey].items.push({s:item,allocated:hrs,overflow:!!overflow});
+  }
+  var byEmail={};
+  items.forEach(function(s){if(!s.due_date||!s.assignee_email)return;if(!byEmail[s.assignee_email])byEmail[s.assignee_email]=[];byEmail[s.assignee_email].push(s);});
+  Object.keys(byEmail).forEach(function(email){
+    var p=getPerson(email);
+    var list=byEmail[email].slice().sort(function(a,b){return new Date(a.due_date)-new Date(b.due_date);});
+    list.forEach(function(s){
+      var dueMon=getMon(s.due_date);
+      var remaining=s.remaining||0;
+      if(remaining<=0.004)return;
+      if(dueMon<todayMon){
+        addToWeek(email,dueMon.toISOString().slice(0,10),remaining,s,false);
+        return;
+      }
+      var wk=new Date(todayMon);
+      while(wk<=dueMon&&remaining>0.004){
+        var key=wk.toISOString().slice(0,10);
+        var used=p.cap[key]||0;
+        var free=Math.max(0,40-used);
+        var take=Math.min(remaining,free);
+        if(take>0.004){addToWeek(email,key,take,s,false);p.cap[key]=used+take;remaining-=take;}
+        wk.setDate(wk.getDate()+7);
+      }
+      if(remaining>0.004){
+        var dueKey=dueMon.toISOString().slice(0,10);
+        addToWeek(email,dueKey,remaining,s,true);
+        p.cap[dueKey]=(p.cap[dueKey]||0)+remaining;
+      }
+    });
   });
   var people=Object.values(byPerson).sort(function(a,b){return a.name.localeCompare(b.name);});
   function cv(hrs){if(!hrs)return {bg:'#f9fafb',c:'#d1d5db',l:''};var p=hrs/40;if(p<=0.5)return {bg:'#f0fdf4',c:'#16a34a',l:'OK'};if(p<=0.75)return {bg:'#fefce8',c:'#ca8a04',l:'Busy'};if(p<=1)return {bg:'#fff7ed',c:'#ea580c',l:'Tight'};return {bg:'#fef2f2',c:'#dc2626',l:'Over'};}
@@ -1525,7 +1591,7 @@ function renderCapacity(items){
   var h='<div style="max-width:100%;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
   h+='<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">⚖️ Weekly Capacity</span>';
-  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours (budget − logged) · 40h/week · primary assignee only · open items</span>';
+  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours spread from today toward each due date, capped at 40h/week · primary assignee only · open items · a week only turns red when a deadline can\'t be met within capacity</span>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
   [{bg:'#f0fdf4',c:'#16a34a',l:'≤20h — OK'},{bg:'#fefce8',c:'#ca8a04',l:'20–30h — Busy'},{bg:'#fff7ed',c:'#ea580c',l:'30–40h — Tight'},{bg:'#fef2f2',c:'#dc2626',l:'>40h — Over'}].forEach(function(s){h+='<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:'+s.bg+';color:'+s.c+';">'+s.l+'</span>';});
@@ -1558,7 +1624,7 @@ function renderCapacity(items){
         h+='<div style="font-size:9px;font-weight:600;color:'+c.c+';background:'+c.bg+';border:1px solid '+c.c+'30;padding:1px 6px;border-radius:8px;">'+c.l+'</div>';
         h+='<div style="font-size:10px;color:#9ca3af;">'+cnt+' item'+(cnt!==1?'s':'')+'</div>';
         h+='<div style="width:100%;margin-top:3px;display:flex;flex-direction:column;gap:2px;">';
-        wd.items.slice(0,2).forEach(function(s){var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var tip=esc(an)+' — '+esc(s.name)+' | Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h · Remaining: '+H(s.remaining||0)+'h';h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+sc.bg+';color:'+sc.c+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(s.remaining||0)+'h left)</span></div>';});
+        wd.items.slice(0,2).forEach(function(it){var s=it.s;var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var dueStr=s.due_date?new Date(s.due_date).toLocaleDateString('en-ZA',{day:'numeric',month:'short'}):'';var tip=esc(an)+' — '+esc(s.name)+' | Due: '+dueStr+' | This week: '+H(it.allocated)+'h · Total remaining: '+H(s.remaining||0)+'h · Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h'+(it.overflow?' ⚠️ cannot fit before deadline within 40h/week':'');h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+(it.overflow?'#fef2f2':sc.bg)+';color:'+(it.overflow?'#dc2626':sc.c)+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(it.allocated)+'h'+(it.overflow?' ⚠️':'')+')</span></div>';});
         if(cnt>2)h+='<div style="font-size:9px;color:#9ca3af;text-align:center;">+' + (cnt-2)+' more</div>';
         h+='</div>';
       } else {
@@ -1645,6 +1711,86 @@ async function vAnalytics(){
     });
     h+='</tbody></table></div>';
   }
+  setMain(h);
+}
+
+// ── client groups ────────────────────────────────────────────────────────
+async function addGroup(){
+  var n=prompt('New group name:');
+  if(!n||!n.trim())return;
+  var r=await sb.from('client_groups').insert({name:n.trim()}).select().single();
+  if(r.error){alert('Error: '+r.error.message);return;}
+  AG.push(r.data);AG.sort(function(a,b){return a.name.localeCompare(b.name);});
+  toast('✅ Group created.');vGroups();
+}
+async function renameGroup(id,cur){
+  var n=prompt('Rename group:',cur);
+  if(!n||!n.trim()||n.trim()===cur)return;
+  var r=await sb.from('client_groups').update({name:n.trim(),updated_at:new Date().toISOString()}).eq('id',id);
+  if(r.error){alert('Error: '+r.error.message);return;}
+  var g=AG.find(function(x){return x.id===id;});if(g)g.name=n.trim();
+  AG.sort(function(a,b){return a.name.localeCompare(b.name);});
+  toast('✅ Renamed.');vGroups();
+}
+async function delGroup(id,name,count){
+  if(!confirm('Delete group "'+name+'"? '+(count?count+' audit'+(count!==1?'s':'')+' will be ungrouped (not deleted).':'No audits are assigned to it.')))return;
+  var r=await sb.from('client_groups').delete().eq('id',id);
+  if(r.error){alert('Error: '+r.error.message);return;}
+  AG=AG.filter(function(x){return x.id!==id;});
+  if(EG===id)EG=null;
+  toast('🗑 Group deleted.');vGroups();
+}
+function togGrp(id){EG=EG===id?null:id;vGroups();}
+async function vGroups(){
+  showSkeleton();
+  var aq=await sb.from('audit_summary').select('*').order('name');
+  var audits=aq.data||[];
+  var byGroup={};
+  audits.forEach(function(a){if(!a.group_id)return;if(!byGroup[a.group_id])byGroup[a.group_id]=[];byGroup[a.group_id].push(a);});
+  var h='<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
+    +'<span style="font-family:Trebuchet MS,sans-serif;font-size:16px;font-weight:700;color:var(--navy);">🏢 Client Groups</span>'
+    +(CR==='manager'?'<button onclick="addGroup()" class="pbtn" style="padding:8px 14px;">+ New Group</button>':'')
+    +'</div>';
+  if(!AG.length){
+    h+='<div style="text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:44px;">🏢</div><div style="font-weight:600;margin-top:8px;">No client groups yet.</div><p style="font-size:12px;margin-top:6px;">Group related audits (e.g. companies under one holding entity) to see a combined dashboard.</p></div>';
+    setMain(h);return;
+  }
+  AG.forEach(function(g){
+    var list=byGroup[g.id]||[];
+    var tb=list.reduce(function(a,x){return a+parseFloat(x.budget_hours||0);},0);
+    var ta=list.reduce(function(a,x){return a+parseFloat(x.actual_hours||0);},0);
+    var tf=list.reduce(function(a,x){return a+parseFloat(x.fee_value||0);},0);
+    var avgP=list.length?Math.round(list.reduce(function(a,x){return a+parseFloat(x.progress_pct||0);},0)/list.length):0;
+    var isO=EG===g.id;
+    h+='<div class="card" style="margin-bottom:14px;"><div style="padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="togGrp(\''+g.id+'\')">'
+      +'<div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-family:Trebuchet MS,sans-serif;font-weight:700;font-size:16px;color:var(--navy);">'+esc(g.name)+'</span>'
+      +'<span class="badge" style="color:#6b7280;background:#f3f4f6;">'+list.length+' audit'+(list.length!==1?'s':'')+'</span>'
+      +'<span class="badge" style="color:#1A2B3C;background:#E8EEF4;">⏱ '+H(ta)+'h / '+H(tb)+'h</span>'
+      +(CR!=='staff'?'<span class="badge" style="color:#16a34a;background:#f0fdf4;">💰 '+R(tf)+'</span>':'')
+      +'</div><div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'+bar(avgP)+'<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:40px;">'+avgP+'%</span></div></div>'
+      +'<div style="display:flex;gap:6px;align-items:center;">'
+      +(CR==='manager'?'<button onclick="event.stopPropagation();renameGroup(\''+g.id+'\',\''+esc(g.name).replace(/'/g,'')+'\')" style="padding:6px 10px;background:var(--navytint);color:var(--navy);border:1px solid var(--navytintb);border-radius:7px;font-size:12px;font-weight:600;">✏️</button>':'')
+      +(CR==='manager'?'<button onclick="event.stopPropagation();delGroup(\''+g.id+'\',\''+esc(g.name).replace(/'/g,'')+'\','+list.length+')" class="dbtn">🗑</button>':'')
+      +'<span style="font-size:18px;color:#9ca3af;">'+(isO?'▲':'▼')+'</span></div></div>';
+    if(isO){
+      if(!list.length){
+        h+='<div style="padding:16px 20px;color:#9ca3af;font-size:13px;border-top:1px solid var(--border);">No audits assigned to this group yet — assign one from the Edit screen.</div>';
+      } else {
+        h+='<div style="border-top:1px solid var(--border);">';
+        list.forEach(function(a){
+          h+='<div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f1f5f9;cursor:pointer;flex-wrap:wrap;" onclick="openEdit(\''+a.id+'\')">'
+            +'<span style="flex:1;font-weight:600;color:var(--navy);font-size:13px;min-width:160px;">'+audIcon(a.type||'audit')+' '+esc(a.name)+(a.client?' <span style="font-weight:400;color:#9ca3af;">— '+esc(a.client)+'</span>':'')+'</span>'
+            +dueB(a.due_date)
+            +'<span style="font-size:12px;color:#1A2B3C;font-weight:600;">⏱ '+H(a.actual_hours)+'h / '+H(a.budget_hours)+'h</span>'
+            +'<div style="display:flex;align-items:center;gap:6px;width:120px;">'+bar(a.progress_pct||0,6)+'<span style="font-size:12px;font-weight:700;color:var(--navy);">'+(a.progress_pct||0)+'%</span></div>'
+            +'</div>';
+        });
+        h+='</div>';
+      }
+    }
+    h+='</div>';
+  });
   setMain(h);
 }
 
@@ -1832,6 +1978,7 @@ function setFStep(s){fStep=s;vAdd();}
 function goStep2(){
   fName=(document.getElementById('faN')||{}).value||fName;fName=fName.trim();
   fClient=(document.getElementById('faCl')||{}).value||fClient;fClient=fClient.trim();
+  fGroup=(document.getElementById('faGrp')||{}).value||'';
   fDue=(document.getElementById('faDue')||{}).value||fDue;
   if(!fName||!fDue){alert('Please fill in the name and due date.');return;}
   fStep=2;vAdd();
@@ -1848,7 +1995,7 @@ function rmExtra(sn,i){fExtra[sn].splice(i,1);vAdd();}
 
 async function createAudit(){
   var btn=document.getElementById('createBtn');if(btn){btn.disabled=true;btn.textContent='Creating...';btn.style.opacity='0.6';}
-  var res=await sb.from('audits').insert({name:fName,client:fClient||null,due_date:fDue||null,firm_rate:FR,type:fType,created_by:CU.id}).select().single();
+  var res=await sb.from('audits').insert({name:fName,client:fClient||null,group_id:fGroup||null,due_date:fDue||null,firm_rate:FR,type:fType,created_by:CU.id}).select().single();
   if(res.error){alert('Error: '+res.error.message);if(btn){btn.disabled=false;btn.textContent='Create '+audLabel(fType);btn.style.opacity='1';}return;}
   var aud=res.data;
   if(usingCsv&&csvSecs){
@@ -1992,7 +2139,7 @@ async function showAuditDist(auditId,auditName){
     +'</tr></tbody></table></div>';
   document.getElementById('distBody').innerHTML=h;
 }
-async function saveAudDet(id){var n=document.getElementById('eaN').value.trim();var cl=document.getElementById('eaCl').value.trim();var d=document.getElementById('eaDue').value;if(!n){alert('Name cannot be empty.');return;}await sb.from('audits').update({name:n,client:cl||null,due_date:d||null}).eq('id',id);toast('✅ Saved.');}
+async function saveAudDet(id){var n=document.getElementById('eaN').value.trim();var cl=document.getElementById('eaCl').value.trim();var g=document.getElementById('eaGrp').value;var d=document.getElementById('eaDue').value;if(!n){alert('Name cannot be empty.');return;}await sb.from('audits').update({name:n,client:cl||null,group_id:g||null,due_date:d||null}).eq('id',id);toast('✅ Saved.');}
 
 async function archiveAudit(id){
   if(!confirm('Archive this audit? It will be hidden from all views. You can restore it directly in the database if needed.'))return;
