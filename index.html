@@ -1547,16 +1547,20 @@ function renderCapacity(items){
   var minMon=new Date(todayMon);var maxMon=new Date(todayMon);maxMon.setDate(maxMon.getDate()+28);
   items.forEach(function(s){if(!s.due_date)return;var mon=getMon(s.due_date);if(mon>maxMon)maxMon=new Date(mon);});
   var weeks=[];var w=new Date(minMon);while(w<=maxMon){weeks.push(new Date(w));w.setDate(w.getDate()+7);}
-  // Each item's full remaining hours land in exactly one week: its due week,
-  // or today's week if the due date has already passed (overdue work is
-  // pulled forward to now — nothing is ever placed in a past week). No
-  // spreading across weeks: work happens the week it's due, not a little at
-  // a time for months beforehand. A week reads "Over" when too much
-  // genuinely lands there at once — bunched deadlines, which is exactly the
-  // signal this view is meant to surface.
+  // Backward fill from each item's deadline: work is scheduled as late as
+  // realistically possible without exceeding 40h/week, so a task gets
+  // compressed toward its due date instead of starting the moment it's
+  // created. Overdue items skip this entirely and land in this week (there's
+  // no future deadline to fill backward from). Items are processed earliest-
+  // due-first so time-pressured work claims near-term weeks before longer-
+  // horizon items backfill around it. If an item still can't fit even after
+  // filling every week back to today at 40h/week, the genuinely-unplaceable
+  // leftover is dumped into THIS week and flagged overflow — that's the
+  // "deal with this now or reassign it" signal, since waiting only makes it
+  // worse. A week reads "Over" purely from the real total landing there.
   var byPerson={};
   function getPerson(email){
-    if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{}};}
+    if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{},cap:{}};}
     return byPerson[email];
   }
   function addToWeek(email,weekKey,hrs,item,overflow){
@@ -1565,13 +1569,36 @@ function renderCapacity(items){
     p.byWeek[weekKey].hours+=hrs;
     p.byWeek[weekKey].items.push({s:item,allocated:hrs,overflow:!!overflow});
   }
-  items.forEach(function(s){
-    if(!s.due_date||!s.assignee_email)return;
-    var remaining=s.remaining||0;
-    if(remaining<=0.004)return;
-    var dueMon=getMon(s.due_date);
-    var targetMon=dueMon<todayMon?todayMon:dueMon;
-    addToWeek(s.assignee_email,targetMon.toISOString().slice(0,10),remaining,s,remaining>40);
+  var byEmail={};
+  items.forEach(function(s){if(!s.due_date||!s.assignee_email)return;if(!byEmail[s.assignee_email])byEmail[s.assignee_email]=[];byEmail[s.assignee_email].push(s);});
+  Object.keys(byEmail).forEach(function(email){
+    var p=getPerson(email);
+    var list=byEmail[email].slice().sort(function(a,b){return new Date(a.due_date)-new Date(b.due_date);});
+    list.forEach(function(s){
+      var dueMon=getMon(s.due_date);
+      var remaining=s.remaining||0;
+      if(remaining<=0.004)return;
+      if(dueMon<todayMon){
+        var tKey=todayMon.toISOString().slice(0,10);
+        addToWeek(email,tKey,remaining,s,false);
+        p.cap[tKey]=(p.cap[tKey]||0)+remaining;
+        return;
+      }
+      var wk=new Date(dueMon);
+      while(wk>=todayMon&&remaining>0.004){
+        var key=wk.toISOString().slice(0,10);
+        var used=p.cap[key]||0;
+        var free=Math.max(0,40-used);
+        var take=Math.min(remaining,free);
+        if(take>0.004){addToWeek(email,key,take,s,false);p.cap[key]=used+take;remaining-=take;}
+        wk.setDate(wk.getDate()-7);
+      }
+      if(remaining>0.004){
+        var tKey2=todayMon.toISOString().slice(0,10);
+        addToWeek(email,tKey2,remaining,s,true);
+        p.cap[tKey2]=(p.cap[tKey2]||0)+remaining;
+      }
+    });
   });
   var people=Object.values(byPerson).sort(function(a,b){return a.name.localeCompare(b.name);});
   function cv(hrs){if(!hrs)return {bg:'#f9fafb',c:'#d1d5db',l:''};var p=hrs/40;if(p<=0.5)return {bg:'#f0fdf4',c:'#16a34a',l:'OK'};if(p<=0.75)return {bg:'#fefce8',c:'#ca8a04',l:'Busy'};if(p<=1)return {bg:'#fff7ed',c:'#ea580c',l:'Tight'};return {bg:'#fef2f2',c:'#dc2626',l:'Over'};}
@@ -1579,7 +1606,7 @@ function renderCapacity(items){
   var h='<div style="max-width:100%;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
   h+='<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">⚖️ Weekly Capacity</span>';
-  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours shown in their due week (overdue items pulled into this week) · primary assignee only · open items · a week only turns red when the total exceeds 40h</span>';
+  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours filled backward from each due date at 40h/week, so work compresses toward its deadline (overdue items pulled into this week) · primary assignee only · open items · a week only turns red when the total exceeds 40h</span>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
   [{bg:'#f0fdf4',c:'#16a34a',l:'≤20h — OK'},{bg:'#fefce8',c:'#ca8a04',l:'20–30h — Busy'},{bg:'#fff7ed',c:'#ea580c',l:'30–40h — Tight'},{bg:'#fef2f2',c:'#dc2626',l:'>40h — Over'}].forEach(function(s){h+='<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:'+s.bg+';color:'+s.c+';">'+s.l+'</span>';});
@@ -1612,7 +1639,7 @@ function renderCapacity(items){
         h+='<div style="font-size:9px;font-weight:600;color:'+c.c+';background:'+c.bg+';border:1px solid '+c.c+'30;padding:1px 6px;border-radius:8px;">'+c.l+'</div>';
         h+='<div style="font-size:10px;color:#9ca3af;">'+cnt+' item'+(cnt!==1?'s':'')+'</div>';
         h+='<div style="width:100%;margin-top:3px;display:flex;flex-direction:column;gap:2px;">';
-        wd.items.slice(0,2).forEach(function(it){var s=it.s;var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var dueStr=s.due_date?new Date(s.due_date).toLocaleDateString('en-ZA',{day:'numeric',month:'short'}):'';var tip=esc(an)+' — '+esc(s.name)+' | Due: '+dueStr+' | Remaining: '+H(it.allocated)+'h · Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h'+(it.overflow?' ⚠️ over 40h remaining on this single item':'');h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+(it.overflow?'#fef2f2':sc.bg)+';color:'+(it.overflow?'#dc2626':sc.c)+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(it.allocated)+'h'+(it.overflow?' ⚠️':'')+')</span></div>';});
+        wd.items.slice(0,2).forEach(function(it){var s=it.s;var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var dueStr=s.due_date?new Date(s.due_date).toLocaleDateString('en-ZA',{day:'numeric',month:'short'}):'';var tip=esc(an)+' — '+esc(s.name)+' | Due: '+dueStr+' | This week: '+H(it.allocated)+'h · Total remaining: '+H(s.remaining||0)+'h · Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h'+(it.overflow?' ⚠️ cannot fit before deadline even at 40h/week':'');h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+(it.overflow?'#fef2f2':sc.bg)+';color:'+(it.overflow?'#dc2626':sc.c)+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(it.allocated)+'h'+(it.overflow?' ⚠️':'')+')</span></div>';});
         if(cnt>2)h+='<div style="font-size:9px;color:#9ca3af;text-align:center;">+' + (cnt-2)+' more</div>';
         h+='</div>';
       } else {
