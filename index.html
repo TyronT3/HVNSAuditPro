@@ -1545,13 +1545,16 @@ function renderCapacity(items){
   var today=new Date();today.setHours(0,0,0,0);
   var todayMon=getMon(today);
   var minMon=new Date(todayMon);var maxMon=new Date(todayMon);maxMon.setDate(maxMon.getDate()+28);
-  items.forEach(function(s){if(!s.due_date)return;var mon=getMon(s.due_date);if(mon<minMon)minMon=new Date(mon);if(mon>maxMon)maxMon=new Date(mon);});
+  items.forEach(function(s){if(!s.due_date)return;var mon=getMon(s.due_date);if(mon>maxMon)maxMon=new Date(mon);});
   var weeks=[];var w=new Date(minMon);while(w<=maxMon){weeks.push(new Date(w));w.setDate(w.getDate()+7);}
   // Greedy earliest-deadline-first fill: spread each item's remaining hours from
-  // today toward its due date, capping each person's week at 40h. Only when a
-  // deadline genuinely can't be met within capacity (even using every week of
-  // lead time) does the leftover spill into the due week as flagged overflow —
-  // that's the only case a week should read as truly "Over".
+  // today toward its due date (or, for already-overdue items, toward today —
+  // there's no earlier week to move them into, so overdue work is pulled
+  // forward into the current week instead of staying pinned to a past week),
+  // capping each person's week at 40h. Only when a deadline genuinely can't be
+  // met within capacity (even using every week of lead time) does the leftover
+  // spill into the target week as flagged overflow — that's the only case a
+  // week should read as truly "Over".
   var byPerson={};
   function getPerson(email){
     if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{},cap:{}};}
@@ -1572,12 +1575,9 @@ function renderCapacity(items){
       var dueMon=getMon(s.due_date);
       var remaining=s.remaining||0;
       if(remaining<=0.004)return;
-      if(dueMon<todayMon){
-        addToWeek(email,dueMon.toISOString().slice(0,10),remaining,s,false);
-        return;
-      }
+      var targetMon=dueMon<todayMon?todayMon:dueMon;
       var wk=new Date(todayMon);
-      while(wk<=dueMon&&remaining>0.004){
+      while(wk<=targetMon&&remaining>0.004){
         var key=wk.toISOString().slice(0,10);
         var used=p.cap[key]||0;
         var free=Math.max(0,40-used);
@@ -1586,7 +1586,7 @@ function renderCapacity(items){
         wk.setDate(wk.getDate()+7);
       }
       if(remaining>0.004){
-        var dueKey=dueMon.toISOString().slice(0,10);
+        var dueKey=targetMon.toISOString().slice(0,10);
         addToWeek(email,dueKey,remaining,s,true);
         p.cap[dueKey]=(p.cap[dueKey]||0)+remaining;
       }

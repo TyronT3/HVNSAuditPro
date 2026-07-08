@@ -3,6 +3,10 @@
 *.xls
 *.csv
 
+# One-off data backfill / cleanup SQL scripts — real client data, run manually
+# via Supabase SQL Editor, never committed
+/local-sql/
+
 # Environment / secrets
 .env
 .env.*
