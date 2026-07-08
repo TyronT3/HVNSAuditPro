@@ -812,11 +812,13 @@ async function vEdit(){
   var secsQ=await sb.from('sections').select('*').eq('audit_id',aud.id).order('sort_order');
   var secIds=(secsQ.data||[]).map(function(s){return s.id;});
   var subsQ2=secIds.length?await sb.from('subsections').select('*').in('section_id',secIds).order('sort_order'):{data:[]};
+  var subIds2=(subsQ2.data||[]).map(function(s){return s.id;});
+  if(subIds2.length){var eLogsQ=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',subIds2);var eHrMap={};(eLogsQ.data||[]).forEach(function(l){eHrMap[l.subsection_id]=(eHrMap[l.subsection_id]||0)+(parseFloat(l.hours)||0);});(subsQ2.data||[]).forEach(function(s){s.actual_hours=eHrMap[s.id]||0;});}
   var sbySec={};(subsQ2.data||[]).forEach(function(s){if(!sbySec[s.section_id])sbySec[s.section_id]=[];sbySec[s.section_id].push(s);});
   var reg2=new Set(AU.map(function(u){return u.email.toLowerCase();}));
   var unreg2=new Set();(subsQ2.data||[]).forEach(function(s){if(s.assignee_email&&!reg2.has(s.assignee_email.toLowerCase()))unreg2.add(s.assignee_email);});
   var gsActCodes=[];var gsMap={};
-  try{var gsActQ=await sb.from('gs_activity_codes').select('id,code,name,activity_type').order('activity_type').order('code');if(!gsActQ.error){gsActCodes=gsActQ.data||[];var subIds2=(subsQ2.data||[]).map(function(s){return s.id;});if(subIds2.length){var gsMapQ=await sb.from('gs_subsection_activity_map').select('subsection_id,gs_activity_code_id').in('subsection_id',subIds2);if(!gsMapQ.error)(gsMapQ.data||[]).forEach(function(m){gsMap[m.subsection_id]=m.gs_activity_code_id;})}}}catch(e){}
+  try{var gsActQ=await sb.from('gs_activity_codes').select('id,code,name,activity_type').order('activity_type').order('code');if(!gsActQ.error){gsActCodes=gsActQ.data||[];if(subIds2.length){var gsMapQ=await sb.from('gs_subsection_activity_map').select('subsection_id,gs_activity_code_id').in('subsection_id',subIds2);if(!gsMapQ.error)(gsMapQ.data||[]).forEach(function(m){gsMap[m.subsection_id]=m.gs_activity_code_id;})}}}catch(e){}
   var gsTypeOrder=['Audit','Accounting','Compilation','Taxation','Consulting','CoSec','Admin'];
   var gsOptsByType={};gsActCodes.forEach(function(a){var t=a.activity_type||'Other';if(!gsOptsByType[t])gsOptsByType[t]=[];gsOptsByType[t].push(a);});
   var gsOptsHtml='<option value="">— Not mapped —</option>';
@@ -868,7 +870,8 @@ async function vEdit(){
         +'<input type="date" class="inp" style="font-size:12px;padding:5px 8px;" value="'+(sub3.due_date||'')+'" onchange="updSubD(\''+sub3.id+'\',this.value)"/>'
         +'<input type="number" class="inp" style="font-size:12px;padding:5px 8px;" value="'+parseFloat(sub3.budget_hours||0)+'" min="0" step="0.25" onchange="updSubB(\''+sub3.id+'\',this.value)"/>'
         +'<select class="inp" style="font-size:11px;padding:4px 6px;background:'+(curGsId?'#f0fdf4':'#fff')+';border-color:'+(curGsId?'#86efac':'var(--border)')+';" onchange="updSubGS(\''+sub3.id+'\',this.value)">'+gsOptsHtml.replace('value="'+curGsId+'"','value="'+curGsId+'" selected')+'</select>'
-        +'<div style="display:flex;gap:4px;">'+(sub3.hidden_from_worklist?'<button onclick="unhideSub(\''+sub3.id+'\')" class="gbtn" style="padding:5px 7px;font-size:11px;" title="Restore to assignee\'s work list">↺</button>':'')+'<button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div></div>'
+        +'<div style="display:flex;gap:4px;">'+(sub3.hidden_from_worklist?'<button onclick="unhideSub(\''+sub3.id+'\')" class="gbtn" style="padding:5px 7px;font-size:11px;" title="Restore to assignee\'s work list">↺</button>':'')+'<button onclick="reqLogOnly(\''+sub3.id+'\',\''+sub3.name.replace(/'/g,'')+'\',\''+sub3.step+'\','+(parseFloat(sub3.budget_hours)||0)+','+(parseFloat(sub3.actual_hours)||0)+')" class="gbtn" style="padding:5px 7px;font-size:11px;" title="Log hours on behalf of the assignee">⏱</button><button onclick="delSubE(\''+sub3.id+'\')" class="dbtn" style="padding:5px 7px;">🗑</button></div></div>'
+        +'<div style="padding:0 16px 2px;font-size:11px;color:#9ca3af;">⏱ '+H(sub3.actual_hours)+'h logged'+(parseFloat(sub3.budget_hours)>0?' / '+H(sub3.budget_hours)+'h budget':'')+'</div>'
         +'<div style="padding:0 16px 6px;"><input class="inp" style="width:100%;box-sizing:border-box;font-size:11px;padding:4px 8px;background:#fffef5;" placeholder="Manager note..." value="'+esc(sub3.comment)+'" onblur="updSubCmt(\''+sub3.id+'\',this.value)"/></div>'
         +'<div id="coa_'+sub3.id+'" style="padding:2px 16px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;">'
         +'<span style="font-size:11px;color:#6b7280;font-weight:600;white-space:nowrap;margin-right:2px;">Co-assign:</span>'
