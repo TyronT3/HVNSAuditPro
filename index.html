@@ -559,7 +559,7 @@ async function renderView(){
 // ── dashboard ─────────────────────────────────────────────────────────────
 async function vDash(){
   showSkeleton();
-  var audQ=await sb.from('audit_summary').select('*').order('created_at',{ascending:false});
+  var audQ=await sb.from('audit_summary').select('*').order('due_date',{ascending:true,nullsFirst:false});
   var allAudits=(audQ.data||[]).filter(function(a){return deptMatch(a.type);});
   var subsQ=await sb.from('subsection_summary').select('*');
   var reg=new Set(AU.map(function(u){return u.email.toLowerCase();}));
@@ -1547,17 +1547,17 @@ function renderCapacity(items){
   var minMon=new Date(todayMon);var maxMon=new Date(todayMon);maxMon.setDate(maxMon.getDate()+28);
   items.forEach(function(s){if(!s.due_date)return;var mon=getMon(s.due_date);if(mon>maxMon)maxMon=new Date(mon);});
   var weeks=[];var w=new Date(minMon);while(w<=maxMon){weeks.push(new Date(w));w.setDate(w.getDate()+7);}
-  // Greedy earliest-deadline-first fill: spread each item's remaining hours from
-  // today toward its due date (or, for already-overdue items, toward today —
-  // there's no earlier week to move them into, so overdue work is pulled
-  // forward into the current week instead of staying pinned to a past week),
-  // capping each person's week at 40h. Only when a deadline genuinely can't be
-  // met within capacity (even using every week of lead time) does the leftover
-  // spill into the target week as flagged overflow — that's the only case a
-  // week should read as truly "Over".
+  // Even pacing: spread each item's remaining hours evenly across every week
+  // from today to its due date (or, for already-overdue items, just today —
+  // there's no earlier week to move them into), so a task due months away
+  // shows up as a small weekly share instead of being crammed into the
+  // earliest available week(s). A week only turns red when the SUM of a
+  // person's paced items that week exceeds 40h (genuine overcommitment), or
+  // when a single item's even weekly share alone exceeds 40h (its deadline
+  // can't be met at 40h/week no matter how it's spread).
   var byPerson={};
   function getPerson(email){
-    if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{},cap:{}};}
+    if(!byPerson[email]){var u=AU.find(function(u){return u.email===email;});byPerson[email]={name:u?u.full_name:email,byWeek:{}};}
     return byPerson[email];
   }
   function addToWeek(email,weekKey,hrs,item,overflow){
@@ -1569,26 +1569,19 @@ function renderCapacity(items){
   var byEmail={};
   items.forEach(function(s){if(!s.due_date||!s.assignee_email)return;if(!byEmail[s.assignee_email])byEmail[s.assignee_email]=[];byEmail[s.assignee_email].push(s);});
   Object.keys(byEmail).forEach(function(email){
-    var p=getPerson(email);
     var list=byEmail[email].slice().sort(function(a,b){return new Date(a.due_date)-new Date(b.due_date);});
     list.forEach(function(s){
       var dueMon=getMon(s.due_date);
       var remaining=s.remaining||0;
       if(remaining<=0.004)return;
       var targetMon=dueMon<todayMon?todayMon:dueMon;
+      var weekCount=Math.round((targetMon-todayMon)/(7*86400000))+1;
+      var perWeek=remaining/weekCount;
+      var overflow=perWeek>40;
       var wk=new Date(todayMon);
-      while(wk<=targetMon&&remaining>0.004){
-        var key=wk.toISOString().slice(0,10);
-        var used=p.cap[key]||0;
-        var free=Math.max(0,40-used);
-        var take=Math.min(remaining,free);
-        if(take>0.004){addToWeek(email,key,take,s,false);p.cap[key]=used+take;remaining-=take;}
+      for(var wi=0;wi<weekCount;wi++){
+        addToWeek(email,wk.toISOString().slice(0,10),perWeek,s,overflow);
         wk.setDate(wk.getDate()+7);
-      }
-      if(remaining>0.004){
-        var dueKey=targetMon.toISOString().slice(0,10);
-        addToWeek(email,dueKey,remaining,s,true);
-        p.cap[dueKey]=(p.cap[dueKey]||0)+remaining;
       }
     });
   });
@@ -1598,7 +1591,7 @@ function renderCapacity(items){
   var h='<div style="max-width:100%;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
   h+='<span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">⚖️ Weekly Capacity</span>';
-  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours spread from today toward each due date, capped at 40h/week · primary assignee only · open items · a week only turns red when a deadline can\'t be met within capacity</span>';
+  h+='<span style="font-size:12px;color:#9ca3af;">Remaining hours spread evenly from today to each due date · primary assignee only · open items · a week only turns red when the total exceeds 40h</span>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
   [{bg:'#f0fdf4',c:'#16a34a',l:'≤20h — OK'},{bg:'#fefce8',c:'#ca8a04',l:'20–30h — Busy'},{bg:'#fff7ed',c:'#ea580c',l:'30–40h — Tight'},{bg:'#fef2f2',c:'#dc2626',l:'>40h — Over'}].forEach(function(s){h+='<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:'+s.bg+';color:'+s.c+';">'+s.l+'</span>';});
@@ -1631,7 +1624,7 @@ function renderCapacity(items){
         h+='<div style="font-size:9px;font-weight:600;color:'+c.c+';background:'+c.bg+';border:1px solid '+c.c+'30;padding:1px 6px;border-radius:8px;">'+c.l+'</div>';
         h+='<div style="font-size:10px;color:#9ca3af;">'+cnt+' item'+(cnt!==1?'s':'')+'</div>';
         h+='<div style="width:100%;margin-top:3px;display:flex;flex-direction:column;gap:2px;">';
-        wd.items.slice(0,2).forEach(function(it){var s=it.s;var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var dueStr=s.due_date?new Date(s.due_date).toLocaleDateString('en-ZA',{day:'numeric',month:'short'}):'';var tip=esc(an)+' — '+esc(s.name)+' | Due: '+dueStr+' | This week: '+H(it.allocated)+'h · Total remaining: '+H(s.remaining||0)+'h · Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h'+(it.overflow?' ⚠️ cannot fit before deadline within 40h/week':'');h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+(it.overflow?'#fef2f2':sc.bg)+';color:'+(it.overflow?'#dc2626':sc.c)+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(it.allocated)+'h'+(it.overflow?' ⚠️':'')+')</span></div>';});
+        wd.items.slice(0,2).forEach(function(it){var s=it.s;var sc=CAL_COLORS[s.step]||CAL_COLORS['Not Started'];var an=s.sections&&s.sections.audits?s.sections.audits.name:'';var dueStr=s.due_date?new Date(s.due_date).toLocaleDateString('en-ZA',{day:'numeric',month:'short'}):'';var tip=esc(an)+' — '+esc(s.name)+' | Due: '+dueStr+' | This week: '+H(it.allocated)+'h · Total remaining: '+H(s.remaining||0)+'h · Budget: '+H(s.budget_hours||0)+'h · Logged: '+H(s.logged||0)+'h'+(it.overflow?' ⚠️ even weekly share exceeds 40h — deadline is too tight for this much remaining work':'');h+='<div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:2px 4px;background:'+(it.overflow?'#fef2f2':sc.bg)+';color:'+(it.overflow?'#dc2626':sc.c)+';border-radius:3px;font-weight:600;" title="'+tip+'">'+esc(s.name)+' <span style="opacity:.7;">('+H(it.allocated)+'h'+(it.overflow?' ⚠️':'')+')</span></div>';});
         if(cnt>2)h+='<div style="font-size:9px;color:#9ca3af;text-align:center;">+' + (cnt-2)+' more</div>';
         h+='</div>';
       } else {
