@@ -532,7 +532,7 @@ function buildNav(){
   if(CR==='manager')tabs.push(['add','➕ New'],['edit','✏️ Edit']);
   if(CR!=='director')tabs.push(['update','✏️ My Updates']);
   tabs.push(['calendar','📆 Calendar'],['gantt','📈 Timeline'],['capacity','⚖️ Capacity'],['workload','👥 Workload']);
-  if(CR==='manager'||CR==='director')tabs.push(['analytics','📈 Analytics'],['logHistory','🗓️ Log History'],['groups','🏢 Groups']);
+  if(CR==='manager'||CR==='director')tabs.push(['overruns','🚨 Overruns'],['analytics','📈 Analytics'],['logHistory','🗓️ Log History'],['groups','🏢 Groups']);
   if(IS_SUPER)tabs.push(['taxTB','🧾 Tax TB']);
   if(CR==='manager')tabs.push(['users','👥 Users'],['settings','⚙️ Settings']);
   document.getElementById('navBar').innerHTML=tabs.map(function(t){return '<button class="nbtn'+(CV===t[0]?' on':'')+'" onclick="goView(\''+t[0]+'\');document.getElementById(\'navBar\').classList.remove(\'open\')">'+t[1]+'</button>';}).join('');
@@ -555,6 +555,7 @@ async function renderView(){
   else if(CV==='gantt')await vGantt();
   else if(CV==='capacity')await vCapacity();
   else if(CV==='workload')await vWorkload();
+  else if(CV==='overruns')await vOverruns();
   else if(CV==='logHistory')await vLogHistory();
   else if(CV==='analytics')await vAnalytics();
   else if(CV==='groups')await vGroups();
@@ -1862,6 +1863,52 @@ async function vWorkload(){
     items.forEach(function(s){var c=SC[s.step]||SC['Not Started'];var stOv=s.step!=='Signed Off'&&s.due_date&&days(s.due_date)<0?'background:#fff5f5':'';h+='<tr style="'+stOv+'"><td style="font-size:12px;">'+esc(s.sections&&s.sections.audits?s.sections.audits.name:'—')+'</td><td style="font-size:12px;">'+esc(s.sections?s.sections.name:'—')+'</td><td style="font-size:12px;">'+esc(s.name)+'</td><td><span class="sbadge" style="color:'+c.c+';background:'+c.b+'">'+s.step+'</span></td><td style="font-size:12px;">'+dueB(s.due_date)+'</td><td style="font-size:12px;font-weight:600;">'+H(s.actual_hours)+'h</td></tr>';});
     h+='</tbody></table></div></details></div>';
   });
+  setMain(h);
+}
+
+// ── overruns ──────────────────────────────────────────────────────────────
+var OVERRUN_WARN_PCT=0.8; // matches BUDGET_WARN_PCT in supabase/functions/notifications-daily
+async function vOverruns(){
+  showSkeleton();
+  var q=await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name,archived))').gt('budget_hours',0).neq('step','Signed Off');
+  if(q.error){setMain('<div class="al al-e">Error loading overruns: '+q.error.message+'</div>');return;}
+  var items=(q.data||[]).filter(function(s){return !(s.sections&&s.sections.audits&&s.sections.audits.archived);});
+  if(items.length){
+    var ids=items.map(function(s){return s.id;});
+    var logsQ=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids);
+    var hrMap={};(logsQ.data||[]).forEach(function(l){hrMap[l.subsection_id]=(hrMap[l.subsection_id]||0)+(parseFloat(l.hours)||0);});
+    items.forEach(function(s){s.actual_hours=hrMap[s.id]||0;s.pct=parseFloat(s.budget_hours)>0?s.actual_hours/parseFloat(s.budget_hours):0;});
+  }
+  var over=items.filter(function(s){return s.pct>1;}).sort(function(a,b){return (b.actual_hours-b.budget_hours)-(a.actual_hours-a.budget_hours);});
+  var near=items.filter(function(s){return s.pct>=OVERRUN_WARN_PCT&&s.pct<=1;}).sort(function(a,b){return b.pct-a.pct;});
+  renderOverruns(over,near);
+}
+function renderOverruns(over,near){
+  function nm(u){var a=AU.find(function(a){return a.email===u;});return a?a.full_name:(u||'Unassigned');}
+  function rows(list,showOver){
+    if(!list.length)return '<div style="text-align:center;padding:24px;color:#9ca3af;font-size:13px;">None.</div>';
+    var h='<div style="overflow-x:auto;"><table class="dtbl"><thead><tr><th>Audit</th><th>Section</th><th>Subsection</th><th>Assignee</th><th>Step</th><th>Due</th><th style="text-align:right;">Budget</th><th style="text-align:right;">Actual</th><th style="text-align:right;">'+(showOver?'Over by':'% Used')+'</th></tr></thead><tbody>';
+    list.forEach(function(s){
+      var pctTxt=Math.round(s.pct*100)+'%';
+      var overBy=s.actual_hours-parseFloat(s.budget_hours);
+      h+='<tr>'
+        +'<td style="font-size:12px;">'+esc(s.sections&&s.sections.audits?s.sections.audits.name:'—')+'</td>'
+        +'<td style="font-size:12px;">'+esc(s.sections?s.sections.name:'—')+'</td>'
+        +'<td style="font-size:12px;">'+esc(s.name)+'</td>'
+        +'<td style="font-size:12px;">'+esc(nm(s.assignee_email))+'</td>'
+        +'<td><span class="sbadge" style="color:'+(SC[s.step]||SC['Not Started']).c+';background:'+(SC[s.step]||SC['Not Started']).b+'">'+s.step+'</span></td>'
+        +'<td style="font-size:12px;">'+dueB(s.due_date)+'</td>'
+        +'<td style="text-align:right;font-size:12px;">'+H(s.budget_hours)+'h</td>'
+        +'<td style="text-align:right;font-size:12px;font-weight:600;">'+H(s.actual_hours)+'h</td>'
+        +'<td style="text-align:right;font-size:12px;font-weight:700;color:'+(showOver?'#dc2626':'#d97706')+';">'+(showOver?'+'+H(overBy)+'h':pctTxt)+'</td>'
+        +'</tr>';
+    });
+    h+='</tbody></table></div>';
+    return h;
+  }
+  var h='<div style="margin-bottom:16px;"><span style="font-family:Trebuchet MS,sans-serif;font-size:18px;font-weight:700;color:var(--navy);">🚨 Hours Overruns</span><p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Open items only (Signed Off excluded) · "Near limit" = '+Math.round(OVERRUN_WARN_PCT*100)+'%–99% of budget used</p></div>';
+  h+='<div class="card" style="margin-bottom:16px;"><div style="padding:12px 18px;border-bottom:1px solid var(--border);"><span style="font-size:14px;font-weight:700;color:#dc2626;">🔴 Over Budget ('+over.length+')</span></div><div style="padding:'+(over.length?'0':'0 0 4px')+';">'+rows(over,true)+'</div></div>';
+  h+='<div class="card"><div style="padding:12px 18px;border-bottom:1px solid var(--border);"><span style="font-size:14px;font-weight:700;color:#d97706;">🟡 Near Limit ('+near.length+')</span></div><div>'+rows(near,false)+'</div></div>';
   setMain(h);
 }
 
