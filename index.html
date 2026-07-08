@@ -94,7 +94,7 @@ button,input,select,textarea{font-family:'Calibri',sans-serif;}
 .load{display:flex;align-items:center;justify-content:center;padding:60px;color:#9ca3af;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cal-hdr{text-align:center;font-size:11px;font-weight:700;color:#6b7280;padding:6px 0;text-transform:uppercase;}
-.cal-day{min-height:80px;background:#fff;border-radius:8px;border:1px solid var(--border);padding:4px;}
+.cal-day{min-height:80px;min-width:0;overflow:hidden;background:#fff;border-radius:8px;border:1px solid var(--border);padding:4px;}
 .cal-day.other{background:#f8fafc;opacity:.5;}
 .cal-day.today{border-color:var(--orange);border-width:2px;}
 .cal-day.cal-sel{background:var(--navytint);border-color:var(--navy);border-width:2px;}
@@ -949,6 +949,7 @@ function renderMyWork(){
   mwSubs.forEach(function(sub){
     var sec=mwSm[sub.section_id];if(!sec)return;
     var a=mwAm[sec.audit_id];if(!a)return;
+    if(a.archived)return;
     if(sq&&(sub.name+' '+sec.name+' '+a.name).toLowerCase().indexOf(sq)<0)return;
     if(sub.hidden_from_worklist)return;
     if(sub.step==='Signed Off'){done.push({sub:sub,sec:sec,a:a});return;}
@@ -1251,11 +1252,14 @@ var CAL_COLORS={};STEPS.forEach(function(s){CAL_COLORS[s]={bg:SC[s].b,c:SC[s].c}
 async function vCalendar(){
   showSkeleton();
   var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
+  var audQ=await sb.from('audits').select('id').eq('archived',false);
+  var activeIds=new Set((audQ.data||[]).map(function(a){return a.id;}));
   var q=isMgr
-    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audits(name))').not('due_date','is',null).neq('step','Signed Off')
-    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audits(name))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}').not('due_date','is',null).neq('step','Signed Off');
+    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audit_id,audits(name))').not('due_date','is',null).neq('step','Signed Off')
+    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,sections(name,audit_id,audits(name))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}').not('due_date','is',null).neq('step','Signed Off');
   if(q.error){setMain('<div class="al al-e">Error loading calendar: '+q.error.message+'</div>');return;}
-  renderCal(q.data||[]);
+  var items=(q.data||[]).filter(function(s){return s.sections&&activeIds.has(s.sections.audit_id);});
+  renderCal(items);
 }
 function renderCal(items){
   calItems=items;
@@ -1520,10 +1524,10 @@ async function vCapacity(){
   showSkeleton();
   var isMgr=CR==='manager'||CR==='director'||IS_SUPER;
   var q=isMgr
-    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name))').not('due_date','is',null).neq('step','Signed Off')
-    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name))').eq('assignee_email',CU.email).not('due_date','is',null).neq('step','Signed Off');
+    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name,archived))').not('due_date','is',null).neq('step','Signed Off')
+    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,sections(name,audits(name,archived))').eq('assignee_email',CU.email).not('due_date','is',null).neq('step','Signed Off');
   if(q.error){setMain('<div class="al al-e">Error: '+q.error.message+'</div>');return;}
-  var items=q.data||[];
+  var items=(q.data||[]).filter(function(s){return !(s.sections&&s.sections.audits&&s.sections.audits.archived);});
   if(items.length){
     var ids=items.map(function(s){return s.id;});
     var logsQ=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids);
@@ -1799,10 +1803,10 @@ async function vWorkload(){
   showSkeleton();
   var isMgr=CR==='manager'||CR==='director';
   var subQ=isMgr
-    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))')
-    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}');
+    ?await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type,archived))')
+    :await sb.from('subsections').select('id,name,assignee_email,step,due_date,budget_hours,section_id,sections(name,audits(name,type,archived))').or('assignee_email.eq.'+CU.email+',co_assignees.cs.{"'+CU.email+'"}');
   if(subQ.error){setMain('<div class="al al-e">Error loading workload: '+subQ.error.message+'</div>');return;}
-  var all=subQ.data||[];
+  var all=(subQ.data||[]).filter(function(s){return !(s.sections&&s.sections.audits&&s.sections.audits.archived);});
   if(all.length){
     var ids=all.map(function(s){return s.id;});
     var logsQ=await sb.from('step_logs').select('subsection_id,hours').in('subsection_id',ids);
