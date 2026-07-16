@@ -82,6 +82,12 @@ export async function getGreatSoftToken(): Promise<string> {
     throw new Error("GreatSoft token response did not include access_token");
   }
 
+  const ttlSeconds = Math.max(120, Number(token.expires_in) || 300);
+  cachedToken = {
+    token: token.access_token,
+    expiresAt: Date.now() + ttlSeconds * 1000,
+  };
+
   return token.access_token;
 }
 
